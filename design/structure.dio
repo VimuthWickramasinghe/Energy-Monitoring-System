@@ -1,9 +1,15 @@
 <mxfile host="65bd71144e">
     <diagram id="-4LXUEmnSnR7WnOjePFm" name="Page-1">
-        <mxGraphModel dx="2254" dy="2226" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="2163" dy="1891" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
+                <mxCell id="145" value="" style="whiteSpace=wrap;html=1;fillColor=light-dark(#6D8764,#046308);fontColor=#ffffff;strokeColor=#3A5431;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="1180" width="291" height="550" as="geometry"/>
+                </mxCell>
+                <mxCell id="143" value="" style="whiteSpace=wrap;html=1;fillColor=light-dark(#E51400,#7D1701);fontColor=#ffffff;strokeColor=#B20000;" vertex="1" parent="1">
+                    <mxGeometry x="-125.5" y="1350" width="265.5" height="380" as="geometry"/>
+                </mxCell>
                 <mxCell id="17" value="" style="whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="1">
                     <mxGeometry x="-25" y="90" width="490" height="230" as="geometry"/>
                 </mxCell>
@@ -57,6 +63,304 @@
                 </mxCell>
                 <mxCell id="20" value="User authentication&lt;div&gt;Firebase&lt;/div&gt;" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
                     <mxGeometry x="150" y="-210" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="22" target="25">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="61">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="21" y="860" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="46" style="edgeStyle=none;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="65">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="60" y="950" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="47" style="edgeStyle=none;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="51">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint y="760" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="22" value="ESP32&#xa;Phase 01" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="-50" y="650" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="ESP32&#xa;Phase 02" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="240" y="660" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="ESP32&#xa;Phase 03" style="rounded=1;whiteSpace=wrap;strokeColor=default;" vertex="1" parent="1">
+                    <mxGeometry x="420" y="650" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="Wi-Fi Acces point" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
+                    <mxGeometry x="-35" y="480" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="51">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="20" y="780" as="sourcePoint"/>
+                        <mxPoint x="820" y="780" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="42" value="Power meter 1" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="-370" y="750" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="Power meter 2" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="-370" y="830" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="Power meter 3" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="-370" y="920" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="51">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="-250" y="780" as="sourcePoint"/>
+                        <mxPoint x="-20" y="780" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="54" value="" style="edgeStyle=none;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="69">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="270" y="820" as="targetPoint"/>
+                        <mxPoint x="270" y="710" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="55" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="69">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="-150" y="860" as="sourcePoint"/>
+                        <mxPoint x="590" y="860" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="57" value="" style="edgeStyle=none;html=1;exitX=0.119;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;" edge="1" parent="1" source="22" target="51">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint y="760" as="targetPoint"/>
+                        <mxPoint y="710" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="58" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="42" target="51">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="-250" y="780" as="sourcePoint"/>
+                        <mxPoint x="-20" y="780" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="59" value="Live Wire Phase 01" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="58">
+                    <mxGeometry x="-0.5454" y="2" relative="1" as="geometry">
+                        <mxPoint x="14" y="-8" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="51" value="PLC Interface" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                    <mxGeometry x="-61" y="750" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="62" value="" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="22" target="61">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="21" y="860" as="targetPoint"/>
+                        <mxPoint x="21" y="710" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="63" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="43" target="61">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="-250" y="860" as="sourcePoint"/>
+                        <mxPoint x="130" y="860" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="64" value="Live Wire Phase 02" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="63">
+                    <mxGeometry x="-0.5454" y="2" relative="1" as="geometry">
+                        <mxPoint x="4" y="-8" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="61" value="PLC Interface" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                    <mxGeometry x="-5" y="830" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="" style="edgeStyle=none;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="22" target="65">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="60" y="950" as="targetPoint"/>
+                        <mxPoint x="64" y="710" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="67" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="45" target="65">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="-250" y="950" as="sourcePoint"/>
+                        <mxPoint x="480" y="950" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="68" value="Live Wire Phase 03" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="67">
+                    <mxGeometry x="-0.5454" y="2" relative="1" as="geometry">
+                        <mxPoint x="-5" y="-8" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="65" value="PLC Interface" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                    <mxGeometry x="35" y="920" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="61" target="69">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="51" y="860" as="sourcePoint"/>
+                        <mxPoint x="490" y="860" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="71" value="" style="edgeStyle=none;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="23" target="69">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="270" y="820" as="targetPoint"/>
+                        <mxPoint x="270" y="710" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="69" value="PLC Interface" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                    <mxGeometry x="240" y="830" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="24" target="72">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="480" y="950" as="targetPoint"/>
+                        <mxPoint x="480" y="710" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="74" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="65" target="72">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="90" y="950" as="sourcePoint"/>
+                        <mxPoint x="480" y="950" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="72" value="PLC Interface" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                    <mxGeometry x="450" y="920" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="112" value="ESP32&#xa;Phase 01" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="-55" y="1370" width="165" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="142" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="114" target="141">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="114" value="ESP32" style="rounded=1;whiteSpace=wrap;strokeColor=default;" vertex="1" parent="1">
+                    <mxGeometry x="415" y="1390" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="116" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="126">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="15" y="1500" as="sourcePoint"/>
+                        <mxPoint x="760" y="1500" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="117" value="Power meter 1" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="-375" y="1470" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="118" value="Power meter 2" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="-375" y="1550" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="119" value="Power meter 3" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="-375" y="1640" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="120" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="126">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="-255" y="1500" as="sourcePoint"/>
+                        <mxPoint x="-25" y="1500" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="123" value="" style="edgeStyle=none;html=1;exitX=0.119;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;" edge="1" parent="1" source="112" target="126">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-5" y="1480" as="targetPoint"/>
+                        <mxPoint x="-5" y="1430" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="124" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="117" target="126">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="-255" y="1500" as="sourcePoint"/>
+                        <mxPoint x="-25" y="1500" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="125" value="Live Wire Phase 01" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="124">
+                    <mxGeometry x="-0.5454" y="2" relative="1" as="geometry">
+                        <mxPoint x="14" y="-8" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="126" value="PLC Interface" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                    <mxGeometry x="-66" y="1470" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="127" value="" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="112" target="155">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="21.393841980706384" y="1550.0323974148123" as="targetPoint"/>
+                        <mxPoint x="16" y="1430" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="135" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="155">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="50" y="1580" as="sourcePoint"/>
+                        <mxPoint x="760" y="1580" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="138" value="" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="114" target="140">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="475" y="1670" as="targetPoint"/>
+                        <mxPoint x="475" y="1430" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="139" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="140">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="85" y="1670" as="sourcePoint"/>
+                        <mxPoint x="760" y="1670" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="141" value="Wi-Fi Acces point" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
+                    <mxGeometry x="415" y="1210" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="146" value="Location with Wi-Fi" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="385" y="1150" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="147" value="Location with No Wi-Fi" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="-60" y="1320" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="148" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="152" target="140">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="90.00000000000864" y="1670" as="sourcePoint"/>
+                        <mxPoint x="760" y="1670" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="140" value="PLC Interface" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                    <mxGeometry x="445" y="1640" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="150" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="119" target="152">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="-255" y="1670" as="sourcePoint"/>
+                        <mxPoint x="29.99999999999136" y="1670" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="151" value="Live Wire Phase 03" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="150">
+                    <mxGeometry x="-0.5454" y="2" relative="1" as="geometry">
+                        <mxPoint x="-5" y="-8" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="154" value="" style="edgeStyle=none;html=1;exitX=0.893;exitY=1.014;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;" edge="1" parent="1" source="112" target="152">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="58" y="1430" as="sourcePoint"/>
+                        <mxPoint x="60" y="1640" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="152" value="Signal Isolator&#xa;+&#xa;PLC Interface" style="rounded=0;whiteSpace=wrap;fontColor=default;fontFamily=Helvetica;" vertex="1" parent="1">
+                    <mxGeometry x="5" y="1640" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="156" value="Signal Isolator&#xa;+&#xa;PLC Interface" style="rounded=0;whiteSpace=wrap;fontColor=default;" vertex="1" parent="1">
+                    <mxGeometry x="-115" y="1470" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="157" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="118" target="155">
+                    <mxGeometry width="80" relative="1" as="geometry">
+                        <mxPoint x="-255" y="1580" as="sourcePoint"/>
+                        <mxPoint x="-10" y="1580" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="158" value="Live Wire Phase 02" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="157">
+                    <mxGeometry x="-0.5454" y="2" relative="1" as="geometry">
+                        <mxPoint x="4" y="-8" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="155" value="Signal aIsolator&lt;br&gt;+&lt;br&gt;PLC Interface" style="rounded=0;whiteSpace=wrap;fontColor=default;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="-61" y="1550" width="120" height="60" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
