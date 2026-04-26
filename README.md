@@ -4,13 +4,13 @@ Energy monitoring system with Wi-Fi and PLC (Power Line communication between de
 
 ## File Structure
 ```text
-├── backend/            # Express.js API server
-├── frontend/           # Next.js web dashboard
-├── firmware/ems-platformio/ # PlatformIO firmware for ESP32
-├── design/             # Sketches of the design Drawio
-├── hardware/           # schematics and Proteus Project/Ki-cad Project files
-├── Research/           # Matlab simulink files for simulation
-└── README.md           # Project overview
+├── backend/                   # Express.js API server
+├── frontend/ems-webapp/       # Next.js web dashboard
+├── firmware/ems-platformio/   # PlatformIO firmware for ESP32
+├── design/                    # Sketches of the design Drawio
+├── hardware/                  # schematics and Proteus Project/Ki-cad Project files
+├── Research/                  # Matlab simulink files for simulation
+└── README.md                  # Project overview
 ```
 
 
@@ -44,7 +44,7 @@ esp32 code platformIO framework arduino
 
 3. **Frontend Setup:**
    ```bash
-   cd frontend
+   cd frontend/ems-webapp
    npm install
    npm run dev
    ```
