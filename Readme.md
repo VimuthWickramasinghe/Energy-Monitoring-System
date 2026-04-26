@@ -1,2 +1,7 @@
 # Energy-Monitoring-System
-Energy monitoring system with Wi-Fi and Wired(Re) communication 
+Monorepo 
+Energy monitoring system with Wi-Fi and PLC (Power Line communication between devices) 
+
+File Structure
+
+In
