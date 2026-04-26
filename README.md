@@ -6,7 +6,7 @@ Energy monitoring system with Wi-Fi and PLC (Power Line communication between de
 ```text
 ├── backend/            # Express.js API server
 ├── frontend/           # Next.js web dashboard
-├── esp/ems-platformio/ # PlatformIO firmware for ESP32
+├── firmware/ems-platformio/ # PlatformIO firmware for ESP32
 ├── design/             # Sketches of the design Drawio
 ├── hardware/           # schematics and Proteus Project/Ki-cad Project files
 ├── Research/           # Matlab simulink files for simulation
@@ -50,7 +50,7 @@ esp32 code platformIO framework arduino
    ```
 
 4. **Hardware Setup (ESP32):**
-   - Open the `esp32` folder in PlatformIO.
+   - Open the `firmware/esp-platformio` folder in PlatformIO.
    - Build and upload the firmware to your ESP32 device.
 
 ### Features
