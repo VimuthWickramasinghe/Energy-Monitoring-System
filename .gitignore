@@ -27,3 +27,10 @@ next-env.d.ts
 # --- OS / IDE Specific ---
 .vscode/
 .idea/
+
+# --- PlatformIO ---
+.pio/
+.pioenvs/
+.piolibdeps/
+.clang_complete
+fpga_libs/
