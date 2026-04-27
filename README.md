@@ -24,7 +24,7 @@ esp32 code platformIO framework arduino
 - **Node.js** (v18 or higher)
 - **npm** or **yarn**
 - **MongoDB** (Local or Atlas)
-- **PlatformIO IDE** (for ESP32 development)
+- **PlatformIO VS code extension** (for ESP32 development)
 
 ### Installation
 
@@ -35,6 +35,7 @@ esp32 code platformIO framework arduino
    ```
 
 2. **Backend Setup:**
+   Download Node.js  https://nodejs.org/en/download
    ```bash
    cd backend
    npm install
@@ -43,6 +44,7 @@ esp32 code platformIO framework arduino
    ```
 
 3. **Frontend Setup:**
+   Download Node.js  https://nodejs.org/en/download
    ```bash
    cd frontend/ems-webapp
    npm install
