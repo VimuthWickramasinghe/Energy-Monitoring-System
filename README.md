@@ -43,13 +43,7 @@ esp32 code platformIO framework arduino
    npm start
    ```
 
-3. **Frontend Setup:**
-   Download Node.js  https://nodejs.org/en/download
-   ```bash
-   cd frontend/ems-webapp
-   npm install
-   npm run dev
-   ```
+3. =
 
 4. **Hardware Setup (ESP32):**
    - Open the `firmware/esp-platformio` folder in PlatformIO.
