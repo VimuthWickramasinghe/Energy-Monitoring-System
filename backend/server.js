@@ -2,11 +2,12 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
 
 const express = require('express');
-const mongoose = require('mongoose');
+const mongoose = require('mongoose'); // Kept for Schema/Model functionality
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { spawn } = require('child_process');
 const admin = require('firebase-admin');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
 
@@ -26,6 +27,7 @@ try {
     credential: admin.credential.cert(serviceAccount)
   });
 } catch (error) {
+  console.error("Firebase Admin Setup Error:", error);
   if (!process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
     console.error('\n❌ FATAL ERROR: Missing Firebase Admin credentials.');
     console.error('Node.js could not find the "serviceAccountKey.json" file in your backend folder.');
@@ -242,29 +244,38 @@ app.get('/predict', authenticateFirebaseToken, (req, res) => {
 });
 
 // Connect and optionally insert ONE sample dataset if collection empty
-mongoose.connect(mongoUri)
-  .then(async () => {
-    console.log('Connected to MongoDB');
+const uri = process.env.MONGODB_URI || "mongodb+srv://vimuth:<db_password>@ems-device-data-cluster.b4ircf5.mongodb.net/?appName=EMS-Device-data-Cluster";
 
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
+
+async function run() {
+  try {
+    // Connect the client to the server (optional starting in v4.7)
+    await client.connect();
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+    // Maintain mongoose connection for the Schema/Models used in endpoints
+    await mongoose.connect(uri);
+    
     const count = await Sensor.countDocuments().catch(() => 0);
     if (!count) {
-      const sampleData = new Sensor({
-        volt: 201.5,
-        amps: 1.23,
-        watt: 283.5,
-        temperature: 20.4,
-        humidity: 60.2
-      });
+      const sampleData = new Sensor({ volt: 201.5, watt: 283.5, temperature: 20.4, humidity: 60.2 });
       await sampleData.save();
-      console.log('Inserted ONE sample dataset:', sampleData);
-    } else {
-      console.log('Collection already contains documents, skipping sample insert.');
+      console.log('Inserted ONE sample dataset');
     }
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err.message);
-    process.exit(1);
-  });
+  } catch (err) {
+    console.dir(err);
+  }
+}
+run().catch(console.dir);
 
 const port = process.env.PORT || 5000;
 // listen on all interfaces so other devices can reach this server
