@@ -53,7 +53,12 @@ export function NotificationProvider({ children }) {
 export const useNotification = () => {
     const context = useContext(NotificationContext);
     if (!context) {
-        throw new Error("useNotification must be used within a NotificationProvider");
+        // Return a fallback to prevent crashes during initialization or when used outside provider
+        return {
+            notifications: [],
+            addNotification: () => {},
+            removeNotification: () => {}
+        };
     }
     return context;
 };

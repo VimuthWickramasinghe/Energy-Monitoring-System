@@ -1,7 +1,7 @@
 "use client";
 import React, { useContext } from "react";
 import {
-    LayoutDashboard, Settings, Activity, Battery, Bell,
+    LayoutDashboard, Settings, Activity, Battery, Bell, Building2,
     Download, Calendar, Zap, ArrowUpRight, ArrowDownRight, LogOut
 } from "lucide-react";
 import Link from "next/link";
@@ -10,11 +10,12 @@ import { AuthContext } from "@/lib/AuthContext";
 
 export default function UserNav() {
     const pathname = usePathname();
-    const { logout } = useContext(AuthContext) as { logout: () => void };
+    const { user, logout } = useContext(AuthContext) as { user: any, logout: () => void };
 
     const navItems = [
         { label: "Dashboard", href: "dashboard", icon: LayoutDashboard },
         { label: "Analytics", href: "analytics", icon: Activity },
+        { label: "Building", href: "building", icon: Building2 },
         { label: "Devices", href: "devices", icon: Battery },
         { label: "Settings", href: "settings", icon: Settings },
     ];
@@ -34,6 +35,7 @@ export default function UserNav() {
                         page={item.href} 
                         icon={<item.icon size={20} />}
                         isActive={pathname.includes(`/${item.href}`)}
+                        userEmail={user?.email}
                     >
                         {item.label}
                     </UserNavLink>
@@ -53,10 +55,10 @@ export default function UserNav() {
     );
 }
 
-function UserNavLink({ page, children, icon, isActive }: { page: string, children: React.ReactNode, icon: React.ReactNode, isActive: boolean }) {
+function UserNavLink({ page, children, icon, isActive, userEmail }: { page: string, children: React.ReactNode, icon: React.ReactNode, isActive: boolean, userEmail: string }) {
     return (
         <Link 
-            href={`/user/${page}`} 
+            href={`/${userEmail}/${page}`} 
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
                 isActive 
                 ? "text-orange-600 bg-orange-50" 

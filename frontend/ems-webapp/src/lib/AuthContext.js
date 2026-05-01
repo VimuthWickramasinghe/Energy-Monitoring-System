@@ -1,24 +1,30 @@
 "use client"
 import { useState, useEffect, createContext, useContext } from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, deleteUser } from "firebase/auth";
 import { auth } from "./../../firebase.config.js";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useRouter, usePathname } from "next/navigation";
+import { useNotification } from "./NotificationContext";
 export const AuthContext = createContext();
 
 export default function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [profile, setProfile] = useState(null);
+    const [isGoogleUser, setIsGoogleUser] = useState(false);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const pathname = usePathname();
+    const { addNotification } = useNotification();
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
+                setIsGoogleUser(currentUser.providerData.some(p => p.providerId === 'google.com'));
                 await fetchUserProfile(currentUser.uid);
             } else {
                 setUser(null);
+                setIsGoogleUser(false);
                 setProfile(null);
             }
             setLoading(false);
@@ -35,11 +41,15 @@ export default function AuthProvider({ children }) {
         }
 
         // If logged in and trying to access home/login/signup, redirect to dashboard
-        if (user && (pathname === '/' || pathname === '/login' || pathname === '/signup')) {
-            router.push(`/${user.uid}/dashboard`);
+        if (user && (pathname === '/login' || pathname === '/signup')) {
+            router.push(`/${user.email}/dashboard`);
+        }
+        if (user && pathname !== '/' && !pathname.startsWith(`/${user.email}`)) {
+            router.push(`/${user.email}/dashboard`);
         }
     }, [user, loading, pathname, router]);
 
+    // Todo After creating the user profile database
     const fetchUserProfile = async (uid) => {
         try {
             const docRef = doc(db, "users", uid);
@@ -63,9 +73,9 @@ export default function AuthProvider({ children }) {
         } catch (error) {
             console.error("Login error:", error);
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                alert("Invalid email or password.");
+                addNotification("Invalid email or password.", "error");
             } else {
-                alert("Failed to log in: " + error.message);
+                addNotification("Failed to log in: " + error.message, "error");
             }
         }
         finally {
@@ -92,9 +102,9 @@ export default function AuthProvider({ children }) {
         } catch (error) {
             console.error("Signup error:", error);
             if (error.code === 'auth/email-already-in-use') {
-                alert("This email is already registered. Please try logging in.");
+                addNotification("This email is already registered. Please try logging in.", "error");
             } else {
-                alert("Failed to sign up: " + error.message);
+                addNotification("Failed to sign up: " + error.message, "error");
             }
         }
         finally {
@@ -138,14 +148,38 @@ export default function AuthProvider({ children }) {
             router.push(`/${user.uid}/dashboard`);
         } catch (error) {
             console.error("Google sign-in error:", error);
-            alert("Failed to sign in with Google: " + error.message);
+            addNotification("Failed to sign in with Google: " + error.message, "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const deleteAccount = async () => {
+        if (!user) return;
+        const confirmDelete = window.confirm("Are you sure you want to permanently delete your account? This action cannot be undone.");
+        if (!confirmDelete) return;
+
+        setLoading(true);
+        try {
+            // Todo Implement delete user after making the prostgralSQL tables server
+            // 1. Delete user data from Firestore
+            // const userDocRef = doc(db, "users", user.uid);
+            // await deleteDoc(userDocRef);
+
+            // 2. Delete user from Firebase Auth
+            await deleteUser(user);
+            
+            router.push('/');
+        } catch (error) {
+            console.error("Delete account error:", error);
+            addNotification("Failed to delete account. You may need to re-authenticate.", "error");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, profile, login, signup, logout, loginWithGoogle, loading, fetchUserProfile }}>{children}</AuthContext.Provider>
+        <AuthContext.Provider value={{ user, profile, login, signup, logout, loginWithGoogle, deleteAccount, loading, fetchUserProfile, isGoogleUser }}>{children}</AuthContext.Provider>
     );
 }
 
