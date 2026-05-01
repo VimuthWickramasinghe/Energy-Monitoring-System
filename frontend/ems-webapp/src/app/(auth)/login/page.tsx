@@ -2,8 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function LoginPage() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const { login } = useAuth();
+
     return (
         <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-gray-50">
             <div className="w-full max-w-md space-y-8 bg-white p-10 rounded-2xl shadow-sm border border-gray-100">
@@ -54,21 +60,24 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                    <form className="space-y-4" onSubmit={(e) => {
+                        e.preventDefault();
+                        login(email, password);
+                    }}>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
                             <input
                                 type="email"
-                                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                                placeholder="name@company.com"
+                                className="w-full px-4 py-3 rounded-lg border text-black border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                                placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                             <input
                                 type="password"
-                                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                                placeholder="••••••••"
+                                className="w-full px-4 py-3 rounded-lg border text-black border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                                placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
                         <button
@@ -78,6 +87,15 @@ export default function LoginPage() {
                             Sign inr
                         </button>
                     </form>
+
+                    <div className="text-center">
+                        <p className="text-sm text-gray-500">
+                            Don't have an account?{" "}
+                            <Link href="/signup" className="text-orange-500 hover:text-orange-600 font-medium">
+                                Sign up
+                            </Link>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

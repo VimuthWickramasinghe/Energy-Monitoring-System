@@ -2,28 +2,28 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar
 } from "recharts";
-import { 
-  LayoutDashboard, 
-  Settings, 
-  User, 
-  LogOut, 
-  PlusCircle, 
-  Zap, 
-  Activity, 
-  Battery, 
+import {
+  LayoutDashboard,
+  Settings,
+  User,
+  LogOut,
+  PlusCircle,
+  Zap,
+  Activity,
+  Battery,
   TrendingUp,
   Calendar,
   ChevronDown,
@@ -61,7 +61,7 @@ export default function DashboardPage() {
             EMS
           </Link>
         </div>
-        
+
         <nav className="flex-1 px-4 space-y-1">
           <Link href="#" className="flex items-center gap-3 px-4 py-3 text-orange-600 bg-orange-50 rounded-xl font-medium">
             <LayoutDashboard size={20} />
@@ -97,7 +97,7 @@ export default function DashboardPage() {
             <h1 className="text-xl font-bold text-gray-900">Energy Overview</h1>
             <p className="text-sm text-gray-500">Welcome back, monitoring active</p>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors relative">
               <Bell size={20} />
@@ -144,7 +144,7 @@ export default function DashboardPage() {
             <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
               <div className="flex items-center justify-between mb-8">
                 <h3 className="font-bold text-gray-900">Consumption Trends</h3>
-                <select 
+                <select
                   className="bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-orange-500"
                   value={timeRange}
                   onChange={(e) => setTimeRange(e.target.value)}
@@ -159,23 +159,23 @@ export default function DashboardPage() {
                   <AreaChart data={consumptionData}>
                     <defs>
                       <linearGradient id="colorUsage" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.1}/>
-                        <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.1} />
+                        <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#9ca3af'}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#9ca3af'}} />
-                    <Tooltip 
+                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                    <Tooltip
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="usage" 
-                      stroke="#f97316" 
+                    <Area
+                      type="monotone"
+                      dataKey="usage"
+                      stroke="#f97316"
                       strokeWidth={3}
-                      fillOpacity={1} 
-                      fill="url(#colorUsage)" 
+                      fillOpacity={1}
+                      fill="url(#colorUsage)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -190,16 +190,16 @@ export default function DashboardPage() {
                   <BarChart data={deviceData} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
                     <XAxis type="number" hide />
-                    <YAxis 
-                      dataKey="name" 
-                      type="category" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{fontSize: 12, fill: '#4b5563'}}
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#4b5563' }}
                       width={100}
                     />
-                    <Tooltip 
-                      cursor={{fill: 'transparent'}}
+                    <Tooltip
+                      cursor={{ fill: 'transparent' }}
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
                     <Bar dataKey="value" fill="#f97316" radius={[0, 4, 4, 0]} barSize={20} />
