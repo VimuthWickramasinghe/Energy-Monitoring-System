@@ -27,11 +27,27 @@ export default function AnalyticsPage() {
             <Nav />
 
             <main className="flex-1 overflow-y-auto">
-                <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
-                    <h1 className="text-xl font-bold text-gray-900">Advanced Analytics</h1>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-all">
-                        <Download size={16} /> Export CSV
-                    </button>
+                <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-900">Advanced Analytics</h1>
+                        <p className="text-sm text-gray-500">Deep dive into energy performance</p>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-all">
+                            <Download size={16} /> Export CSV
+                        </button>
+                        <div className="h-8 w-px bg-gray-200 mx-2"></div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
+                                VW
+                            </div>
+                            <div className="hidden md:block">
+                                <p className="text-sm font-semibold text-gray-900">Vimuth Wickramasinghe</p>
+                                <p className="text-xs text-gray-500">System Admin</p>
+                            </div>
+                        </div>
+                    </div>
                 </header>
 
                 <div className="p-8 max-w-7xl mx-auto space-y-8">
@@ -55,7 +71,7 @@ export default function AnalyticsPage() {
                             </div>
                         </div>
                         
-                        <div className="h-[350px] w-full">
+                        <div className="h-[240px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={phaseData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
