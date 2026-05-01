@@ -1,13 +1,16 @@
 "use client";
+import React, { useContext } from "react";
 import {
     LayoutDashboard, Settings, Activity, Battery, Bell,
     Download, Calendar, Zap, ArrowUpRight, ArrowDownRight, LogOut
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AuthContext } from "@/lib/AuthContext";
 
 export default function UserNav() {
     const pathname = usePathname();
+    const { logout } = useContext(AuthContext) as { logout: () => void };
 
     const navItems = [
         { label: "Dashboard", href: "dashboard", icon: LayoutDashboard },
@@ -38,7 +41,10 @@ export default function UserNav() {
             </nav>
 
             <div className="p-4 border-t border-gray-100">
-                <button className="flex items-center gap-3 px-4 py-3 w-full text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl font-medium transition-colors">
+                <button 
+                    onClick={logout}
+                    className="flex items-center gap-3 px-4 py-3 w-full text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl font-medium transition-colors"
+                >
                     <LogOut size={20} />
                     Sign Out
                 </button>
