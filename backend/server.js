@@ -90,6 +90,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Root endpoint for Cloud Run health checks
+app.get('/', (req, res) => {
+  res.send('Hello from Cloud Run!');
+});
+
 // health endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
@@ -277,8 +282,8 @@ async function run() {
 }
 run().catch(console.dir);
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8080;
 // listen on all interfaces so other devices can reach this server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on port ${port} (listening on 0.0.0.0)`);
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
