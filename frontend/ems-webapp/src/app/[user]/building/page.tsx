@@ -10,8 +10,11 @@ import {
   MoreVertical,
   Zap,
   Thermometer,
-  Wifi
+  Wifi,
+  PlusCircle,
+  Building2
 } from "lucide-react";
+import Header from "@/components/Header";
 
 interface Device {
   id: string;
@@ -47,7 +50,19 @@ export default function DeviceManagement() {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <main className="flex-1 overflow-y-auto bg-gray-50">
+      <Header 
+        title="Building Management" 
+        subtitle="Monitor and control your infrastructure"
+      >
+        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 font-medium transition-colors text-sm">
+          <Building2 size={18} className="text-orange-500" />
+          <span className="hidden sm:inline">Add Building</span>
+          <PlusCircle size={16} className="text-gray-400" />
+        </button>
+      </Header>
+
+      <div className="p-8 space-y-6">
       {/* Header Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
@@ -64,10 +79,6 @@ export default function DeviceManagement() {
           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 font-medium transition-colors">
             <Settings2 size={18} />
             Filters
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-medium transition-colors shadow-sm shadow-orange-200">
-            <Plus size={18} />
-            Add Device
           </button>
         </div>
       </div>
@@ -125,6 +136,7 @@ export default function DeviceManagement() {
           </div>
         ))}
       </div>
-    </div>
+      </div>
+    </main>
   );
 }
