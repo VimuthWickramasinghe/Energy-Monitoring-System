@@ -15,7 +15,8 @@ export default function SettingsPage() {
         name: "Vimuth Wickramasinghe",
         email: "vimuth@example.com",
         role: "System Admin",
-        phone: "+94 77 123 4567"
+        phone: "+94 77 123 4567",
+       
     });
 
     return (
@@ -78,6 +79,10 @@ export default function SettingsPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                                     <input type="email" defaultValue={profile.email} className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+                                    <input type="text" value={profile.id} disabled className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 cursor-not-allowed" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
