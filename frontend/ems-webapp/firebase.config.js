@@ -2,13 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBU_xkCYLHk7zfRZ2VI8VWaQvmexNi5tkk",
-    // authDomain: "energy-management-system-fd6fb.firebaseapp.com",
-    // projectId: "energy-management-system-fd6fb",
-    // storageBucket: "energy-management-system-fd6fb.firebasestorage.app",
-    // messagingSenderId: "916068298986",
-    // appId: "1:916068298986:web:e433e47045d60763616793",
-    // measurementId: "G-BMK01PQB7D"    // ... other config variables
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);

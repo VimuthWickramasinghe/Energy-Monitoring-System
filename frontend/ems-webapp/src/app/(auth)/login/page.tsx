@@ -8,7 +8,15 @@ import { useAuth } from "@/lib/AuthContext";
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { login } = useAuth();
+    const { login, loginWithGoogle } = useAuth();
+
+    const handleGoogleLogin = async () => {
+        try {
+            await loginWithGoogle();
+        } catch (error) {
+            console.error("Google login failed:", error);
+        }
+    };
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-gray-50">
@@ -27,7 +35,7 @@ export default function LoginPage() {
 
                 <div className="mt-8 space-y-6">
                     <button
-                        onClick={() => { }}
+                        onClick={handleGoogleLogin}
                         className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                     >
                         <svg width="20" height="20" viewBox="0 0 24 24">
