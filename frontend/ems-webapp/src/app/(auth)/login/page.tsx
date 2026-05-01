@@ -60,7 +60,10 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                    <form className="space-y-4" onSubmit={(e) => {
+                        e.preventDefault();
+                        login(email, password);
+                    }}>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
                             <input
@@ -80,7 +83,6 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             className="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
-                            onClick={login(email,)}
                         >
                             Sign in
                         </button>

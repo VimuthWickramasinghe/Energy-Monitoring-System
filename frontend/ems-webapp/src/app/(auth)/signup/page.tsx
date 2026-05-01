@@ -27,7 +27,10 @@ export default function SignUpPage() {
                 </div>
 
                 <div className="mt-8 space-y-6">
-                    <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                    <form className="space-y-4" onSubmit={(e) => {
+                        e.preventDefault();
+                        signup(email, password);
+                    }}>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                             <input
@@ -61,7 +64,6 @@ export default function SignUpPage() {
                         <button
                             type="submit"
                             className="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
-                            onClick={signup(email, password)}
                         >
                             Create account
                         </button>
