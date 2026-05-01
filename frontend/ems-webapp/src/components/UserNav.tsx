@@ -17,7 +17,7 @@ export default function Nav() {
     ];
 
     return (
-        <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col h-screen">
+        <aside className="sticky top-0 w-64 bg-white border-r border-gray-200 flex flex-col h-screen shrink-0">
             <div className="p-6">
                 <Link href="/" className="text-2xl font-bold tracking-tight text-gray-900">
                     EMS

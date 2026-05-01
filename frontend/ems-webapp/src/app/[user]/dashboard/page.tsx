@@ -30,7 +30,6 @@ import {
   Bell
 } from "lucide-react";
 
-import Nav from "@/components/UserNav";
 import { Card } from "@/components/Card";
 import { AuthContext } from "@/lib/AuthContext";
 import Header from "@/components/Header";
@@ -60,16 +59,11 @@ export default function DashboardPage() {
   const { user } = useContext(AuthContext) as { user: any };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar Navigation */}
-      <Nav />
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        {/* Header */}
-       <Header/>
-
-        <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <main className="flex-1 flex flex-col overflow-hidden">
+      <Header/>
+      
+      <div className="flex-1 overflow-y-auto p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
           {/* Stats Grid */}
           <Card></Card>
 
@@ -144,7 +138,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
