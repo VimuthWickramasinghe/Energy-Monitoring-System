@@ -74,7 +74,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-8">
                 <h3 className="font-bold text-gray-900">Consumption Trends</h3>
                 <select
-                  className="bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-orange-500"
+                  className="bg-gray-50 border border-gray-200 text-sm text-black rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-orange-500"
                   value={timeRange}
                   onChange={(e) => setTimeRange(e.target.value)}
                 >
