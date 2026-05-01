@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Link from "next/link";
 import {
   LineChart,
@@ -30,12 +30,14 @@ import {
   Bell
 } from "lucide-react";
 
-import Nav from "@/components/UserNav";
 import { Card } from "@/components/Card";
+import { AuthContext } from "@/lib/AuthContext";
+import Header from "@/components/Header";
 
 // Mock Data for the charts
 const consumptionData = [
-  { time: "00:00", usage: 45, cost: 1.2 },
+  { time: "00:00", usage: 45, cost: 1.2
+ },
   { time: "04:00", usage: 30, cost: 0.8 },
   { time: "08:00", usage: 85, cost: 2.5 },
   { time: "12:00", usage: 120, cost: 4.1 },
@@ -54,42 +56,14 @@ const deviceData = [
 
 export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState("24h");
+  const { user } = useContext(AuthContext) as { user: any };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar Navigation */}
-
-
-        <Nav />
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Energy Overview</h1>
-            <p className="text-sm text-gray-500">Welcome back, monitoring active</p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors relative">
-              <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border-2 border-white"></span>
-            </button>
-            <div className="h-8 w-px bg-gray-200 mx-2"></div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
-                JD
-              </div>
-              <div className="hidden md:block">
-                <p className="text-sm font-semibold text-gray-900">John Doe</p>
-                <p className="text-xs text-gray-500">Admin Account</p>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <main className="flex-1 flex flex-col overflow-hidden">
+      <Header/>
+      
+      <div className="flex-1 overflow-y-auto p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
           {/* Stats Grid */}
           <Card></Card>
 
@@ -164,7 +138,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }

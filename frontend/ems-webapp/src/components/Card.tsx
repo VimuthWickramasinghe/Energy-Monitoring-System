@@ -1,4 +1,5 @@
-import { Battery, TrendingUp, Zap, Activity, LucideIcon } from "lucide-react";
+import { Battery, TrendingUp, Zap, Activity, LucideIcon, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import React from "react";
 
 interface StatItem {
   label: string;
@@ -11,8 +12,8 @@ interface StatItem {
 }
 
 const DEFAULT_STATS: StatItem[] = [
-  { label: "Current Usage", value: "2.4 kW", icon: Zap, color: "text-orange-500", bg: "bg-orange-50", trend: "+2.5%", trendUp: true },
-  { label: "Daily Cost", value: "$12.40", icon: TrendingUp, color: "text-green-500", bg: "bg-green-50", trend: "+1.2%", trendUp: true },
+  { label: "Current Usage", value: "2.4 kW", icon: Zap, color: "text-orange-600", bg: "bg-orange-50", trend: "+2.5%", trendUp: true },
+  { label: "Daily Cost", value: "$12.40", icon: TrendingUp, color: "text-green-600", bg: "bg-green-50", trend: "-0.8%", trendUp: false },
   { label: "Active Devices", value: "12", icon: Battery, color: "text-blue-500", bg: "bg-blue-50", trend: "Stable", trendUp: true },
   { label: "System Health", value: "98%", icon: Activity, color: "text-purple-500", bg: "bg-purple-50", trend: "Optimal", trendUp: true },
 ];
@@ -29,14 +30,15 @@ export function Card({ stats = DEFAULT_STATS }: CardProps) {
           key={i} 
           className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200"
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3 mb-4">
             <div className={`p-2 rounded-lg ${stat.bg} ${stat.color}`}>
               <stat.icon size={20} />
             </div>
             {stat.trend && (
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+              <span className={`ml-auto flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-full ${
                 stat.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
               }`}>
+                {stat.trendUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                 {stat.trend}
               </span>
             )}

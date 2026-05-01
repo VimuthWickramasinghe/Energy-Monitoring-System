@@ -9,7 +9,7 @@ import {
     LayoutDashboard, Settings, Activity, Battery, Bell,
     Download, Calendar, Zap, ArrowUpRight, ArrowDownRight, LogOut
 } from "lucide-react";
-import Nav from "@/components/UserNav";
+import Header from "@/components/Header";
 
 const phaseData = [
     { time: "00:00", p1: 230, p2: 232, p3: 229 },
@@ -22,34 +22,17 @@ const phaseData = [
 
 export default function AnalyticsPage() {
     return (
-        <div className="flex min-h-screen bg-gray-50">
-            {/* Sidebar - Same as Dashboard */}
-            <Nav />
-
-            <main className="flex-1 overflow-y-auto">
-                <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-                    <div>
-                        <h1 className="text-xl font-bold text-gray-900">Advanced Analytics</h1>
-                        <p className="text-sm text-gray-500">Deep dive into energy performance</p>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-all">
-                            <Download size={16} /> Export CSV
-                        </button>
-                        <div className="h-8 w-px bg-gray-200 mx-2"></div>
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
-                                VW
-                            </div>
-                            <div className="hidden md:block">
-                                <p className="text-sm font-semibold text-gray-900">Vimuth Wickramasinghe</p>
-                                <p className="text-xs text-gray-500">System Admin</p>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+            <Header 
+                title="Advanced Analytics" 
+                subtitle="Deep dive into energy performance"
+            >
+                <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-all">
+                    <Download size={16} /> Export CSV
+                </button>
+            </Header>
+            
+            <div className="flex-1">
                 <div className="p-8 max-w-7xl mx-auto space-y-8">
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <div className="flex justify-between items-center mb-8">
@@ -113,7 +96,7 @@ export default function AnalyticsPage() {
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     );
 }

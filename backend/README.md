@@ -18,7 +18,7 @@ npm install
 Then, run the development server:
 
 ```bash
-npm run dev
+npm start
 ```
 
 The server will start at [http://localhost:5000](http://localhost:5000) (or your configured PORT).
