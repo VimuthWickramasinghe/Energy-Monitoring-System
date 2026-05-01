@@ -68,7 +68,6 @@ export default function SignUpPage() {
                             Create account
                         </button>
                     </form>
-                    <div>{name}</div>
                     <div className="text-center">
                         <p className="text-sm text-gray-500">
                             Already have an account?{" "}
