@@ -5,13 +5,14 @@ import {
     LayoutDashboard, Settings, User, LogOut, Activity,
     Battery, Bell, Moon, Sun, Shield, History, Trash2, Camera, Lock, ChevronDown
 } from "lucide-react";
-import Nav from "@/components/UserNav";
+import Header from "@/components/Header";
 
 export default function SettingsPage() {
     const [theme, setTheme] = useState("dark");
 
     // Mock User Data
     const [profile, setProfile] = useState({
+        id: "USR-9921-X",
         name: "Vimuth Wickramasinghe",
         email: "vimuth@example.com",
         role: "System Admin",
@@ -20,34 +21,11 @@ export default function SettingsPage() {
     });
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
-            {/* Sidebar Navigation - Identical to Dashboard */}
-
-                <Nav/>
-
-
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto">
-                <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-                    <div>
-                        <h1 className="text-xl font-bold text-gray-900">Account Settings</h1>
-                        <p className="text-sm text-gray-500">Manage your profile and system preferences</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button className="p-2 text-gray-400 hover:text-gray-600 relative">
-                            <Bell size={20} />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border-2 border-white"></span>
-                        </button>
-                        <div className="h-8 w-px bg-gray-200 mx-2"></div>
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">VW</div>
-                            <div className="hidden md:block">
-                                <p className="text-sm font-semibold text-gray-900">{profile.name}</p>
-                                <p className="text-xs text-gray-500">{profile.role}</p>
-                            </div>
-                        </div>
-                    </div>
-                </header>
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+            <Header 
+                title="Account Settings" 
+                subtitle="Manage your profile and system preferences" 
+            />
 
                 <div className="p-8 max-w-5xl mx-auto space-y-8">
 
@@ -163,6 +141,5 @@ export default function SettingsPage() {
 
                 </div>
             </main>
-        </div>
     );
 }
