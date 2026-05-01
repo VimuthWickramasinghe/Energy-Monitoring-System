@@ -6,26 +6,43 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { spawn } = require('child_process');
-const path = require('path');
 const admin = require('firebase-admin');
 
 const app = express();
 
-app.use(cors());
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // Firebase Admin Setup
 // Note: You need to place your serviceAccountKey.json in the backend folder
-const serviceAccount = require('./serviceAccountKey.json');
+let serviceAccount;
+try {
+  serviceAccount = require('./serviceAccountKey.json');
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+} catch (error) {
+  if (!process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+    console.error('\n❌ FATAL ERROR: Missing Firebase Admin credentials.');
+    console.error('Node.js could not find the "serviceAccountKey.json" file in your backend folder.');
+    console.error('Please make sure you saved it exactly as "backend/serviceAccountKey.json".\n');
+    process.exit(1);
+  }
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+    })
+  });
+}
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-// MongoDB connection (hardcoded)
-const mongoUri = 'mongodb+srv://blacky:2419624196@voltura.vl2m5kl.mongodb.net/volData?retryWrites=true&w=majority';
-// MongoDB connection
-const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://blacky:2419624196@voltura.vl2m5kl.mongodb.net/volData?retryWrites=true&w=majority';
+// MongoDB connection (dotenv)
+const mongoUri = process.env.MONGODB_URI;
 mongoose.set('strictQuery', false);
 
 // Schema (kept because you requested to store one dataset)
@@ -93,6 +110,12 @@ app.get('/current', authenticateFirebaseToken, async (req, res) => {
 // API endpoint to receive data from ESP
 app.post('/send', async (req, res) => {
   try {
+    // Basic API Key protection for hardware devices
+    const apiKey = req.headers['x-api-key'];
+    if (!apiKey || apiKey !== process.env.HARDWARE_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid or missing API Key' });
+    }
+
     const {
       volt,
       current1, current2, current3,
@@ -103,23 +126,23 @@ app.post('/send', async (req, res) => {
 
     const docObj = {};
 
-    if (typeof volt !== 'undefined') docObj.volt = volt;
+    if (typeof volt !== 'undefined' && !isNaN(volt)) docObj.volt = Number(volt);
 
-    if (typeof current1 !== 'undefined') docObj.current1 = current1;
-    if (typeof current2 !== 'undefined') docObj.current2 = current2;
-    if (typeof current3 !== 'undefined') docObj.current3 = current3;
+    if (typeof current1 !== 'undefined' && !isNaN(current1)) docObj.current1 = Number(current1);
+    if (typeof current2 !== 'undefined' && !isNaN(current2)) docObj.current2 = Number(current2);
+    if (typeof current3 !== 'undefined' && !isNaN(current3)) docObj.current3 = Number(current3);
 
-    if (typeof power1 !== 'undefined') docObj.power1 = power1;
-    if (typeof power2 !== 'undefined') docObj.power2 = power2;
-    if (typeof power3 !== 'undefined') docObj.power3 = power3;
+    if (typeof power1 !== 'undefined' && !isNaN(power1)) docObj.power1 = Number(power1);
+    if (typeof power2 !== 'undefined' && !isNaN(power2)) docObj.power2 = Number(power2);
+    if (typeof power3 !== 'undefined' && !isNaN(power3)) docObj.power3 = Number(power3);
 
-    if (typeof total_power !== 'undefined') {
-      docObj.total_power = total_power;
-      docObj.watt = total_power; // Map to watt for ML compatibility
+    if (typeof total_power !== 'undefined' && !isNaN(total_power)) {
+      docObj.total_power = Number(total_power);
+      docObj.watt = Number(total_power); // Map to watt for ML compatibility
     }
 
-    if (typeof temperature !== 'undefined') docObj.temperature = temperature;
-    if (typeof humidity !== 'undefined') docObj.humidity = humidity;
+    if (typeof temperature !== 'undefined' && !isNaN(temperature)) docObj.temperature = Number(temperature);
+    if (typeof humidity !== 'undefined' && !isNaN(humidity)) docObj.humidity = Number(humidity);
 
     if (Object.keys(docObj).length === 0) {
       console.log('No valid fields in incoming body:', req.body);
@@ -207,8 +230,7 @@ app.get('/predict', authenticateFirebaseToken, (req, res) => {
     console.error(`Prediction script failed with code ${code}. Error: ${errorOutput}`);
     return res.status(500).json({
       success: false,
-      error: 'ML prediction failed.',
-      details: errorOutput.substring(0, 200) // Truncate long errors
+      error: 'ML prediction failed. An internal error occurred.'
     });
   });
 
@@ -244,7 +266,6 @@ mongoose.connect(mongoUri)
     process.exit(1);
   });
 
-const port = 3000;
 const port = process.env.PORT || 5000;
 // listen on all interfaces so other devices can reach this server
 app.listen(port, '0.0.0.0', () => {
