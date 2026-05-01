@@ -1,4 +1,5 @@
 // require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -22,6 +23,8 @@ admin.initializeApp({
 
 // MongoDB connection (hardcoded)
 const mongoUri = 'mongodb+srv://blacky:2419624196@voltura.vl2m5kl.mongodb.net/volData?retryWrites=true&w=majority';
+// MongoDB connection
+const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://blacky:2419624196@voltura.vl2m5kl.mongodb.net/volData?retryWrites=true&w=majority';
 mongoose.set('strictQuery', false);
 
 // Schema (kept because you requested to store one dataset)
@@ -241,6 +244,7 @@ mongoose.connect(mongoUri)
   });
 
 const port = 3000;
+const port = process.env.PORT || 5000;
 // listen on all interfaces so other devices can reach this server
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on port ${port} (listening on 0.0.0.0)`);
