@@ -5,6 +5,7 @@ import {
     LayoutDashboard, Settings, User, LogOut, Activity,
     Battery, Bell, Moon, Sun, Shield, History, Trash2, Camera, Lock, ChevronDown
 } from "lucide-react";
+import Nav from "@/components/UserNav";
 
 export default function SettingsPage() {
     const [theme, setTheme] = useState("dark");
@@ -26,24 +27,7 @@ export default function SettingsPage() {
                         EMS
                     </Link>
                 </div>
-                <nav className="flex-1 px-4 space-y-1">
-                    <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
-                        <LayoutDashboard size={20} />
-                        Dashboard
-                    </Link>
-                    <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
-                        <Activity size={20} />
-                        Analytics
-                    </Link>
-                    <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
-                        <Battery size={20} />
-                        Devices
-                    </Link>
-                    <Link href="/settings" className="flex items-center gap-3 px-4 py-3 text-orange-600 bg-orange-50 rounded-xl font-medium">
-                        <Settings size={20} />
-                        Settings
-                    </Link>
-                </nav>
+                <Nav/>
                 <div className="p-4 border-t border-gray-100">
                     <button className="flex items-center gap-3 px-4 py-3 w-full text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl font-medium transition-colors">
                         <LogOut size={20} />

@@ -29,6 +29,7 @@ import {
   ChevronDown,
   Bell
 } from "lucide-react";
+import Nav from "@/components/UserNav";
 
 // Mock Data for the charts
 const consumptionData = [
@@ -62,24 +63,7 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1">
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-orange-600 bg-orange-50 rounded-xl font-medium">
-            <LayoutDashboard size={20} />
-            Dashboard
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
-            <Activity size={20} />
-            Analytics
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
-            <Battery size={20} />
-            Devices
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
-            <Settings size={20} />
-            Settings
-          </Link>
-        </nav>
+        <Nav/>
 
         <div className="p-4 border-t border-gray-100">
           <button className="flex items-center gap-3 px-4 py-3 w-full text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl font-medium transition-colors">

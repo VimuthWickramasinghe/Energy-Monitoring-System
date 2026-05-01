@@ -2,6 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { Battery, LayoutDashboard, Activity, Settings, Plus, Wifi, Zap, Cpu, SignalHigh } from "lucide-react";
+import Nav from "@/components/UserNav";
 
 const devices = [
     { id: "ESP-32-001", name: "Main Panel (3-Phase Cluster)", status: "online", type: "3-Phase", load: "4.2 kW", signal: "PLC", health: 98 },
@@ -14,12 +15,7 @@ export default function DevicesPage() {
         <div className="flex min-h-screen bg-gray-50">
             <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
                 <div className="p-6"><Link href="/" className="text-2xl font-bold text-gray-900">EMS</Link></div>
-                <nav className="flex-1 px-4 space-y-1">
-                    <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium"><LayoutDashboard size={20} />Dashboard</Link>
-                    <Link href="/analytics" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium"><Activity size={20} />Analytics</Link>
-                    <Link href="/devices" className="flex items-center gap-3 px-4 py-3 text-orange-600 bg-orange-50 rounded-xl font-medium"><Battery size={20} />Devices</Link>
-                    <Link href="/settings" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium"><Settings size={20} />Settings</Link>
-                </nav>
+                <Nav/>
             </aside>
 
             <main className="flex-1 overflow-y-auto">
