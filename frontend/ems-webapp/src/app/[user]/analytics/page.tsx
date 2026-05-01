@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import {
     LayoutDashboard, Settings, Activity, Battery, Bell,
-    Download, Calendar, Zap, ArrowUpRight, ArrowDownRight
+    Download, Calendar, Zap, ArrowUpRight, ArrowDownRight, LogOut
 } from "lucide-react";
 import Nav from "@/components/UserNav";
 
@@ -35,30 +35,42 @@ export default function AnalyticsPage() {
                 </header>
 
                 <div className="p-8 max-w-7xl mx-auto space-y-8">
-                    {/* Phase Comparison Card */}
-                    {/* <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-gray-900">Phase Voltage Balance (V)</h3>
-                            <div className="flex gap-4 text-xs font-bold uppercase tracking-wider">
-                                <span className="text-orange-500">● Phase 1</span>
-                                <span className="text-blue-500">● Phase 2</span>
-                                <span className="text-purple-500">● Phase 3</span>
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <div className="flex justify-between items-center mb-8">
+                            <div>
+                                <h3 className="font-bold text-gray-900">Phase Voltage Balance</h3>
+                                <p className="text-xs text-gray-500 mt-1">Real-time monitoring across L1, L2, and L3</p>
+                            </div>
+                            <div className="flex gap-6">
+                                {[
+                                    { label: "Phase 1", color: "bg-orange-500" },
+                                    { label: "Phase 2", color: "bg-blue-500" },
+                                    { label: "Phase 3", color: "bg-purple-500" }
+                                ].map((phase) => (
+                                    <div key={phase.label} className="flex items-center gap-2">
+                                        <span className={`w-2 h-2 rounded-full ${phase.color}`} />
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{phase.label}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <div className="h-[350px]">
+                        
+                        <div className="h-[350px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={phaseData}>
+                                <LineChart data={phaseData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                    <YAxis domain={[220, 240]} axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                    <Tooltip />
-                                    <Line type="monotone" dataKey="p1" stroke="#f97316" strokeWidth={3} dot={false} />
-                                    <Line type="monotone" dataKey="p2" stroke="#3b82f6" strokeWidth={3} dot={false} />
-                                    <Line type="monotone" dataKey="p3" stroke="#a855f7" strokeWidth={3} dot={false} />
+                                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                                    <YAxis domain={[220, 240]} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                                    <Tooltip 
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                    />
+                                    <Line type="monotone" dataKey="p1" stroke="#f97316" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                                    <Line type="monotone" dataKey="p2" stroke="#3b82f6" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                                    <Line type="monotone" dataKey="p3" stroke="#a855f7" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
-                    </div> */}
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Efficiency Metrics */}
@@ -89,7 +101,3 @@ export default function AnalyticsPage() {
         </div>
     );
 }
-
-
-
-

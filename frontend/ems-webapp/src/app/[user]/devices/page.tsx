@@ -13,10 +13,8 @@ const devices = [
 export default function DevicesPage() {
     return (
         <div className="flex min-h-screen bg-gray-50">
-            <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-                <div className="p-6"><Link href="/" className="text-2xl font-bold text-gray-900">EMS</Link></div>
-                <Nav/>
-            </aside>
+  <Nav/>
+
 
             <main className="flex-1 overflow-y-auto">
                 <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">

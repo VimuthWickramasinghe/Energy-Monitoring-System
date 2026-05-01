@@ -21,20 +21,9 @@ export default function SettingsPage() {
     return (
         <div className="flex min-h-screen bg-gray-50">
             {/* Sidebar Navigation - Identical to Dashboard */}
-            <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-                <div className="p-6">
-                    <Link href="/" className="text-2xl font-bold tracking-tight text-gray-900">
-                        EMS
-                    </Link>
-                </div>
+
                 <Nav/>
-                <div className="p-4 border-t border-gray-100">
-                    <button className="flex items-center gap-3 px-4 py-3 w-full text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl font-medium transition-colors">
-                        <LogOut size={20} />
-                        Sign Out
-                    </button>
-                </div>
-            </aside>
+
 
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto">
