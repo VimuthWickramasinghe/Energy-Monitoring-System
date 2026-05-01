@@ -5,10 +5,20 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { spawn } = require('child_process');
 const path = require('path');
+const admin = require('firebase-admin');
+
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
+
+// Firebase Admin Setup
+// Note: You need to place your serviceAccountKey.json in the backend folder
+const serviceAccount = require('./serviceAccountKey.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
 // MongoDB connection (hardcoded)
 const mongoUri = 'mongodb+srv://blacky:2419624196@voltura.vl2m5kl.mongodb.net/volData?retryWrites=true&w=majority';
@@ -32,6 +42,24 @@ const SensorSchema = new mongoose.Schema({
 
 const Sensor = mongoose.model("Sensor", SensorSchema, "finalVolData");
 
+// Firebase Authentication Middleware
+const authenticateFirebaseToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  const idToken = authHeader.split('Bearer ')[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    console.error('Error verifying Firebase token:', error);
+    res.status(403).json({ error: 'Unauthorized' });
+  }
+};
+
 // simple request logger for debugging
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} from ${req.ip}`);
@@ -45,7 +73,7 @@ app.get('/health', (req, res) => {
 });
 
 // API endpoint to get the latest data
-app.get('/current', async (req, res) => {
+app.get('/current', authenticateFirebaseToken, async (req, res) => {
   try {
     const latest = await Sensor.findOne().sort({ time: -1 });
     if (!latest) {
@@ -105,7 +133,7 @@ app.post('/send', async (req, res) => {
 });
 
 // API endpoint to get historical data
-app.get('/history', async (req, res) => {
+app.get('/history', authenticateFirebaseToken, async (req, res) => {
   try {
     const { start, end, limit } = req.query;
     const query = {};
@@ -132,7 +160,7 @@ app.get('/history', async (req, res) => {
 const PYTHON_EXECUTABLE = process.env.PYTHON_EXECUTABLE || path.join(__dirname, '..', 'venv', 'bin', 'python3');
 const PREDICT_SCRIPT = path.join(__dirname, '..', 'ml_service', 'predict_future.py');
 
-app.get('/predict', (req, res) => {
+app.get('/predict', authenticateFirebaseToken, (req, res) => {
   // Spawn the Python process to run the prediction script
   const python = spawn(PYTHON_EXECUTABLE, [PREDICT_SCRIPT]);
 
