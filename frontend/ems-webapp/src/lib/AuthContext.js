@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, createContext, useContext } from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth } from "../../firebase.config";
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "./../../firebase.config.js";
 import { useRouter, usePathname } from "next/navigation";
 export const AuthContext = createContext();
 
