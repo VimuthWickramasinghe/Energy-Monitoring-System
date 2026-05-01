@@ -2,21 +2,27 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../firebase.config";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 export const AuthContext = createContext();
 
 export default function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
             setLoading(false);
+            
+            // If not logged in and trying to access a dashboard route
+            if (!user && pathname !== '/' && pathname !== '/login' && pathname !== '/signup') {
+                router.push('/');
+            }
         });
         return () => unsubscribe();
-    }, []);
+    }, [pathname, router]);
 
     const login = async (email, password) => {
         setLoading(true);
