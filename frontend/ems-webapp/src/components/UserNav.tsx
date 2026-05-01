@@ -6,7 +6,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function Nav() {
+export default function UserNav() {
     const pathname = usePathname();
 
     const navItems = [

@@ -50,7 +50,7 @@ export default function DevicesPage() {
     };
 
     return (
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden bg-white">
             <Header title="Modular Units" subtitle="Manage and monitor your hardware modules">
                 <div className="flex items-center gap-4">
                     <div className="relative hidden md:block">
