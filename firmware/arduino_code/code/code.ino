@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -7,14 +6,14 @@
 int myFunction(int, int);
 // --- Configuration ---
 // Replace with your network credentials
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
+const char* ssid = "Vimuth_hs";
+const char* password = "23456789";
 
 // Replace with your backend server details
 // If running locally, this is your computer's IP address on the local network
-const char* server_ip = "YOUR_SERVER_IP"; 
+const char* server_ip = "10.108.198.53";  // Todo: change it to the official backend code
 const int server_port = 8080;
-const char* api_key = "my-super-secret-ems-key-123"; // Must match HARDWARE_API_KEY in your .env.local
+const char* api_key = "ems-key-123"; // Todo: Must match HARDWARE_API_KEY in your .env.local
 
 // --- Function Prototypes ---
 void connectToWiFi();
@@ -48,6 +47,8 @@ void loop() {
 // put function definitions here:
 int myFunction(int x, int y) {
   return x + y;
+}
+
 void connectToWiFi() {
   Serial.print("Connecting to ");
   Serial.println(ssid);

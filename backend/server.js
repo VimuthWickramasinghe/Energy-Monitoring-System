@@ -12,7 +12,8 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  // Use '*' to allow all local network devices during development
+  origin: process.env.FRONTEND_URL || '*',
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
@@ -92,7 +93,7 @@ app.use((req, res, next) => {
 
 // Root endpoint for Cloud Run health checks
 app.get('/', (req, res) => {
-  res.send('Hello from Cloud Run!');
+  res.send('Hello from EMS Backend!');
 });
 
 // health endpoint
@@ -269,7 +270,7 @@ async function run() {
 
     // Maintain mongoose connection for the Schema/Models used in endpoints
     await mongoose.connect(uri);
-    
+
     const count = await Sensor.countDocuments().catch(() => 0);
     if (!count) {
       const sampleData = new Sensor({ volt: 201.5, watt: 283.5, temperature: 20.4, humidity: 60.2 });
@@ -284,6 +285,6 @@ run().catch(console.dir);
 
 const port = process.env.PORT || 8080;
 // listen on all interfaces so other devices can reach this server
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server listening on port ${port}`);
 });
