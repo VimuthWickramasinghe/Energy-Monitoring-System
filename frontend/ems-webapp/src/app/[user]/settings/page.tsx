@@ -105,8 +105,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <section className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
-                            <Shield size={18} className="text-orange-500" /> Security
-                        </h3>
+                            <Shield size={18} className="text-orange-500" />Reset Password</h3>
                         {isGoogleUser ? (
                             <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl opacity-60">
                                 <Lock size={18} className="text-gray-400" />

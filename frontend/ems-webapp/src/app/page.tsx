@@ -5,12 +5,12 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-orange-100">
       {/* Navigation */}
-      <nav className="flex items-center justify-between px-8 py-4 bg-white border-b border-gray-100">
+      <nav className="flex items-center justify-between px-8 py-4 bg-orange-500 border-b border-orange-600">
         <div className="flex items-center gap-12">
-          <div className="text-xl font-bold tracking-tight">EMS</div>
+          <div className="text-xl font-bold tracking-tight text-white">EMS</div>
         </div>
         <div className="flex items-center gap-6">
-          <Link href="/login" className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-full text-sm font-medium transition-colors">
+          <Link href="/login" className="bg-white hover:bg-gray-100 text-black px-5 py-2 rounded-full text-sm font-medium transition-colors">
             Sign In
           </Link>
         </div>

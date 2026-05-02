@@ -1,0 +1,66 @@
+[
+    {
+        "deviceId": "ESP-32-001",
+        "timestamp": "2024-05-20T08:00:00Z",
+        "voltage": 231.4,
+        "current": 18.5,
+        "power": 4280.9,
+        "usage": 4.28
+    },
+    {
+        "deviceId": "ESP-32-001",
+        "timestamp": "2024-05-20T08:15:00Z",
+        "voltage": 230.1,
+        "current": 19.2,
+        "power": 4417.9,
+        "usage": 4.41
+    },
+    {
+        "deviceId": "ESP-32-002",
+        "timestamp": "2024-05-20T08:00:00Z",
+        "voltage": 229.5,
+        "current": 32.1,
+        "power": 7366.9,
+        "usage": 7.36
+    },
+    {
+        "deviceId": "ESP-32-002",
+        "timestamp": "2024-05-20T08:15:00Z",
+        "voltage": 228.8,
+        "current": 31.8,
+        "power": 7275.8,
+        "usage": 7.27
+    },
+    {
+        "deviceId": "ESP-32-003",
+        "timestamp": "2024-05-20T08:00:00Z",
+        "voltage": 232.0,
+        "current": 0.0,
+        "power": 0.0,
+        "usage": 0.0
+    },
+    {
+        "deviceId": "ESP-32-003",
+        "timestamp": "2024-05-20T08:15:00Z",
+        "voltage": 231.2,
+        "current": 0.0,
+        "power": 0.0,
+        "usage": 0.0
+    },
+    {
+        "deviceId": "ESP-32-001",
+        "timestamp": "2024-05-20T08:00:01Z",
+        "voltage": 230.5,
+        "current": 18.8,
+        "power": 4333.4,
+        "usage": 4.33
+    },
+    {
+        "deviceId": "ESP-32-002",
+        "timestamp": "2024-05-20T08:00:01Z",
+        "voltage": 229.1,
+        "current": 31.5,
+        "power": 7216.6,
+        "usage": 7.21
+    }
+]

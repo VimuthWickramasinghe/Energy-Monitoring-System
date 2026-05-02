@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@matter/nodejs-ble": "^0.16.11",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.105.1",
     "dotenv": "^17.4.2",
     "firebase": "^12.12.1",
     "lucide-react": "^1.12.0",
