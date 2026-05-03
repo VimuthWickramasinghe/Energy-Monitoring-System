@@ -17,6 +17,11 @@
 /.next/
 /out/
 
+# docusaurus
+.docusaurus/
+.cache-loader/
+build/
+
 # production
 /build
 
