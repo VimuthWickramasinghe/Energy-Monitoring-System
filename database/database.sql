@@ -15,25 +15,25 @@ CREATE TABLE "BUILDING" (
   CONSTRAINT "fk_building_owner" FOREIGN KEY ("owner_id") REFERENCES "USER" ("user_id")
 );
 
-CREATE TABLE "DEVICE" (
-  "device_id" UUID PRIMARY KEY,
-  "device_name" varchar(255),
+CREATE TABLE "MODULE" (
+  "module_id" UUID PRIMARY KEY,
+  "module_name" varchar(255),
   "owner_id" UUID,
   "building_id" UUID,
   "calibration_data" json,
   "configured_at" datetime,
   "phase" int,
-  CONSTRAINT "fk_device_owner" FOREIGN KEY ("owner_id") REFERENCES "USER" ("user_id"),
-  CONSTRAINT "fk_device_building" FOREIGN KEY ("building_id") REFERENCES "BUILDING" ("building_id")
+  CONSTRAINT "fk_module_owner" FOREIGN KEY ("owner_id") REFERENCES "USER" ("user_id"),
+  CONSTRAINT "fk_module_building" FOREIGN KEY ("building_id") REFERENCES "BUILDING" ("building_id")
 );
 
 -- Telemetry (Time-Series / MongoDB Mock for Diagram)
 CREATE TABLE "MEASUREMENTS" (
   "_id" varchar(24) PRIMARY KEY, -- ObjectId representation
-  "device_id" UUID,
+  "module_id" UUID,
   "timestamp" datetime,
   "voltage" float,
   "current" float,
   "instantaneous_power" float,
-  CONSTRAINT "fk_meas_device" FOREIGN KEY ("device_id") REFERENCES "DEVICE" ("device_id")
+  CONSTRAINT "fk_meas_device" FOREIGN KEY ("module_id") REFERENCES "MODULE" ("module_id")
 );
