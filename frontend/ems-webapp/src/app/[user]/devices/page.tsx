@@ -11,6 +11,7 @@ const INITIAL_DEVICES = [
     { id: "ESP-32-001", name: "Main Panel (3-Phase Cluster)", status: "online", type: "3-Phase", load: "4.2 kW", signal: "PLC", health: 98, buildingId: 'b1' },
     { id: "ESP-32-002", name: "EV Charger Link", status: "online", type: "1-Phase", load: "7.2 kW", signal: "Wi-Fi", health: 95, buildingId: 'b1' },
     { id: "ESP-32-003", name: "HVAC Controller", status: "offline", type: "1-Phase", load: "0.0 kW", signal: "PLC", health: 0, buildingId: 'b2' },
+    { id: "ESP-32-004", name: "Backup Generator Monitor", status: "disabled", type: "3-Phase", load: "0.0 kW", signal: "Wi-Fi", health: 100, buildingId: 'b2' },
 ];
 
 const BUILDINGS = [
@@ -34,10 +35,14 @@ const DeviceCard = ({ device, onDelete }: {
     device: Device; 
     onDelete: (id: string) => void; 
 }) => (
-    <div className={`bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all ${device.status === 'offline' ? 'opacity-75 grayscale-[0.5]' : ''}`}>
+    <div className={`bg-white rounded-2xl border-2 p-6 shadow-sm hover:shadow-md transition-all ${
+        device.status === 'online' ? 'border-green-100' : 
+        device.status === 'offline' ? 'border-red-100 bg-red-50/30' : 
+        'border-gray-100 bg-gray-50/50'
+    }`}>
         <div className="flex justify-between items-start mb-6">
             <div className="flex gap-4">
-                <div className={`p-3 rounded-xl ${device.status === 'online' ? 'bg-orange-50 text-orange-500' : 'bg-gray-50 text-gray-400'}`}>
+                <div className={`p-3 rounded-xl ${device.status === 'online' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
                     <Cpu size={24} />
                 </div>
                 <div>
@@ -45,10 +50,13 @@ const DeviceCard = ({ device, onDelete }: {
                     <p className="text-xs text-gray-500 font-mono uppercase">{device.id} • {device.type}</p>
                 </div>
             </div>
-            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${device.status === 'online' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
-                <span className={`w-2 h-2 rounded-full ${device.status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                {device.status === 'online' ? 'ONLINE' : 'DISABLED'}
-            </div>
+            <span className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-widest ${
+                device.status === 'online' ? 'bg-green-500 text-white' : 
+                device.status === 'offline' ? 'bg-red-500 text-white' : 
+                'bg-gray-400 text-white'
+            }`}>
+                {device.status.toUpperCase()}
+            </span>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
@@ -244,7 +252,9 @@ export default function DevicesPage() {
         return deviceList.filter(d => !buildingIds.includes(d.buildingId));
     }, [deviceList]);
 
-    const activeCount = deviceList.filter(d => d.status === 'online').length;
+    const onlineCount = deviceList.filter(d => d.status === 'online').length;
+    const offlineCount = deviceList.filter(d => d.status === 'offline').length;
+    const disabledCount = deviceList.filter(d => d.status === 'disabled').length;
 
     const handleDelete = (id: string) => {
         if (confirm("Are you sure you want to remove this module?")) {
@@ -336,7 +346,11 @@ export default function DevicesPage() {
                             <div className="p-2 bg-orange-500 rounded-lg text-white">
                                 <Activity size={20} />
                             </div>
-                            <p className="text-sm font-medium text-orange-800">{activeCount} active modules detected across the local network</p>
+                            <div className="flex gap-4">
+                                <p className="text-sm font-medium text-orange-800"><span className="font-bold">{onlineCount}</span> Online Modules</p>
+                                <p className="text-sm font-medium text-orange-800/60"><span className="font-bold">{offlineCount}</span> Offline</p>
+                                <p className="text-sm font-medium text-orange-800/60"><span className="font-bold">{disabledCount}</span> Disabled</p>
+                            </div>
                         </div>
                         <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">System Healthy</span>
                     </div>
