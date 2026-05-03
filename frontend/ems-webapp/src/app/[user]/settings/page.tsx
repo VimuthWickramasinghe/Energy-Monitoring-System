@@ -9,6 +9,7 @@ import { AuthContext } from "@/lib/AuthContext";
 export default function SettingsPage() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showPasswordForm, setShowPasswordForm] = useState(false);
+    const [profileImage, setProfileImage] = useState<string | null>(null);
     const { user, logout, isGoogleUser } = useContext(AuthContext) as { user: any, logout: () => void, isGoogleUser: boolean };
 
     const [profile, setProfile] = useState({
@@ -31,6 +32,21 @@ export default function SettingsPage() {
         }
     }, [user]);
 
+    const handleSaveChanges = () => {
+        // Logic to save profile changes would go here
+        console.log("Saving profile changes:", profile);
+        alert("Profile updated successfully!");
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => setProfileImage(reader.result as string);
+            reader.readAsDataURL(file);
+        }
+    };
+
     return (
         <main className="flex-1 overflow-y-auto bg-gray-50">
             <Header
@@ -46,7 +62,10 @@ export default function SettingsPage() {
                         <h3 className="font-bold text-gray-900 flex items-center gap-2">
                             <User size={18} className="text-orange-500" /> Public Profile
                         </h3>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-medium transition-colors shadow-sm shadow-orange-200 text-sm">
+                        <button 
+                            onClick={handleSaveChanges}
+                            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-medium transition-colors shadow-sm shadow-orange-200 text-sm"
+                        >
                             <Save size={16} />
                             Save Changes
                         </button>
@@ -55,11 +74,21 @@ export default function SettingsPage() {
                         <div className="flex flex-col items-center gap-4">
                             <div className="relative group">
                                 <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center text-3xl font-bold text-gray-400 overflow-hidden border-4 border-white shadow-md">
-                                    {profile.name?.charAt(0) || "U"}
+                                    {profileImage ? (
+                                        <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                    ) : (
+                                        profile.name?.charAt(0) || "U"
+                                    )}
                                 </div>
-                                <button className="absolute bottom-0 right-0 p-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-all shadow-lg">
+                                <label className="absolute bottom-0 right-0 p-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-all shadow-lg cursor-pointer">
                                     <Camera size={18} />
-                                </button>
+                                    <input 
+                                        type="file" 
+                                        className="hidden" 
+                                        accept="image/*" 
+                                        onChange={handleImageUpload}
+                                    />
+                                </label>
                             </div>
                             <p className="text-xs text-gray-400">JPG or PNG. Max 2MB.</p>
                         </div>
