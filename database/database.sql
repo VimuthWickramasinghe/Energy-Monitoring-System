@@ -1,39 +1,45 @@
 -- Metadata (Relational Structure)
-CREATE TABLE "USER" (
-  "user_id" UUID PRIMARY KEY,
+CREATE TABLE "PROFILE" (
+  "user_id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   "user_name" varchar(255),
   "profile_pic_url" varchar(255),
   "role" varchar(50)
 );
 
+ALTER TABLE "PROFILE" ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY user_self_view_policy ON "PROFILE"
+  FOR SELECT
+  USING (user_id = auth.uid());
+
 CREATE TABLE "BUILDING" (
-  "building_id" UUID PRIMARY KEY,
+  "building_id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   "building_name" varchar(255),
   "owner_id" UUID,
   "address" varchar(500),
-  "added_on" datetime,
-  CONSTRAINT "fk_building_owner" FOREIGN KEY ("owner_id") REFERENCES "USER" ("user_id")
+  "added_on" timestamptz DEFAULT now(),
+  CONSTRAINT "fk_building_owner" FOREIGN KEY ("owner_id") REFERENCES "PROFILE" ("user_id")
 );
 
 CREATE TABLE "MODULE" (
-  "module_id" UUID PRIMARY KEY,
+  "module_id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   "module_name" varchar(255),
   "owner_id" UUID,
   "building_id" UUID,
-  "calibration_data" json,
-  "configured_at" datetime,
+  "calibration_data" jsonb,
+  "configured_at" timestamptz DEFAULT now(),
   "phase" int,
-  CONSTRAINT "fk_module_owner" FOREIGN KEY ("owner_id") REFERENCES "USER" ("user_id"),
+  CONSTRAINT "fk_module_owner" FOREIGN KEY ("owner_id") REFERENCES "PROFILE" ("user_id"),
   CONSTRAINT "fk_module_building" FOREIGN KEY ("building_id") REFERENCES "BUILDING" ("building_id")
 );
 
--- Telemetry (Time-Series / MongoDB Mock for Diagram)
+-- Telemetry (PostgreSQL implementation)
 CREATE TABLE "MEASUREMENTS" (
-  "_id" varchar(24) PRIMARY KEY, -- ObjectId representation
+  "id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   "module_id" UUID,
-  "timestamp" datetime,
-  "voltage" float,
-  "current" float,
-  "instantaneous_power" float,
+  "timestamp" timestamptz DEFAULT now(),
+  "voltage" double precision,
+  "current" double precision,
+  "instantaneous_power" double precision,
   CONSTRAINT "fk_meas_device" FOREIGN KEY ("module_id") REFERENCES "MODULE" ("module_id")
 );
