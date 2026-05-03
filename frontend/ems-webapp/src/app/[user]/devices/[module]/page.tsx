@@ -1,12 +1,19 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     ArrowLeft, Save, RefreshCw, Settings2,
-    ShieldCheck, Zap, Thermometer, Activity, PlayCircle, Power, PowerOff, Trash2
+    ShieldCheck, Zap, Thermometer, Activity, PlayCircle, Power, PowerOff, Trash2, Plus, GripHorizontal, X
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
+
+const BUILDINGS = [
+    { id: 'b1', name: 'Corporate HQ' },
+    { id: 'b2', name: 'West Warehouse' },
+    { id: 'b3', name: 'Downtown Hub' },
+];
+
 
 export default function DeviceConfigPage() {
     const params = useParams();
@@ -14,14 +21,37 @@ export default function DeviceConfigPage() {
 
     const [isCalibrating, setIsCalibrating] = useState(false);
     const router = useRouter();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newBuilding, setNewBuilding] = useState({ name: '', address: '' });
+    const [buildings, setBuildings] = useState(BUILDINGS);
+
     const [isTesting, setIsTesting] = useState(false);
     const [isActive, setIsActive] = useState(true);
     const [config, setConfig] = useState({
         name: "Main Panel (3-Phase Cluster)",
         threshold: 4500,
         samplingRate: 100,
-        mode: "balanced"
+        mode: "balanced",
+        buildingId: "b1"
     });
+
+    // Real-time simulation state
+    const [realtimeData, setRealtimeData] = useState({
+        voltage: 231.4,
+        temp: 42.5,
+        uptime: { days: 14, hours: 2 }
+    });
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setRealtimeData(prev => ({
+                ...prev,
+                voltage: parseFloat((230 + Math.random() * 5).toFixed(1)),
+                temp: parseFloat((42 + Math.random() * 2).toFixed(1))
+            }));
+        }, 2000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleCalibrate = () => {
         setIsCalibrating(true);
@@ -56,6 +86,18 @@ export default function DeviceConfigPage() {
         setIsActive(!isActive);
     };
 
+    const handleAddBuilding = (e: React.FormEvent) => {
+        e.preventDefault();
+        const building = {
+            id: `b${buildings.length + 1}`,
+            name: newBuilding.name,
+        };
+        setBuildings([...buildings, building]);
+        setConfig({ ...config, buildingId: building.id });
+        setIsModalOpen(false);
+        setNewBuilding({ name: '', address: '' });
+    };
+
     return (
         <main className="flex-1 flex flex-col overflow-hidden">
             <Header
@@ -79,21 +121,21 @@ export default function DeviceConfigPage() {
                                 <Zap size={18} />
                                 <span className="text-xs font-bold uppercase">Voltage L1</span>
                             </div>
-                            <p className="text-2xl font-bold text-gray-900">231.4V</p>
+                            <p className="text-2xl font-bold text-gray-900">{realtimeData.voltage}V</p>
                         </div>
                         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                             <div className="flex items-center gap-3 text-blue-500 mb-2">
                                 <Thermometer size={18} />
                                 <span className="text-xs font-bold uppercase">Internal Temp</span>
                             </div>
-                            <p className="text-2xl font-bold text-gray-900">42.5°C</p>
+                            <p className="text-2xl font-bold text-gray-900">{realtimeData.temp}°C</p>
                         </div>
                         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                             <div className="flex items-center gap-3 text-green-500 mb-2">
                                 <ShieldCheck size={18} />
                                 <span className="text-xs font-bold uppercase">Uptime</span>
                             </div>
-                            <p className="text-2xl font-bold text-gray-900">14d 2h</p>
+                            <p className="text-2xl font-bold text-gray-900">{realtimeData.uptime.days}d {realtimeData.uptime.hours}h</p>
                         </div>
                     </div>
 
@@ -161,6 +203,26 @@ export default function DeviceConfigPage() {
                                         <option value="high-freq">High Frequency Sampling</option>
                                     </select>
                                 </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <label className="text-sm font-bold text-gray-900">Assigned Building</label>
+                                        <button 
+                                            onClick={() => setIsModalOpen(true)}
+                                            className="text-[10px] font-bold text-orange-600 flex items-center gap-1 hover:underline"
+                                        >
+                                            <Plus size={10} /> New Building
+                                        </button>
+                                    </div>
+                                    <select
+                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-black focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none"
+                                        value={config.buildingId}
+                                        onChange={(e) => setConfig({ ...config, buildingId: e.target.value })}
+                                    >
+                                        {buildings.map(b => (
+                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -217,6 +279,51 @@ export default function DeviceConfigPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Quick Add Building Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+                    <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+                        <div className="bg-gray-50 p-4 border-b border-gray-100 flex justify-between items-center">
+                            <div className="flex items-center gap-2 text-gray-600">
+                                <GripHorizontal size={18} />
+                                <span className="font-bold text-sm">Register New Building</span>
+                            </div>
+                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddBuilding} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Building Name</label>
+                                <input 
+                                    required
+                                    type="text" 
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500"
+                                    placeholder="e.g. North Wing"
+                                    value={newBuilding.name}
+                                    onChange={e => setNewBuilding({...newBuilding, name: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Address</label>
+                                <input 
+                                    required
+                                    type="text" 
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500"
+                                    placeholder="123 Street Name"
+                                    value={newBuilding.address}
+                                    onChange={e => setNewBuilding({...newBuilding, address: e.target.value})}
+                                />
+                            </div>
+                            <button type="submit" className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-all mt-2">
+                                Confirm Registration
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

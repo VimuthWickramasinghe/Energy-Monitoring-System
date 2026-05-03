@@ -8,9 +8,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const INITIAL_DEVICES = [
-    { id: "ESP-32-001", name: "Main Panel (3-Phase Cluster)", status: "online", type: "3-Phase", load: "4.2 kW", signal: "PLC", health: 98 },
-    { id: "ESP-32-002", name: "EV Charger Link", status: "online", type: "1-Phase", load: "7.2 kW", signal: "Wi-Fi", health: 95 },
-    { id: "ESP-32-003", name: "HVAC Controller", status: "offline", type: "1-Phase", load: "0.0 kW", signal: "PLC", health: 0 },
+    { id: "ESP-32-001", name: "Main Panel (3-Phase Cluster)", status: "online", type: "3-Phase", load: "4.2 kW", signal: "PLC", health: 98, buildingId: 'b1' },
+    { id: "ESP-32-002", name: "EV Charger Link", status: "online", type: "1-Phase", load: "7.2 kW", signal: "Wi-Fi", health: 95, buildingId: 'b1' },
+    { id: "ESP-32-003", name: "HVAC Controller", status: "offline", type: "1-Phase", load: "0.0 kW", signal: "PLC", health: 0, buildingId: 'b2' },
+];
+
+const BUILDINGS = [
+    { id: 'b1', name: 'Corporate HQ' },
+    { id: 'b2', name: 'West Warehouse' },
+    { id: 'b3', name: 'Downtown Hub' },
 ];
 
 interface Device {
@@ -21,6 +27,7 @@ interface Device {
     load: string;
     signal: string;
     health: number;
+    buildingId: string;
 }
 
 const DeviceCard = ({ device, onDelete }: { 
@@ -82,13 +89,15 @@ const DeviceCard = ({ device, onDelete }: {
     </div>
 );
 
-const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry }: {
+const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry, buildings, onSelectDevice }: {
     isOpen: boolean;
     onClose: () => void;
     scanStatus: string;
     onStartScan: () => void;
     onProvision: () => void;
     onRetry: () => void;
+    buildings: { id: string; name: string }[];
+    onSelectDevice: (device: { id: string; rssi: string }) => void;
 }) => {
     if (!isOpen) return null;
     return (
@@ -122,12 +131,45 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                     )}
                     {scanStatus === 'found' && (
                         <div className="w-full space-y-4">
-                            <div className="p-4 bg-green-50 border border-green-100 rounded-xl flex items-center gap-3 mb-4">
-                                <Cpu className="text-green-600" />
-                                <div className="text-left">
-                                    <p className="text-sm font-bold text-green-900">ESP32-EMS-PRO-X1 Found</p>
-                                    <p className="text-xs text-green-700">Ready to provision</p>
-                                </div>
+                            <h3 className="text-sm font-bold text-gray-400 uppercase text-left">Select Device</h3>
+                            <div className="space-y-2">
+                                {([
+                                    { id: 'ESP32-EMS-PRO-X1', rssi: '-42dBm' },
+                                    { id: 'ESP32-EMS-PRO-X2', rssi: '-65dBm' }
+                                ]).map((dev) => (
+                                    <div 
+                                        key={dev.id}
+                                        className="w-full p-4 bg-white border border-gray-200 rounded-xl flex items-center justify-between transition-all group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Cpu className="text-gray-400 group-hover:text-orange-500" />
+                                            <span className="font-bold text-gray-900 text-sm">{dev.id}</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => onSelectDevice(dev)}
+                                            className="px-4 py-1.5 bg-orange-500 text-white text-xs font-bold rounded-lg hover:bg-orange-600 transition-colors"
+                                        >
+                                            Proceed
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {scanStatus === 'configuring' && (
+                        <div className="w-full space-y-4">
+                            <div className="space-y-3 text-left">
+                                <label className="text-xs font-bold text-gray-400 uppercase">Assign to Building</label>
+                                <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500 appearance-none">
+                                    <option value="">Select a building...</option>
+                                    {buildings.map(b => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                    ))}
+                                </select>
+                                <p className="text-[10px] text-orange-600 font-medium">
+                                    Don't see your building? <Link href="building" className="underline font-bold">Register it first</Link>
+                                </p>
                             </div>
                             <div className="space-y-3 text-left">
                                 <label className="text-xs font-bold text-gray-400 uppercase">Wi-Fi Network (SSID)</label>
@@ -166,7 +208,7 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                             </div>
                             <h3 className="text-lg font-bold text-gray-900">Provisioning Failed</h3>
                             <p className="text-gray-500 text-sm mt-2 mb-6">Connection timed out. Please check the device and try again.</p>
-                            <button onClick={onRetry} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">Try Again</button>
+                            <button onClick={() => onSelectDevice({id: '', rssi: ''})} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">Try Again</button>
                         </div>
                     )}
                 </div>
@@ -178,17 +220,29 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
 export default function DevicesPage() {
     const [deviceList, setDeviceList] = useState(INITIAL_DEVICES);
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedBuildingFilter, setSelectedBuildingFilter] = useState<string>("all");
     const [isProvisioning, setIsProvisioning] = useState(false);
-    const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'found' | 'provisioning' | 'success' | 'error'>('idle');
+    const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'found' | 'configuring' | 'provisioning' | 'success' | 'error'>('idle');
     const [wifiCreds, setWifiCreds] = useState({ ssid: '', password: '' });
     const router = useRouter();
 
-    const filteredDevices = useMemo(() => {
-        return deviceList.filter(device =>
-            device.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            device.id.toLowerCase().includes(searchQuery.toLowerCase())
+    const groupedDevices = useMemo(() => {
+        const filtered = deviceList.filter(device => 
+            (selectedBuildingFilter === "all" || device.buildingId === selectedBuildingFilter) &&
+            (device.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            device.id.toLowerCase().includes(searchQuery.toLowerCase()))
         );
-    }, [deviceList, searchQuery]);
+
+        return BUILDINGS.map(building => ({
+            ...building,
+            devices: filtered.filter(d => d.buildingId === building.id)
+        })).filter(b => selectedBuildingFilter === 'all' || b.id === selectedBuildingFilter);
+    }, [deviceList, searchQuery, selectedBuildingFilter]);
+
+    const orphanedDevices = useMemo(() => {
+        const buildingIds = BUILDINGS.map(b => b.id);
+        return deviceList.filter(d => !buildingIds.includes(d.buildingId));
+    }, [deviceList]);
 
     const activeCount = deviceList.filter(d => d.status === 'online').length;
 
@@ -224,6 +278,7 @@ export default function DevicesPage() {
                         type: "1-Phase",
                         load: "0.0 kW",
                         signal: "Wi-Fi",
+                        buildingId: 'b1',
                         health: 100
                     };
                     setDeviceList(prev => [...prev, newDevice]);
@@ -250,9 +305,19 @@ export default function DevicesPage() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                        <Filter size={20} />
-                    </button>
+                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                        <Filter size={16} className="text-gray-400" />
+                        <select 
+                            className="bg-transparent text-sm font-medium text-gray-700 outline-none"
+                            value={selectedBuildingFilter}
+                            onChange={(e) => setSelectedBuildingFilter(e.target.value)}
+                        >
+                            <option value="all">All Buildings</option>
+                            {BUILDINGS.map(b => (
+                                <option key={b.id} value={b.id}>{b.name}</option>
+                            ))}
+                        </select>
+                    </div>
                     <div className="h-8 w-px bg-gray-200 mx-2"></div>
                     <button
                         onClick={handleAddModule}
@@ -276,13 +341,32 @@ export default function DevicesPage() {
                         <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">System Healthy</span>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {filteredDevices.map((device) => (
-                            <DeviceCard 
-                                key={device.id} 
-                                device={device} 
-                                onDelete={handleDelete} 
-                            />
+                    <div className="space-y-10">
+                        {groupedDevices.map((group) => (
+                            <div key={group.id} className="space-y-4">
+                                <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+                                    <h2 className="text-lg font-bold text-gray-900">{group.name}</h2>
+                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-md text-xs font-bold">
+                                        {group.devices.length} {group.devices.length === 1 ? 'Module' : 'Modules'}
+                                    </span>
+                                </div>
+                                {group.devices.length > 0 ? (
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                                        {group.devices.map((device) => (
+                                            <DeviceCard 
+                                                key={device.id} 
+                                                device={device} 
+                                                onDelete={handleDelete} 
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="py-8 px-6 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center text-center">
+                                        <Cpu className="text-gray-200 mb-2" size={32} />
+                                        <p className="text-sm text-gray-400 font-medium">No modules registered in this building yet.</p>
+                                    </div>
+                                )}
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -295,6 +379,8 @@ export default function DevicesPage() {
                 onStartScan={startBLEScan} 
                 onProvision={provisionDevice} 
                 onRetry={() => setScanStatus('idle')}
+                buildings={BUILDINGS}
+                onSelectDevice={(device) => setScanStatus('configuring')}
             />
         </main>
     );
