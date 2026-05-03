@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
-    Plus, Wifi, Cpu, SignalHigh, Bell, Search, Filter, MoreVertical, Activity, Edit2, Trash2, RefreshCw
+    Plus, Wifi, Cpu, SignalHigh, Bell, Search, Filter, MoreVertical, Activity, Edit2, Trash2, RefreshCw, Bluetooth, X, Loader2, AlertCircle
 } from "lucide-react";
 import Header from "@/components/Header";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const INITIAL_DEVICES = [
     { id: "ESP-32-001", name: "Main Panel (3-Phase Cluster)", status: "online", type: "3-Phase", load: "4.2 kW", signal: "PLC", health: 98 },
@@ -12,9 +13,175 @@ const INITIAL_DEVICES = [
     { id: "ESP-32-003", name: "HVAC Controller", status: "offline", type: "1-Phase", load: "0.0 kW", signal: "PLC", health: 0 },
 ];
 
+interface Device {
+    id: string;
+    name: string;
+    status: string;
+    type: string;
+    load: string;
+    signal: string;
+    health: number;
+}
+
+const DeviceCard = ({ device, onDelete }: { 
+    device: Device; 
+    onDelete: (id: string) => void; 
+}) => (
+    <div className={`bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all ${device.status === 'offline' ? 'opacity-75 grayscale-[0.5]' : ''}`}>
+        <div className="flex justify-between items-start mb-6">
+            <div className="flex gap-4">
+                <div className={`p-3 rounded-xl ${device.status === 'online' ? 'bg-orange-50 text-orange-500' : 'bg-gray-50 text-gray-400'}`}>
+                    <Cpu size={24} />
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-900">{device.name}</h3>
+                    <p className="text-xs text-gray-500 font-mono uppercase">{device.id} • {device.type}</p>
+                </div>
+            </div>
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${device.status === 'online' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                <span className={`w-2 h-2 rounded-full ${device.status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                {device.status === 'online' ? 'ONLINE' : 'DISABLED'}
+            </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="p-3 bg-gray-50 rounded-xl">
+                <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Active Load</p>
+                <p className="text-sm font-bold text-gray-900 text-center">{device.load}</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-xl">
+                <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Protocol</p>
+                <p className="text-sm font-bold text-gray-900 text-center flex items-center justify-center gap-1">
+                    {device.signal === 'Wi-Fi' ? <Wifi size={14} /> : <SignalHigh size={14} />}
+                    {device.signal}
+                </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-xl">
+                <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Health</p>
+                <p className="text-sm font-bold text-gray-900 text-center">{device.health}%</p>
+            </div>
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+            <button 
+                disabled={device.status === 'offline'}
+                className={`text-sm font-semibold transition-colors ${device.status === 'offline' ? 'text-gray-400 cursor-not-allowed' : 'text-orange-600 hover:text-orange-700'}`}
+            >
+                View Details
+            </button>
+            <div className="flex gap-2">
+                <Link
+                    href={`devices/${device.id}`}
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                    title="Edit Module"
+                >
+                    <Edit2 size={18} />
+                </Link>
+            </div>
+        </div>
+    </div>
+);
+
+const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry }: {
+    isOpen: boolean;
+    onClose: () => void;
+    scanStatus: string;
+    onStartScan: () => void;
+    onProvision: () => void;
+    onRetry: () => void;
+}) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h2 className="text-xl font-bold text-gray-900">Provision New Module</h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                        <X size={24} />
+                    </button>
+                </div>
+                <div className="p-8 flex flex-col items-center text-center">
+                    {scanStatus === 'idle' && (
+                        <>
+                            <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center text-orange-500 mb-6">
+                                <Bluetooth size={40} />
+                            </div>
+                            <h3 className="text-lg font-bold mb-2">Connect via Bluetooth</h3>
+                            <p className="text-gray-500 text-sm mb-8">Ensure your modular unit is in pairing mode (blinking blue LED).</p>
+                            <button onClick={onStartScan} className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-all">
+                                Scan for Devices
+                            </button>
+                        </>
+                    )}
+                    {scanStatus === 'scanning' && (
+                        <>
+                            <Loader2 size={48} className="text-orange-500 animate-spin mb-6" />
+                            <h3 className="text-lg font-bold mb-2">Scanning...</h3>
+                            <p className="text-gray-500 text-sm">Searching for nearby ESP-32 modules</p>
+                        </>
+                    )}
+                    {scanStatus === 'found' && (
+                        <div className="w-full space-y-4">
+                            <div className="p-4 bg-green-50 border border-green-100 rounded-xl flex items-center gap-3 mb-4">
+                                <Cpu className="text-green-600" />
+                                <div className="text-left">
+                                    <p className="text-sm font-bold text-green-900">ESP32-EMS-PRO-X1 Found</p>
+                                    <p className="text-xs text-green-700">Ready to provision</p>
+                                </div>
+                            </div>
+                            <div className="space-y-3 text-left">
+                                <label className="text-xs font-bold text-gray-400 uppercase">Wi-Fi Network (SSID)</label>
+                                <input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500" placeholder="Home_Network_2.4G" />
+                                <label className="text-xs font-bold text-gray-400 uppercase">Password</label>
+                                <input type="password" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500" placeholder="••••••••" />
+                            </div>
+                            <button onClick={onProvision} className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-all mt-4">
+                                Configure & Connect
+                            </button>
+                        </div>
+                    )}
+                    {scanStatus === 'provisioning' && (
+                        <>
+                            <div className="relative w-24 h-24 mb-6">
+                                <div className="absolute inset-0 border-4 border-orange-100 rounded-full"></div>
+                                <div className="absolute inset-0 border-4 border-orange-500 rounded-full border-t-transparent animate-spin"></div>
+                            </div>
+                            <h3 className="text-lg font-bold mb-2">Provisioning...</h3>
+                            <p className="text-gray-500 text-sm">Sending credentials and registering device to cloud...</p>
+                        </>
+                    )}
+                    {scanStatus === 'success' && (
+                        <div className="flex flex-col items-center py-4">
+                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+                                <RefreshCw size={32} className="animate-spin" />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900">Provisioning Successful!</h3>
+                            <p className="text-gray-500 text-sm mt-2">Starting device configuration sequence...</p>
+                        </div>
+                    )}
+                    {scanStatus === 'error' && (
+                        <div className="flex flex-col items-center py-4">
+                            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+                                <AlertCircle size={32} />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900">Provisioning Failed</h3>
+                            <p className="text-gray-500 text-sm mt-2 mb-6">Connection timed out. Please check the device and try again.</p>
+                            <button onClick={onRetry} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">Try Again</button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default function DevicesPage() {
     const [deviceList, setDeviceList] = useState(INITIAL_DEVICES);
     const [searchQuery, setSearchQuery] = useState("");
+    const [isProvisioning, setIsProvisioning] = useState(false);
+    const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'found' | 'provisioning' | 'success' | 'error'>('idle');
+    const [wifiCreds, setWifiCreds] = useState({ ssid: '', password: '' });
+    const router = useRouter();
 
     const filteredDevices = useMemo(() => {
         return deviceList.filter(device =>
@@ -32,21 +199,41 @@ export default function DevicesPage() {
     };
 
     const handleAddModule = () => {
-        const id = `ESP-32-00${deviceList.length + 1}`;
-        const newDevice = {
-            id,
-            name: "New Modular Unit",
-            status: "online",
-            type: "1-Phase",
-            load: "0.0 kW",
-            signal: "Wi-Fi",
-            health: 100
-        };
-        setDeviceList(prev => [...prev, newDevice]);
+        setIsProvisioning(true);
+        setScanStatus('idle');
     };
 
-    const handleCalibrate = (id: string) => {
-        alert(`Initiating calibration sequence for module ${id}...`);
+    const startBLEScan = () => {
+        setScanStatus('scanning');
+        // Simulate BLE Scan
+        setTimeout(() => setScanStatus('found'), 2000);
+    };
+
+    const provisionDevice = () => {
+        setScanStatus('provisioning');
+        setTimeout(() => {
+            // Randomly simulate success or failure for demo purposes
+            if (Math.random() > 0.3) {
+                setScanStatus('success');
+                const newId = `ESP-32-00${deviceList.length + 1}`;
+                setTimeout(() => {
+                    const newDevice: Device = {
+                        id: newId,
+                        name: "New Modular Unit",
+                        status: "offline",
+                        type: "1-Phase",
+                        load: "0.0 kW",
+                        signal: "Wi-Fi",
+                        health: 100
+                    };
+                    setDeviceList(prev => [...prev, newDevice]);
+                    setIsProvisioning(false);
+                    router.push(`devices/${newId}`);
+                }, 3000);
+            } else {
+                setScanStatus('error');
+            }
+        }, 3000);
     };
 
     return (
@@ -58,7 +245,7 @@ export default function DevicesPage() {
                         <input
                             type="text"
                             placeholder="Search modules..."
-                            className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none w-64"
+                            className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-black focus:ring-2 focus:ring-orange-500 outline-none w-64"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -91,74 +278,24 @@ export default function DevicesPage() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                         {filteredDevices.map((device) => (
-                            <div key={device.id} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="flex gap-4">
-                                        <div className={`p-3 rounded-xl ${device.status === 'online' ? 'bg-orange-50 text-orange-500' : 'bg-gray-100 text-gray-400'}`}>
-                                            <Cpu size={24} />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900">{device.name}</h3>
-                                            <p className="text-xs text-gray-500 font-mono uppercase">{device.id} • {device.type}</p>
-                                        </div>
-                                    </div>
-                                    <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${device.status === 'online' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                                        <span className={`w-2 h-2 rounded-full ${device.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                                        {device.status.toUpperCase()}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-4 mb-6">
-                                    <div className="p-3 bg-gray-50 rounded-xl">
-                                        <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Active Load</p>
-                                        <p className="text-sm font-bold text-gray-900 text-center">{device.load}</p>
-                                    </div>
-                                    <div className="p-3 bg-gray-50 rounded-xl">
-                                        <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Protocol</p>
-                                        <p className="text-sm font-bold text-gray-900 text-center flex items-center justify-center gap-1">
-                                            {device.signal === 'Wi-Fi' ? <Wifi size={14} /> : <SignalHigh size={14} />}
-                                            {device.signal}
-                                        </p>
-                                    </div>
-                                    <div className="p-3 bg-gray-50 rounded-xl">
-                                        <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Health</p>
-                                        <p className="text-sm font-bold text-gray-900 text-center">{device.health}%</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                                    <button className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors">
-                                        View Details
-                                    </button>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handleCalibrate(device.id)}
-                                            className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
-                                            title="Calibrate Module"
-                                        >
-                                            <RefreshCw size={18} />
-                                        </button>
-                                        <Link
-                                            href={`devices/${device.id}`}
-                                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                                            title="Edit Module"
-                                        >
-                                            <Edit2 size={18} />
-                                        </Link>
-                                        <button
-                                            onClick={() => handleDelete(device.id)}
-                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                            title="Remove Module"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            <DeviceCard 
+                                key={device.id} 
+                                device={device} 
+                                onDelete={handleDelete} 
+                            />
                         ))}
                     </div>
                 </div>
             </div>
+
+            <ProvisioningModal 
+                isOpen={isProvisioning} 
+                onClose={() => setIsProvisioning(false)} 
+                scanStatus={scanStatus} 
+                onStartScan={startBLEScan} 
+                onProvision={provisionDevice} 
+                onRetry={() => setScanStatus('idle')}
+            />
         </main>
     );
 }
