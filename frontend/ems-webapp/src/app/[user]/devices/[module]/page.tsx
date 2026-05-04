@@ -245,7 +245,7 @@ export default function DeviceConfigPage() {
                             <button
                                 onClick={handleCalibrate}
                                 disabled={isCalibrating}
-                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all min-w-[160px] ${isCalibrating
+                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all min-w-[] ${isCalibrating
                                         ? "bg-orange-200 text-orange-400 cursor-not-allowed"
                                         : "bg-white text-orange-600 hover:bg-orange-100 shadow-sm"
                                     }`}

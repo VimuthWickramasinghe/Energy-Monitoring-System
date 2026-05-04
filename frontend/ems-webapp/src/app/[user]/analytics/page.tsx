@@ -198,7 +198,7 @@ export default function AnalyticsPage() {
                                             </button>
                                         </div>
                                     </div>
-                                    <div className="h-[180px] w-full">
+                                    <div className="h-45 w-full">
                                         <ResponsiveContainer width="100%" height="100%">
                                             {metric === 'power' ? (
                                                 <AreaChart data={TIME_SERIES_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -236,7 +236,7 @@ export default function AnalyticsPage() {
                                     System Harmonics & Stability
                                 </h3>
                             </div>
-                            <div className="h-[400px] w-full">
+                            <div className="h-100 w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     {viewMode === 'electrical' ? (
                                         <LineChart data={TIME_SERIES_DATA}>

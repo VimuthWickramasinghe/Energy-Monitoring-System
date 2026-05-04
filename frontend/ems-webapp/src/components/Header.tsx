@@ -66,7 +66,7 @@ function UserProfile({ user, logout }: { user: any, logout: () => void }) {
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-3 pl-2 hover:bg-gray-50 p-1 rounded-xl transition-colors group"
             >
-                <div className="w-9 h-9 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm shadow-orange-200">
+                <div className="w-9 h-9 bg-linear-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm shadow-orange-200">
                     {initials}
                 </div>
                 <div className="hidden lg:block text-left">

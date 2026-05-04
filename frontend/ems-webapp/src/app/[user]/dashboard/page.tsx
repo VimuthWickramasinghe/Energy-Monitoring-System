@@ -83,7 +83,7 @@ export default function DashboardPage() {
                   <option value="30d">Last 30 Days</option>
                 </select>
               </div>
-              <div className="h-[300px] w-full">
+              <div className="h-75 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={consumptionData}>
                     <defs>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
             {/* Device Distribution */}
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
               <h3 className="font-bold text-gray-900 mb-8">Usage by Category</h3>
-              <div className="h-[300px] w-full">
+              <div className="h-75 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={deviceData} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
