@@ -1,89 +1,145 @@
 <mxfile host="65bd71144e">
     <diagram id="-gnXlGBSItlqSoR4eBTh" name="Page-1">
-        <mxGraphModel dx="2103" dy="1804" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="2790" dy="1877" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="36" value="" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="64" target="35" edge="1">
+                <mxCell id="123" value="" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="124" target="129">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="184.11764705882365" y="200" as="sourcePoint"/>
+                        <mxPoint x="815" y="160" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="120" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="36">
-                    <mxGeometry x="-0.316" y="6" relative="1" as="geometry">
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
+                <mxCell id="124" value="&lt;p&gt;Analytics page&lt;/p&gt;" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="755" y="50" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="38" value="" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="64" target="121" edge="1">
+                <mxCell id="127" value="End" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="775" y="390" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="128" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="129" target="131">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="129" value="get the buiding and device information of the user" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="725" y="160" width="180" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="130" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="131" target="127">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="131" value="Show the graphs in and organized&amp;nbsp; manar with the ability to view graphs in any range" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+                    <mxGeometry x="730" y="280" width="170" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="132" value="" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="133" target="136">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="245" y="193.99999999999977" as="sourcePoint"/>
-                        <mxPoint x="400" y="120" as="targetPoint"/>
+                        <mxPoint x="1030" y="165" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="119" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="38">
-                    <mxGeometry x="0.2108" y="-2" relative="1" as="geometry">
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
+                <mxCell id="133" value="&lt;p&gt;Buiding page&lt;/p&gt;" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="970" y="55" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="45" value="" style="edgeStyle=none;html=1;" parent="1" source="35" target="44" edge="1">
+                <mxCell id="134" value="End" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="990" y="395" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="135" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="136" target="138">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="47" value="" style="edgeStyle=none;html=1;" parent="1" source="35" target="46" edge="1">
+                <mxCell id="136" value="get the buiding information registerd under the user" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="940" y="165" width="180" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="137" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="138" target="134">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="49" value="" style="edgeStyle=none;html=1;" parent="1" source="35" target="48" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
+                <mxCell id="138" value="Show only the list of buidings registerd under Profile UUID&amp;nbsp;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+                    <mxGeometry x="927.5" y="290" width="205" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="52" value="" style="edgeStyle=none;html=1;" parent="1" source="35" target="51" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="35" value="Dashboard" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="120" y="310" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="40" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" parent="1" source="37" target="35" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="37" value="Creating a Profile" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="420" y="210" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="42" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="41" target="64" edge="1">
+                <mxCell id="139" value="" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="140" target="143" parent="1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="185" y="140" as="targetPoint"/>
+                        <mxPoint x="1272.5" y="165" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="41" value="Sign in /Log in user" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="120" y="-100" width="120" height="60" as="geometry"/>
+                <mxCell id="140" value="&lt;p&gt;Device page&lt;/p&gt;" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1212.5" y="55" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="44" value="Analytics page" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="-100" y="420" width="120" height="60" as="geometry"/>
+                <mxCell id="141" value="End" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1232.5" y="395" width="80" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="46" value="Device Page" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="230" y="500" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="48" value="Building Page" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="-10" y="520" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="51" value="Profile Settings page" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="390" y="430" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="57" value="" style="edgeStyle=none;html=1;" parent="1" source="54" target="56" edge="1">
+                <mxCell id="142" value="" style="edgeStyle=none;html=1;" edge="1" source="143" target="145" parent="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="54" value="Configure new device&lt;div&gt;button pressed&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="130" y="670" width="140" height="70" as="geometry"/>
+                <mxCell id="143" value="get the buiding and device information of the user" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1182.5" y="165" width="180" height="70" as="geometry"/>
                 </mxCell>
-                <mxCell id="66" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="56" target="65">
+                <mxCell id="144" value="" style="edgeStyle=none;html=1;" edge="1" source="145" target="141" parent="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="56" value="Scanning for Devices via BLE" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="125" y="780" width="150" height="60" as="geometry"/>
+                <mxCell id="145" value="Show only the device&amp;nbsp;&lt;div&gt;configuration of each building&amp;nbsp;&lt;/div&gt;&lt;div&gt;and give the user to have&lt;/div&gt;&lt;div&gt;&amp;nbsp;the ability to edit&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+                    <mxGeometry x="1170" y="290" width="205" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="61" value="" style="edgeStyle=none;html=1;" parent="1" source="58" target="60" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="81" style="edgeStyle=none;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="58" target="83">
+                <mxCell id="146" value="" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="147" target="150">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="540" y="1123" as="targetPoint"/>
+                        <mxPoint x="1512.5" y="150" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="147" value="&lt;p&gt;Settings page&lt;/p&gt;" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1475" y="40" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="148" value="End" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1495" y="380" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="149" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="150" target="152">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="150" value="get the Profile information of the&amp;nbsp; user" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1445" y="150" width="180" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="151" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="152" target="148">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="152" value="Show only the profile informations&amp;nbsp;&lt;div&gt;&lt;span style=&quot;color: rgb(192, 192, 192); background-color: transparent;&quot;&gt;and give the user to have&lt;/span&gt;&lt;div&gt;&amp;nbsp;the ability to edit&lt;/div&gt;&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+                    <mxGeometry x="1410" y="275" width="250" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="153" value="" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="154" target="157">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="590" y="160" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="154" value="&lt;p&gt;Dashboard page&lt;/p&gt;" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="530" y="50" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="155" value="End" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="550" y="390" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="156" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="157" target="159">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="157" value="get the device health connectivity realtime device update status&lt;br&gt;&lt;div&gt;&lt;span style=&quot;color: rgb(192, 192, 192); background-color: transparent;&quot;&gt;Total power usage&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Notification etc&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;color: rgb(192, 192, 192); background-color: transparent;&quot;&gt;Use ML to predict price etc&lt;/span&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="500" y="160" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="158" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="159" target="155">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="159" value="Shows the&amp;nbsp;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+                    <mxGeometry x="505" y="280" width="170" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="161" value="" style="group" vertex="1" connectable="0" parent="1">
+                    <mxGeometry x="72.5" y="670" width="477.5" height="960" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="" style="edgeStyle=none;html=1;" parent="161" source="54" target="56" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="Configure new device&lt;div&gt;button pressed&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;" parent="161" vertex="1">
+                    <mxGeometry x="57.5" width="140" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="" style="edgeStyle=none;html=1;" edge="1" parent="161" source="56" target="65">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="Scanning for Devices via BLE" style="whiteSpace=wrap;html=1;" parent="161" vertex="1">
+                    <mxGeometry x="52.5" y="110" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="" style="edgeStyle=none;html=1;" parent="161" source="58" target="60" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="81" style="edgeStyle=none;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="161" source="58" target="83">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="467.5" y="453" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="82" value="Register New Building btn pressed" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="81">
@@ -91,21 +147,18 @@
                         <mxPoint x="-14" y="-1" as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="58" value="Configurin Device Details&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Module Name(auto generated / user input)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;selecting Building&lt;/div&gt;&lt;div&gt;selecting Phase&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" parent="1" vertex="1">
-                    <mxGeometry x="72.5" y="1080" width="255" height="120" as="geometry"/>
+                <mxCell id="58" value="Configurin Device Details&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Module Name&lt;/div&gt;&lt;div&gt;(auto generated / user input)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;selecting Building&lt;/div&gt;&lt;div&gt;selecting Phase&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" parent="161" vertex="1">
+                    <mxGeometry y="410" width="255" height="120" as="geometry"/>
                 </mxCell>
-                <mxCell id="76" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="60" target="75">
+                <mxCell id="76" value="" style="edgeStyle=none;html=1;" edge="1" parent="161" source="60" target="75">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="60" value="Update DB" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="140" y="1260" width="120" height="40" as="geometry"/>
+                <mxCell id="60" value="Update DB" style="whiteSpace=wrap;html=1;" parent="161" vertex="1">
+                    <mxGeometry x="67.5" y="590" width="120" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="64" value="Is user has a Profile" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-                    <mxGeometry x="115" y="55" width="130" height="130" as="geometry"/>
-                </mxCell>
-                <mxCell id="68" value="" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="65" target="58">
+                <mxCell id="68" value="" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="161" source="65" target="58">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="199.99999999999977" y="1080" as="targetPoint"/>
+                        <mxPoint x="127.49999999999977" y="410" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="69" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="68">
@@ -113,7 +166,7 @@
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="71" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="65" target="70">
+                <mxCell id="71" value="" style="edgeStyle=none;html=1;" edge="1" parent="161" source="65" target="70">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="73" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="71">
@@ -121,10 +174,10 @@
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="65" value="Device Found" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-                    <mxGeometry x="160" y="910" width="80" height="80" as="geometry"/>
+                <mxCell id="65" value="Device Found" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="161">
+                    <mxGeometry x="78.75" y="240" width="107.5" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="72" style="edgeStyle=none;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="70" target="56">
+                <mxCell id="72" style="edgeStyle=none;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="161" source="70" target="56">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="74" value="Try again button prssed" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="72">
@@ -132,64 +185,179 @@
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="70" value="Display&amp;nbsp;&lt;div&gt;&quot;No device detected&quot;&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
-                    <mxGeometry x="380" y="920" width="150" height="60" as="geometry"/>
+                <mxCell id="70" value="Display&amp;nbsp;&lt;div&gt;&quot;No device detected&quot;&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="161">
+                    <mxGeometry x="307.5" y="250" width="150" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="117" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="75" target="116">
+                <mxCell id="117" value="" style="edgeStyle=none;html=1;" edge="1" parent="161" source="75" target="116">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="75" value="Test device&lt;div&gt;Sending data to the backend&lt;/div&gt;" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
-                    <mxGeometry x="140" y="1340" width="120" height="60" as="geometry"/>
+                <mxCell id="75" value="Test device&lt;div&gt;Sending data to the backend&lt;/div&gt;" style="whiteSpace=wrap;html=1;" vertex="1" parent="161">
+                    <mxGeometry x="67.5" y="670" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="77" value="End" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-                    <mxGeometry x="165" y="1550" width="80" height="80" as="geometry"/>
+                <mxCell id="77" value="End" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="161">
+                    <mxGeometry x="92.5" y="880" width="80" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="84" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="83" target="77">
+                <mxCell id="84" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="161" source="83" target="77">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="83" value="Go to /[user]/Building page&lt;div&gt;to register the new Building&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-                    <mxGeometry x="360" y="1480" width="190" height="60" as="geometry"/>
+                <mxCell id="83" value="Go to /[user]/Building page&lt;div&gt;to register the new Building&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="161">
+                    <mxGeometry x="287.5" y="810" width="190" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="85" value="" style="edgeStyle=none;html=1;" edge="1" source="86" target="88" parent="1">
+                <mxCell id="118" value="" style="edgeStyle=none;html=1;" edge="1" parent="161" source="116" target="77">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="86" value="&lt;p&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(253, 239, 255));&quot;&gt;&lt;span&gt;&lt;font&gt;Add Building&lt;br&gt;&lt;/font&gt;&lt;/span&gt;&lt;span&gt;button pressed&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-                    <mxGeometry x="755" y="670" width="120" height="60" as="geometry"/>
+                <mxCell id="116" value="Send success msg" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="161">
+                    <mxGeometry x="62.5" y="770" width="140" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="87" value="" style="edgeStyle=none;html=1;entryX=0.496;entryY=-0.085;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" source="88" target="109" parent="1">
+                <mxCell id="162" value="" style="group" vertex="1" connectable="0" parent="1">
+                    <mxGeometry x="705" y="670" width="220" height="680" as="geometry"/>
+                </mxCell>
+                <mxCell id="85" value="" style="edgeStyle=none;html=1;" edge="1" source="86" target="88" parent="162">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="86" value="&lt;p&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(253, 239, 255));&quot;&gt;&lt;span&gt;&lt;font&gt;Add Building&lt;br&gt;&lt;/font&gt;&lt;/span&gt;&lt;span&gt;button pressed&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="162">
+                    <mxGeometry x="50" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="87" value="" style="edgeStyle=none;html=1;entryX=0.496;entryY=-0.085;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" source="88" target="109" parent="162">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="815" y="910" as="targetPoint"/>
+                        <mxPoint x="110" y="240" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="88" value="Input Building name and Address" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
-                    <mxGeometry x="705" y="780" width="220" height="60" as="geometry"/>
+                <mxCell id="88" value="Input Building name and Address" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="162">
+                    <mxGeometry y="110" width="220" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="105" value="End" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-                    <mxGeometry x="775" y="1270" width="80" height="80" as="geometry"/>
+                <mxCell id="105" value="End" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="162">
+                    <mxGeometry x="70" y="600" width="80" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="112" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="109" target="111">
+                <mxCell id="112" value="" style="edgeStyle=none;html=1;" edge="1" parent="162" source="109" target="111">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="109" value="Gets the user Profile UUID and assigning the owner&amp;nbsp;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Saving the Building informaation on the DB&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-                    <mxGeometry x="755" y="930" width="120" height="110" as="geometry"/>
+                <mxCell id="109" value="Gets the user Profile UUID and assigning the owner&amp;nbsp;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Saving the Building informaation on the DB&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="162">
+                    <mxGeometry x="50" y="260" width="120" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="113" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="111" target="105">
+                <mxCell id="113" value="" style="edgeStyle=none;html=1;" edge="1" parent="162" source="111" target="105">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="111" value="send confirmation msg" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
-                    <mxGeometry x="730" y="1145" width="170" height="60" as="geometry"/>
+                <mxCell id="111" value="send confirmation msg" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="162">
+                    <mxGeometry x="25" y="475" width="170" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="118" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="116" target="77">
+                <mxCell id="197" value="" style="group" vertex="1" connectable="0" parent="1">
+                    <mxGeometry x="-710" y="520" width="640" height="980" as="geometry"/>
+                </mxCell>
+                <mxCell id="164" value="" style="edgeStyle=none;html=1;" edge="1" parent="197" source="163" target="41">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="116" value="Send success msg" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
-                    <mxGeometry x="135" y="1440" width="140" height="60" as="geometry"/>
+                <mxCell id="163" value="Landing Page" style="whiteSpace=wrap;html=1;" vertex="1" parent="197">
+                    <mxGeometry x="228" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="122" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="121" target="37">
+                <mxCell id="41" value="Sign in /Log in user" style="whiteSpace=wrap;html=1;" parent="197" vertex="1">
+                    <mxGeometry x="228" y="110" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="197" source="41" target="192" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="290" y="260" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="166" value="" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="197" source="35" target="41">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="148" y="630" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="138" y="610"/>
+                            <mxPoint x="138" y="220"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="189" value="Logout" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="166">
+                    <mxGeometry x="0.2706" y="2" relative="1" as="geometry">
+                        <mxPoint y="222" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="193" value="" style="edgeStyle=none;html=1;" edge="1" parent="197" source="192" target="64">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="121" value="Username&lt;div&gt;Profile pic?&lt;/div&gt;&lt;div&gt;phone no?&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
-                    <mxGeometry x="420" y="90" width="120" height="60" as="geometry"/>
+                <mxCell id="194" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="193">
+                    <mxGeometry x="-0.0149" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="195" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="197" source="192" target="41">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="410" y="295"/>
+                            <mxPoint x="410" y="155"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="196" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="195">
+                    <mxGeometry x="-0.8131" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="192" value="Authentication succesful" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="197">
+                    <mxGeometry x="223" y="230" width="130" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="197" source="64" target="35" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="284.11764705882365" y="600" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="120" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="36">
+                    <mxGeometry x="-0.316" y="6" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="38" value="" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="197" source="64" target="121" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="345" y="593.9999999999998" as="sourcePoint"/>
+                        <mxPoint x="500" y="520" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="119" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="38">
+                    <mxGeometry x="0.2108" y="-2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="45" value="" style="edgeStyle=none;html=1;" parent="197" source="35" target="44" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="" style="edgeStyle=none;html=1;" parent="197" source="35" target="46" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="" style="edgeStyle=none;html=1;" parent="197" source="35" target="48" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="" style="edgeStyle=none;html=1;" parent="197" source="35" target="51" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="Dashboard" style="whiteSpace=wrap;html=1;" parent="197" vertex="1">
+                    <mxGeometry x="220" y="710" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" parent="197" source="37" target="35" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="Creating a Profile" style="whiteSpace=wrap;html=1;" parent="197" vertex="1">
+                    <mxGeometry x="520" y="610" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="Analytics page" style="whiteSpace=wrap;html=1;" parent="197" vertex="1">
+                    <mxGeometry y="820" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="Device Page" style="whiteSpace=wrap;html=1;" parent="197" vertex="1">
+                    <mxGeometry x="330" y="900" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="48" value="Building Page" style="whiteSpace=wrap;html=1;" parent="197" vertex="1">
+                    <mxGeometry x="90" y="920" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="Profile Settings page" style="whiteSpace=wrap;html=1;" parent="197" vertex="1">
+                    <mxGeometry x="490" y="830" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="Is user has a Profile" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="197">
+                    <mxGeometry x="215" y="455" width="130" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="122" value="" style="edgeStyle=none;html=1;" edge="1" parent="197" source="121" target="37">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="121" value="Username&lt;div&gt;Profile pic?&lt;/div&gt;&lt;div&gt;phone no?&lt;/div&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="197">
+                    <mxGeometry x="520" y="490" width="120" height="60" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
