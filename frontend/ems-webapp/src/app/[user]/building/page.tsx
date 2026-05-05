@@ -30,6 +30,11 @@ const INITIAL_BUILDINGS: Building[] = [
   { id: 'b3', name: 'Downtown Hub', address: '789 Center St', status: 'maintenance' },
 ];
 
+// --- Components ---
+
+/**
+ * BuildingCard Component
+ */
 const BuildingCard = ({ building, onClick, onEdit }: { building: Building; onClick: () => void; onEdit: (e: React.MouseEvent) => void }) => (
   <div 
     onClick={onClick}
@@ -58,6 +63,9 @@ const BuildingCard = ({ building, onClick, onEdit }: { building: Building; onCli
   </div>
 );
 
+/**
+ * BuildingModal Component
+ */
 const BuildingModal = ({ 
   isOpen, 
   onClose, 
@@ -162,6 +170,9 @@ const BuildingModal = ({
   );
 };
 
+/**
+ * Main Page Component
+ */
 export default function DeviceManagement() {
   const [buildings, setBuildings] = useState<Building[]>(INITIAL_BUILDINGS);
   const [isModalOpen, setIsModalOpen] = useState(false);
