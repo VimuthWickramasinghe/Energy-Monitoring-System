@@ -1,10 +1,10 @@
 <mxfile host="65bd71144e">
     <diagram id="-4LXUEmnSnR7WnOjePFm" name="Page-1">
-        <mxGraphModel dx="1630" dy="1430" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="2392" dy="1966" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="221" value="" style="group" vertex="1" connectable="0" parent="1">
+                <mxCell id="221" value="" style="group" parent="1" vertex="1" connectable="0">
                     <mxGeometry x="-660" y="670" width="1270" height="620" as="geometry"/>
                 </mxCell>
                 <mxCell id="206" value="" style="group" parent="221" vertex="1" connectable="0">
@@ -179,7 +179,7 @@
                 <mxCell id="155" value="Signal Isolator&#xa;+&#xa;PLC Interface&#xa;+&#xa;Sensors" style="rounded=0;whiteSpace=wrap;fontColor=default;" parent="221" vertex="1">
                     <mxGeometry x="449" y="390" width="120" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="222" value="" style="group" vertex="1" connectable="0" parent="1">
+                <mxCell id="222" value="" style="group" parent="1" vertex="1" connectable="0">
                     <mxGeometry x="-660" y="1410" width="1295" height="510" as="geometry"/>
                 </mxCell>
                 <mxCell id="207" value="" style="group" parent="222" vertex="1" connectable="0">
@@ -263,8 +263,8 @@
                 <mxCell id="188" value="Signal Isolator&#xa;+&#xa;PLC Interface&#xa;+&#xa;Sensors" style="rounded=0;whiteSpace=wrap;fontColor=default;" parent="222" vertex="1">
                     <mxGeometry x="287.25" y="310" width="120" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="223" value="" style="group" vertex="1" connectable="0" parent="1">
-                    <mxGeometry x="-37.75" y="-190" width="502.75" height="650" as="geometry"/>
+                <mxCell id="223" value="" style="group" parent="1" vertex="1" connectable="0">
+                    <mxGeometry x="60" y="-190" width="502.75" height="650" as="geometry"/>
                 </mxCell>
                 <mxCell id="211" value="" style="whiteSpace=wrap;html=1;dashed=1;" parent="223" vertex="1">
                     <mxGeometry x="17.75" y="460" width="480" height="190" as="geometry"/>
@@ -338,64 +338,109 @@
                 <mxCell id="217" value="&lt;div&gt;SCT106 30A&lt;/div&gt;Current Clamp" style="rounded=1;whiteSpace=wrap;html=1;" parent="223" vertex="1">
                     <mxGeometry x="182.75" y="580" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="224" value="" style="group" vertex="1" connectable="0" parent="1">
-                    <mxGeometry x="-750" y="-170" width="502.75" height="650" as="geometry"/>
+                <mxCell id="224" value="" style="group" parent="1" vertex="1" connectable="0">
+                    <mxGeometry x="-750" y="-180" width="870" height="650" as="geometry"/>
                 </mxCell>
-                <mxCell id="225" value="" style="whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="224">
+                <mxCell id="225" value="" style="whiteSpace=wrap;html=1;dashed=1;" parent="224" vertex="1">
                     <mxGeometry x="17.75" y="290" width="480" height="190" as="geometry"/>
                 </mxCell>
-                <mxCell id="228" value="" style="edgeStyle=none;html=1;startArrow=classic;startFill=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="224" source="242" target="235">
+                <mxCell id="228" value="" style="edgeStyle=none;html=1;startArrow=classic;startFill=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="224" source="242" target="235" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="247.75" y="230" as="targetPoint"/>
                         <mxPoint x="247.75" y="309.9999999999998" as="sourcePoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="232" value="" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;" edge="1" parent="224" source="235" target="236">
+                <mxCell id="253" value="WiFi" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="228">
+                    <mxGeometry x="-0.0528" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="232" value="" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;" parent="224" source="235" target="236" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="387.75" y="170" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="233" value="" style="edgeStyle=none;html=1;startArrow=classic;startFill=1;" edge="1" parent="224" source="235" target="237">
+                <mxCell id="233" value="" style="edgeStyle=none;html=1;startArrow=classic;startFill=1;" parent="224" source="235" target="237" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="234" value="" style="edgeStyle=none;html=1;startArrow=classic;startFill=1;" edge="1" parent="224" source="235" target="238">
+                <mxCell id="234" value="" style="edgeStyle=none;html=1;startArrow=classic;startFill=1;" parent="224" source="235" target="238" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="235" value="Backend&lt;div&gt;Express.js&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;direction=west;" vertex="1" parent="224">
+                <mxCell id="235" value="Backend&lt;div&gt;Express.js&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;direction=west;" parent="224" vertex="1">
                     <mxGeometry x="187.75" y="120" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="236" value="MongoDB" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="224">
-                    <mxGeometry x="397.75" y="110" width="60" height="80" as="geometry"/>
+                <mxCell id="236" value="MongoDB" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="224" vertex="1">
+                    <mxGeometry x="397.75" y="140" width="60" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="237" value="Frontend&lt;div&gt;Next.js&lt;/div&gt;" style="whiteSpace=wrap;html=1;rounded=1;shadow=1;" vertex="1" parent="224">
+                <mxCell id="237" value="Frontend&lt;div&gt;Next.js&lt;/div&gt;" style="whiteSpace=wrap;html=1;rounded=1;shadow=1;" parent="224" vertex="1">
                     <mxGeometry y="120" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="238" value="User authentication&lt;div&gt;Firebase&lt;/div&gt;" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="224">
+                <mxCell id="238" value="User authentication&lt;div&gt;Firebase&lt;/div&gt;" style="whiteSpace=wrap;html=1;rounded=1;" parent="224" vertex="1">
                     <mxGeometry x="187.75" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="239" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=classic;startFill=1;" edge="1" parent="224">
+                <mxCell id="239" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=classic;startFill=1;" parent="224" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="302.75" y="349" as="sourcePoint"/>
                         <mxPoint x="352.75" y="349" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="240" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" edge="1" parent="224" source="242" target="244">
+                <mxCell id="240" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" parent="224" source="242" target="244" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="241" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" edge="1" parent="224" source="242" target="245">
+                <mxCell id="241" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" parent="224" source="242" target="245" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="242" value="&lt;font color=&quot;#121212&quot;&gt;ESP32&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="224">
+                <mxCell id="242" value="&lt;font color=&quot;#121212&quot;&gt;ESP32&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="224" vertex="1">
                     <mxGeometry x="182.75" y="320" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="243" value="PLC Interface&lt;div&gt;signal Isolation&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="224">
+                <mxCell id="243" value="PLC Interface&lt;div&gt;signal Isolation&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="224" vertex="1">
                     <mxGeometry x="352.75" y="320" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="244" value="ZMPT10B&amp;nbsp;&lt;div&gt;Voltage sensor&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="224">
+                <mxCell id="244" value="ZMPT10B&amp;nbsp;&lt;div&gt;Voltage sensor&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="224" vertex="1">
                     <mxGeometry x="27.75" y="320" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="245" value="&lt;div&gt;SCT106 30A&lt;/div&gt;Current Clamp" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="224">
+                <mxCell id="245" value="&lt;div&gt;SCT106 30A&lt;/div&gt;Current Clamp" style="rounded=1;whiteSpace=wrap;html=1;" parent="224" vertex="1">
                     <mxGeometry x="182.75" y="410" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="247" value="PostgressSQL&lt;div&gt;or&lt;/div&gt;&lt;div&gt;Supabase&lt;/div&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="224">
+                    <mxGeometry x="380" width="92.25" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="248" style="edgeStyle=none;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=60;entryPerimeter=0;" edge="1" parent="224" source="235" target="247">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="249" value="Profile data&lt;div&gt;Buiding data&lt;/div&gt;&lt;div&gt;Device data&lt;/div&gt;" style="whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="224">
+                    <mxGeometry x="530.005" y="15" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="250" value="" style="edgeStyle=none;html=1;" edge="1" parent="224" source="247" target="249">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="251" value="&lt;font style=&quot;&quot;&gt;Device&amp;nbsp;&lt;span style=&quot;background-color: transparent;&quot;&gt;Measurement values&lt;/span&gt;&lt;/font&gt;" style="whiteSpace=wrap;html=1;dashed=1;gradientColor=none;fillColor=default;fontColor=default;" vertex="1" parent="1">
+                    <mxGeometry x="-242.25" y="-30" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="252" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="236" target="251">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="254" value="PostgressSQL&lt;div&gt;or&lt;/div&gt;&lt;div&gt;Supabase&lt;/div&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+                    <mxGeometry x="459.75" y="-220" width="92.25" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="255" style="edgeStyle=none;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=60;entryPerimeter=0;" edge="1" parent="1" target="254" source="12">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="387.75" y="-100" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="256" value="Profile data&lt;div&gt;Buiding data&lt;/div&gt;&lt;div&gt;Device data&lt;/div&gt;" style="whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="1">
+                    <mxGeometry x="609.755" y="-205" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="257" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="254" target="256">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="258" value="&lt;font style=&quot;&quot;&gt;Device&amp;nbsp;&lt;span style=&quot;background-color: transparent;&quot;&gt;Measurement values&lt;/span&gt;&lt;/font&gt;" style="whiteSpace=wrap;html=1;dashed=1;gradientColor=none;fillColor=default;fontColor=default;" vertex="1" parent="1">
+                    <mxGeometry x="587.5" y="-70" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="259" value="" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" target="258" source="15">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="537.75" y="-40" as="sourcePoint"/>
+                    </mxGeometry>
                 </mxCell>
             </root>
         </mxGraphModel>
