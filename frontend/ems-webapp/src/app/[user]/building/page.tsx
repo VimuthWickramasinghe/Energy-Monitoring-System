@@ -66,9 +66,11 @@ const BuildingModal = ({
   onMouseDown, 
   newBuilding, 
   setNewBuilding,
-  isEditing,
+  editingId,
   onDelete
 }: any) => {
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [confirmId, setConfirmId] = useState('');
   if (!isOpen) return null;
 
   return (
@@ -84,13 +86,14 @@ const BuildingModal = ({
         >
           <div className="flex items-center gap-2 text-gray-600">
             <GripHorizontal size={18} />
-            <span className="font-bold text-sm">{isEditing ? 'Edit Building' : 'Register Building'}</span>
+            <span className="font-bold text-sm">{editingId ? 'Edit Building' : 'Register Building'}</span>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={20} />
           </button>
         </div>
-        <form onSubmit={onSubmit} className="p-6 space-y-4">
+        <div className="p-6 space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Building Name</label>
             <input
@@ -113,19 +116,47 @@ const BuildingModal = ({
               onChange={e => setNewBuilding({ ...newBuilding, address: e.target.value })}
             />
           </div>
-          {isEditing && (
-            <button 
-              type="button"
-              onClick={onDelete}
-              className="flex items-center justify-center gap-2 w-full py-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors text-sm font-medium"
-            >
-              <Trash2 size={16} /> Delete Building
-            </button>
-          )}
           <button type="submit" className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-all mt-2">
-            {isEditing ? 'Save Changes' : 'Confirm Registration'}
+            {editingId ? 'Save Changes' : 'Confirm Registration'}
           </button>
-        </form>
+          </form>
+
+          {editingId && (
+            <div className="pt-4 border-t border-gray-100">
+              {!showConfirmDelete ? (
+                <button 
+                  type="button"
+                  onClick={() => setShowConfirmDelete(true)}
+                  className="flex items-center justify-center gap-2 w-full py-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors text-sm font-medium"
+                >
+                  <Trash2 size={16} /> Delete Building
+                </button>
+              ) : (
+                <div className="space-y-3 animate-in fade-in slide-in-from-top-1">
+                  <p className="text-[10px] font-bold text-red-600">TYPE ID TO CONFIRM <br/>ID <span className="select-all bg-red-50 px-1">{editingId}</span></p>
+                  <input
+                    type="text"
+                    className="w-full p-2 bg-red-50 border border-red-100 rounded-lg outline-none text-sm"
+                    placeholder="Enter Building ID"
+                    value={confirmId}
+                    onChange={e => setConfirmId(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => { setShowConfirmDelete(false); setConfirmId(''); }}
+                      className="flex-1 py-2 text-gray-500 text-xs font-bold"
+                    >Cancel</button>
+                    <button 
+                      disabled={confirmId !== editingId}
+                      onClick={() => { onDelete(); setShowConfirmDelete(false); setConfirmId(''); }}
+                      className="flex-1 py-2 bg-red-500 text-white rounded-lg text-xs font-bold disabled:opacity-50"
+                    >Confirm Delete</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
@@ -232,7 +263,7 @@ export default function DeviceManagement() {
         onMouseDown={handleMouseDown}
         newBuilding={newBuilding}
         setNewBuilding={setNewBuilding}
-        isEditing={!!editingId}
+        editingId={editingId}
         onDelete={handleDeleteBuilding}
       />
 
