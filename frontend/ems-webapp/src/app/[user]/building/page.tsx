@@ -10,7 +10,8 @@ import {
   ArrowLeft,
   Settings,
   Activity,
-  Zap,
+  Pencil,
+  Trash2,
   ShieldCheck,
   Thermometer
 } from "lucide-react";
@@ -20,38 +21,40 @@ interface Building {
   id: string;
   name: string;
   address: string;
-  deviceCount: number;
   status: 'active' | 'maintenance';
 }
 
 const INITIAL_BUILDINGS: Building[] = [
-  { id: 'b1', name: 'Corporate HQ', address: '123 Innovation Way', deviceCount: 12, status: 'active' },
-  { id: 'b2', name: 'West Warehouse', address: '456 Logistics Blvd', deviceCount: 8, status: 'active' },
-  { id: 'b3', name: 'Downtown Hub', address: '789 Center St', deviceCount: 5, status: 'maintenance' },
+  { id: 'b1', name: 'Corporate HQ', address: '123 Innovation Way',   status: 'active' },
+  { id: 'b2', name: 'West Warehouse', address: '456 Logistics Blvd',  status: 'active' },
+  { id: 'b3', name: 'Downtown Hub', address: '789 Center St', status: 'maintenance' },
 ];
 
-const BuildingCard = ({ building, onClick }: { building: Building; onClick: () => void }) => (
+const BuildingCard = ({ building, onClick, onEdit }: { building: Building; onClick: () => void; onEdit: (e: React.MouseEvent) => void }) => (
   <div 
     onClick={onClick}
-    className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+    className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group relative"
   >
     <div className="flex justify-between items-start mb-3">
       <div className="p-2 bg-orange-50 text-orange-500 rounded-lg group-hover:bg-orange-500 group-hover:text-white transition-colors">
         <Building2 size={20} />
       </div>
-      <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${
-        building.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
-      }`}>
-        {building.status}
+      <span className="flex items-center gap-2">
+        <div className="hidden group-hover:flex items-center gap-1 mr-2">
+          <button 
+            onClick={onEdit}
+            className="p-1.5 hover:bg-gray-100 rounded-md text-gray-400 hover:text-orange-500 transition-colors"
+          >
+            <Pencil size={14} />
+          </button>
+        </div>
+        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${building.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>{building.status}</span>
       </span>
     </div>
     <h3 className="font-bold text-gray-900">{building.name}</h3>
     <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
       <MapPin size={12} /> {building.address}
     </p>
-    <div className="mt-4 flex items-center justify-between text-sm">
-      <span className="text-gray-400 font-medium">{building.deviceCount} Devices</span>
-    </div>
   </div>
 );
 
@@ -62,7 +65,9 @@ const BuildingModal = ({
   position, 
   onMouseDown, 
   newBuilding, 
-  setNewBuilding 
+  setNewBuilding,
+  isEditing,
+  onDelete
 }: any) => {
   if (!isOpen) return null;
 
@@ -79,7 +84,7 @@ const BuildingModal = ({
         >
           <div className="flex items-center gap-2 text-gray-600">
             <GripHorizontal size={18} />
-            <span className="font-bold text-sm">Register Building</span>
+            <span className="font-bold text-sm">{isEditing ? 'Edit Building' : 'Register Building'}</span>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={20} />
@@ -108,8 +113,17 @@ const BuildingModal = ({
               onChange={e => setNewBuilding({ ...newBuilding, address: e.target.value })}
             />
           </div>
+          {isEditing && (
+            <button 
+              type="button"
+              onClick={onDelete}
+              className="flex items-center justify-center gap-2 w-full py-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors text-sm font-medium"
+            >
+              <Trash2 size={16} /> Delete Building
+            </button>
+          )}
           <button type="submit" className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-all mt-2">
-            Confirm Registration
+            {isEditing ? 'Save Changes' : 'Confirm Registration'}
           </button>
         </form>
       </div>
@@ -117,33 +131,11 @@ const BuildingModal = ({
   );
 };
 
-const BuildingDetailsView = ({ building, onBack }: { building: Building; onBack: () => void }) => (
-  <main className="flex-1 flex flex-col overflow-hidden bg-white">
-    <Header title={building.name} subtitle={building.address}>
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl text-sm font-medium transition-all"
-      >
-        <ArrowLeft size={18} /> Back
-      </button>
-    </Header>
-    <div className="flex-1 overflow-y-auto p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Building Devices</h2>
-          <button className="flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-600 rounded-xl text-sm font-bold hover:bg-orange-200 transition-all">
-            <Plus size={18} /> Provision New Device
-          </button>
-        </div>
-      </div>
-    </div>
-  </main>
-);
-
 export default function DeviceManagement() {
   const [buildings, setBuildings] = useState<Building[]>(INITIAL_BUILDINGS);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newBuilding, setNewBuilding] = useState({ name: '', address: '' });
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
 
   // Window position state
@@ -173,23 +165,41 @@ export default function DeviceManagement() {
 
   const handleAddBuilding = (e: React.FormEvent) => {
     e.preventDefault();
-    const building: Building = {
-      id: `b${buildings.length + 1}`,
-      name: newBuilding.name,
-      address: newBuilding.address,
-      deviceCount: 0,
-      status: 'active'
-    };
-    setBuildings([...buildings, building]);
+    if (editingId) {
+      setBuildings(buildings.map(b => 
+        b.id === editingId 
+          ? { ...b, name: newBuilding.name, address: newBuilding.address }
+          : b
+      ));
+    } else {
+      const building: Building = {
+        id: `b${Date.now()}`,
+        name: newBuilding.name,
+        address: newBuilding.address,
+        status: 'active'
+      };
+      setBuildings([...buildings, building]);
+    }
     setIsModalOpen(false);
+    setEditingId(null);
     setNewBuilding({ name: '', address: '' });
   };
 
-  if (selectedBuilding) {
-    return (
-      <BuildingDetailsView building={selectedBuilding} onBack={() => setSelectedBuilding(null)} />
-    );
+  const handleEditClick = (e: React.MouseEvent, building: Building) => {
+    e.stopPropagation();
+    setNewBuilding({
+      name: building.name,
+      address: building.address
+    });
+    setEditingId(building.id);
+    setIsModalOpen(true);
   }
+
+  const handleDeleteBuilding = () => {
+    if (!editingId) return;
+    setBuildings(buildings.filter(b => b.id !== editingId));
+    setIsModalOpen(false);
+  };
 
   return (
     <main
@@ -202,7 +212,11 @@ export default function DeviceManagement() {
         subtitle="Monitor and control your infrastructure"
       >
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingId(null);
+            setNewBuilding({ name: '', address: '' });
+            setIsModalOpen(true);
+          }}
           className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-200"
         >
           <Plus size={18} />
@@ -218,6 +232,8 @@ export default function DeviceManagement() {
         onMouseDown={handleMouseDown}
         newBuilding={newBuilding}
         setNewBuilding={setNewBuilding}
+        isEditing={!!editingId}
+        onDelete={handleDeleteBuilding}
       />
 
       <div className="p-8 space-y-6">
@@ -232,6 +248,7 @@ export default function DeviceManagement() {
               <BuildingCard 
                 key={building.id} 
                 building={building} 
+                onEdit={(e) => handleEditClick(e, building)}
                 onClick={() => setSelectedBuilding(building)} 
               />
             ))}
