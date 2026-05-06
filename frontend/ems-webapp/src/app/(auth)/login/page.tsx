@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { login, loginWithGoogle } = useAuth();
+    const { login, loginWithGoogle, loading } = useAuth();
 
     const handleGoogleLogin = async () => {
         try {
@@ -36,7 +36,8 @@ export default function LoginPage() {
                 <div className="mt-8 space-y-6">
                     <button
                         onClick={handleGoogleLogin}
-                        className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                        disabled={loading}
+                        className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <svg width="20" height="20" viewBox="0 0 24 24">
                             <path
@@ -76,6 +77,7 @@ export default function LoginPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
                             <input
                                 type="email"
+                                disabled={loading}
                                 className="w-full px-4 py-3 rounded-lg border text-black border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
                                 placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)}
                             />
@@ -84,13 +86,15 @@ export default function LoginPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                             <input
                                 type="password"
+                                disabled={loading}
                                 className="w-full px-4 py-3 rounded-lg border text-black border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
                                 placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
                         <button
                             type="submit"
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                            disabled={loading}
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Sign in
                         </button>

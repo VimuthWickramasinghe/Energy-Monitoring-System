@@ -7,14 +7,14 @@ import { useNotification } from "./NotificationContext";
 export const AuthContext = createContext();
 
 export default function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
-    const [profile, setProfile] = useState(null);
-    const [isGoogleUser, setIsGoogleUser] = useState(false);
+    const [user, setUser] = useState(null); // for Firebase
+    const [profile, setProfile] = useState(null); // for supabase
+    const [isGoogleUser, setIsGoogleUser] = useState(false); 
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const pathname = usePathname();
     const { addNotification } = useNotification();
-
+    // Listen for Auth changes
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
@@ -124,7 +124,7 @@ export default function AuthProvider({ children }) {
         setLoading(true);
         try {
             await deleteUser(user);
-            
+
             router.push('/');
         } catch (error) {
             console.error("Delete account error:", error);

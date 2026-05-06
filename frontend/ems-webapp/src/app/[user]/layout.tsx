@@ -9,7 +9,7 @@ export default function UserLayout({
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden">
             <UserNav />
-                    {children}
+            {children}
         </div>
     );
 }
