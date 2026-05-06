@@ -25,9 +25,7 @@ interface Building {
 }
 
 const INITIAL_BUILDINGS: Building[] = [
-  { id: 'b1', name: 'Corporate HQ', address: '123 Innovation Way',   status: 'active' },
-  { id: 'b2', name: 'West Warehouse', address: '456 Logistics Blvd',  status: 'active' },
-  { id: 'b3', name: 'Downtown Hub', address: '789 Center St', status: 'maintenance' },
+
 ];
 
 // --- Components ---
