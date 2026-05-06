@@ -1,19 +1,34 @@
 "use client"
-import { useState, useEffect, createContext, useContext } from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, deleteUser } from "firebase/auth";
-import { auth } from "./../../firebase.config.js";
+import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, deleteUser, User, UserCredential } from "firebase/auth";
+import { auth } from "../../firebase.config.js";
 import { useRouter, usePathname } from "next/navigation";
-import { useNotification } from "./NotificationContext";
-export const AuthContext = createContext();
+import { useNotification } from "./NotificationContext.js";
 
-export default function AuthProvider({ children }) {
-    const [user, setUser] = useState(null); // for Firebase
-    const [profile, setProfile] = useState(null); // for supabase
+interface AuthContextType {
+    user: User | null;
+    profile: any | null;
+    login: (email: string, password: string) => Promise<UserCredential | undefined>;
+    signup: (email: string, password: string) => Promise<UserCredential | undefined>;
+    logout: () => Promise<void>;
+    loginWithGoogle: () => Promise<void>;
+    deleteAccount: () => Promise<void>;
+    loading: boolean;
+    isGoogleUser: boolean;
+}
+
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export default function AuthProvider({ children }: { children: ReactNode }) {
+    const [user, setUser] = useState<User | null>(null); // for Firebase
+    const [profile, setProfile] = useState<any | null>(null); // for supabase
     const [isGoogleUser, setIsGoogleUser] = useState(false); 
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const pathname = usePathname();
-    const { addNotification } = useNotification();
+    const notificationContext = useNotification();
+    const addNotification = notificationContext?.addNotification;
+
     // Listen for Auth changes
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -47,7 +62,7 @@ export default function AuthProvider({ children }) {
         }
     }, [user, loading, pathname, router]);
 
-    const login = async (email, password) => {
+    const login = async (email: string, password: string) => {
         setLoading(true);
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -57,10 +72,10 @@ export default function AuthProvider({ children }) {
             return userCredential;
         } catch (error) {
             console.error("Login error:", error);
-            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                addNotification("Invalid email or password.", "error");
+            if ((error as any).code === 'auth/invalid-credential' || (error as any).code === 'auth/user-not-found' || (error as any).code === 'auth/wrong-password') {
+                addNotification?.("Invalid email or password.", "error");
             } else {
-                addNotification("Failed to log in: " + error.message, "error");
+                addNotification?.("Failed to log in: " + (error as Error).message, "error");
             }
         }
         finally {
@@ -68,7 +83,7 @@ export default function AuthProvider({ children }) {
         }
     };
 
-    const signup = async (email, password) => {
+    const signup = async (email: string, password: string) => {
         setLoading(true);
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -78,10 +93,10 @@ export default function AuthProvider({ children }) {
             return userCredential;
         } catch (error) {
             console.error("Signup error:", error);
-            if (error.code === 'auth/email-already-in-use') {
-                addNotification("This email is already registered. Please try logging in.", "error");
+            if ((error as any).code === 'auth/email-already-in-use') {
+                addNotification?.("This email is already registered. Please try logging in.", "error");
             } else {
-                addNotification("Failed to sign up: " + error.message, "error");
+                addNotification?.("Failed to sign up: " + (error as Error).message, "error");
             }
         }
         finally {
@@ -110,7 +125,7 @@ export default function AuthProvider({ children }) {
             router.push(`/${user.uid}/dashboard`);
         } catch (error) {
             console.error("Google sign-in error:", error);
-            addNotification("Failed to sign in with Google: " + error.message, "error");
+            addNotification?.("Failed to sign in with Google: " + (error as Error).message, "error");
         } finally {
             setLoading(false);
         }
@@ -128,7 +143,7 @@ export default function AuthProvider({ children }) {
             router.push('/');
         } catch (error) {
             console.error("Delete account error:", error);
-            addNotification("Failed to delete account. You may need to re-authenticate.", "error");
+            addNotification?.("Failed to delete account. You may need to re-authenticate.", "error");
         } finally {
             setLoading(false);
         }
@@ -140,8 +155,12 @@ export default function AuthProvider({ children }) {
 }
 
 export const useAuth = () => {
-    return useContext(AuthContext);
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
 };
-export const getUsernameFromEmail = (email) => {
+export const getUsernameFromEmail = (email: string) => {
     return email.split('@')[0];
 };

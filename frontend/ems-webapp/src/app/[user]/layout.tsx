@@ -1,5 +1,6 @@
 import React from "react";
 import UserNav from "@/components/UserNav";
+import DeviceBuildingProvider from "@/lib/DeviceBuldingContext";
 
 export default function UserLayout({
     children,
@@ -8,8 +9,10 @@ export default function UserLayout({
 }) {
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden">
-            <UserNav />
-            {children}
+            <DeviceBuildingProvider>
+                <UserNav />
+                {children}
+            </DeviceBuildingProvider>
         </div>
     );
 }
