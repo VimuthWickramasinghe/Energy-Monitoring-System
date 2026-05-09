@@ -1,101 +1,91 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import {
-    Plus, Wifi, Cpu, SignalHigh, Bell, Search, Filter, MoreVertical, Activity, Edit2, Trash2, RefreshCw, Bluetooth, X, Loader2, AlertCircle
+    Plus, Wifi, Cpu, SignalHigh, Search, Filter, Activity, Edit2, RefreshCw, Bluetooth, X, Loader2, AlertCircle
 } from "lucide-react";
 import Header from "@/components/Header";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useDeviceBuilding, module_state, Module } from "@/lib/DeviceBuldingContext";
 
-const INITIAL_DEVICES = [
-    { id: "ESP-32-001", name: "Main Panel (3-Phase Cluster)", status: "online", type: "3-Phase", load: "4.2 kW", signal: "PLC", health: 98, buildingId: 'b1' },
-    { id: "ESP-32-002", name: "EV Charger Link", status: "online", type: "1-Phase", load: "7.2 kW", signal: "Wi-Fi", health: 95, buildingId: 'b1' },
-    { id: "ESP-32-003", name: "HVAC Controller", status: "offline", type: "1-Phase", load: "0.0 kW", signal: "PLC", health: 0, buildingId: 'b2' },
-    { id: "ESP-32-004", name: "Backup Generator Monitor", status: "disabled", type: "3-Phase", load: "0.0 kW", signal: "Wi-Fi", health: 100, buildingId: 'b2' },
-];
-
-const BUILDINGS = [
-    { id: 'b1', name: 'Corporate HQ' },
-    { id: 'b2', name: 'West Warehouse' },
-    { id: 'b3', name: 'Downtown Hub' },
-];
-
-interface Device {
-    id: string;
-    name: string;
-    status: string;
-    type: string;
-    load: string;
-    signal: string;
-    health: number;
-    buildingId: string;
+interface DeviceCardProps {
+    device: Module;
+    onDelete: (id: string) => void;
 }
 
-const DeviceCard = ({ device, onDelete }: { 
-    device: Device; 
-    onDelete: (id: string) => void; 
-}) => (
-    <div className={`bg-white rounded-2xl border-2 p-6 shadow-sm hover:shadow-md transition-all ${
-        device.status === 'online' ? 'border-green-100' : 
-        device.status === 'offline' ? 'border-red-100 bg-red-50/30' : 
-        'border-gray-100 bg-gray-50/50'
-    }`}>
+const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
+    let statusClasses = 'bg-gray-400 text-white';
+    let borderClasses = 'border-gray-100 bg-gray-50/50';
+
+    if (device.state === module_state.Active) {
+        statusClasses = 'bg-green-500 text-white';
+        borderClasses = 'border-green-100';
+    } else if (device.state === module_state.Offline || device.state === module_state.Inactive) {
+        statusClasses = 'bg-red-500 text-white';
+        borderClasses = 'border-red-100 bg-red-50/30';
+    }
+
+    return (
+    <div className={`bg-white rounded-2xl border-2 p-6 shadow-sm hover:shadow-md transition-all ${borderClasses}`}>
         <div className="flex justify-between items-start mb-6">
             <div className="flex gap-4">
-                <div className={`p-3 rounded-xl ${device.status === 'online' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
+                <div className={`p-3 rounded-xl ${device.state === module_state.Active ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
                     <Cpu size={24} />
                 </div>
                 <div>
-                    <h3 className="font-bold text-gray-900">{device.name}</h3>
-                    <p className="text-xs text-gray-500 font-mono uppercase">{device.id} • {device.type}</p>
+                    <h3 className="font-bold text-gray-900">{device.module_name}</h3>
+                    <p className="text-xs text-gray-500 font-mono uppercase truncate max-w-[150px]">{device.module_id}</p>
                 </div>
             </div>
-            <span className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-widest ${
-                device.status === 'online' ? 'bg-green-500 text-white' : 
-                device.status === 'offline' ? 'bg-red-500 text-white' : 
-                'bg-gray-400 text-white'
-            }`}>
-                {device.status.toUpperCase()}
+            <span className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-widest ${statusClasses}`}>
+                {device.state}
             </span>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="p-3 bg-gray-50 rounded-xl">
                 <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Active Load</p>
-                <p className="text-sm font-bold text-gray-900 text-center">{device.load}</p>
+                <p className="text-sm font-bold text-gray-900 text-center">-- kW</p>
             </div>
             <div className="p-3 bg-gray-50 rounded-xl">
                 <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Protocol</p>
                 <p className="text-sm font-bold text-gray-900 text-center flex items-center justify-center gap-1">
-                    {device.signal === 'Wi-Fi' ? <Wifi size={14} /> : <SignalHigh size={14} />}
-                    {device.signal}
+                    <Wifi size={14} /> Wi-Fi
                 </p>
             </div>
             <div className="p-3 bg-gray-50 rounded-xl">
                 <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Health</p>
-                <p className="text-sm font-bold text-gray-900 text-center">{device.health}%</p>
+                <p className="text-sm font-bold text-gray-900 text-center">--%</p>
             </div>
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
             <button 
-                disabled={device.status === 'offline'}
-                className={`text-sm font-semibold transition-colors ${device.status === 'offline' ? 'text-gray-400 cursor-not-allowed' : 'text-orange-600 hover:text-orange-700'}`}
+                disabled={device.state === module_state.Offline}
+                className={`text-sm font-semibold transition-colors ${device.state === module_state.Offline ? 'text-gray-400 cursor-not-allowed' : 'text-orange-600 hover:text-orange-700'}`}
             >
                 View Details
             </button>
             <div className="flex gap-2">
                 <Link
-                    href={`devices/${device.id}`}
+                    href={`devices/${device.module_id}`}
                     className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                     title="Edit Module"
                 >
                     <Edit2 size={18} />
                 </Link>
+                <button
+                    onClick={() => onDelete(device.module_id)}
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                    title="Delete Module"
+                >
+                    <Edit2 size={18} className="hidden" /> {/* Placeholder for Trash icon if needed */}
+                    <Activity size={18} />
+                </button>
             </div>
         </div>
     </div>
-);
+    );
+};
 
 const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry, buildings, onSelectDevice }: {
     isOpen: boolean;
@@ -104,7 +94,7 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
     onStartScan: () => void;
     onProvision: () => void;
     onRetry: () => void;
-    buildings: { id: string; name: string }[];
+    buildings: { building_id: string; building_name: string }[];
     onSelectDevice: (device: { id: string; rssi: string }) => void;
 }) => {
     if (!isOpen) return null;
@@ -172,7 +162,7 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                                 <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500 appearance-none">
                                     <option value="">Select a building...</option>
                                     {buildings.map(b => (
-                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                        <option key={b.building_id} value={b.building_id}>{b.building_name}</option>
                                     ))}
                                 </select>
                                 <p className="text-[10px] text-orange-600 font-medium">
@@ -226,39 +216,38 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
 };
 
 export default function DevicesPage() {
-    const [deviceList, setDeviceList] = useState(INITIAL_DEVICES);
+    const { modules, buildings, fetchModules, fetchBuildings, removeModule, loading } = useDeviceBuilding();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedBuildingFilter, setSelectedBuildingFilter] = useState<string>("all");
     const [isProvisioning, setIsProvisioning] = useState(false);
     const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'found' | 'configuring' | 'provisioning' | 'success' | 'error'>('idle');
-    const [wifiCreds, setWifiCreds] = useState({ ssid: '', password: '' });
-    const router = useRouter();
+
+    useEffect(() => {
+        fetchModules();
+        fetchBuildings();
+    }, []);
 
     const groupedDevices = useMemo(() => {
-        const filtered = deviceList.filter(device => 
-            (selectedBuildingFilter === "all" || device.buildingId === selectedBuildingFilter) &&
-            (device.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            device.id.toLowerCase().includes(searchQuery.toLowerCase()))
+        const filtered = modules.filter(device => 
+            (selectedBuildingFilter === "all" || device.building_id === selectedBuildingFilter) &&
+            (device.module_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            device.module_id.toLowerCase().includes(searchQuery.toLowerCase()))
         );
 
-        return BUILDINGS.map(building => ({
+        return buildings.map(building => ({
             ...building,
-            devices: filtered.filter(d => d.buildingId === building.id)
-        })).filter(b => selectedBuildingFilter === 'all' || b.id === selectedBuildingFilter);
-    }, [deviceList, searchQuery, selectedBuildingFilter]);
+            devices: filtered.filter(d => d.building_id === building.building_id)
+        })).filter(b => selectedBuildingFilter === 'all' || b.building_id === selectedBuildingFilter);
+    }, [modules, buildings, searchQuery, selectedBuildingFilter]);
 
-    const orphanedDevices = useMemo(() => {
-        const buildingIds = BUILDINGS.map(b => b.id);
-        return deviceList.filter(d => !buildingIds.includes(d.buildingId));
-    }, [deviceList]);
 
-    const onlineCount = deviceList.filter(d => d.status === 'online').length;
-    const offlineCount = deviceList.filter(d => d.status === 'offline').length;
-    const disabledCount = deviceList.filter(d => d.status === 'disabled').length;
+    const onlineCount = modules.filter(d => d.state === module_state.Active).length;
+    const offlineCount = modules.filter(d => d.state === module_state.Offline).length;
+    const disabledCount = modules.filter(d => d.state === module_state.Inactive).length;
 
     const handleDelete = (id: string) => {
         if (confirm("Are you sure you want to remove this module?")) {
-            setDeviceList(prev => prev.filter(d => d.id !== id));
+            removeModule(id);
         }
     };
 
@@ -279,21 +268,9 @@ export default function DevicesPage() {
             // Randomly simulate success or failure for demo purposes
             if (Math.random() > 0.3) {
                 setScanStatus('success');
-                const newId = `ESP-32-00${deviceList.length + 1}`;
                 setTimeout(() => {
-                    const newDevice: Device = {
-                        id: newId,
-                        name: "New Modular Unit",
-                        status: "offline",
-                        type: "1-Phase",
-                        load: "0.0 kW",
-                        signal: "Wi-Fi",
-                        buildingId: 'b1',
-                        health: 100
-                    };
-                    setDeviceList(prev => [...prev, newDevice]);
                     setIsProvisioning(false);
-                    router.push(`devices/${newId}`);
+                    fetchModules();
                 }, 3000);
             } else {
                 setScanStatus('error');
@@ -323,8 +300,8 @@ export default function DevicesPage() {
                             onChange={(e) => setSelectedBuildingFilter(e.target.value)}
                         >
                             <option value="all">All Buildings</option>
-                            {BUILDINGS.map(b => (
-                                <option key={b.id} value={b.id}>{b.name}</option>
+                            {buildings.map(b => (
+                                <option key={b.building_id} value={b.building_id}>{b.building_name}</option>
                             ))}
                         </select>
                     </div>
@@ -356,10 +333,15 @@ export default function DevicesPage() {
                     </div>
 
                     <div className="space-y-10">
-                        {groupedDevices.map((group) => (
-                            <div key={group.id} className="space-y-4">
+                        {loading ? (
+                            <div className="py-20 flex flex-col items-center justify-center text-gray-400 gap-3">
+                                <Loader2 className="animate-spin text-orange-500" size={32} />
+                                <p className="text-sm font-medium">Loading modules...</p>
+                            </div>
+                        ) : groupedDevices.map((group) => (
+                            <div key={group.building_id} className="space-y-4">
                                 <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <h2 className="text-lg font-bold text-gray-900">{group.name}</h2>
+                                    <h2 className="text-lg font-bold text-gray-900">{group.building_name}</h2>
                                     <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-md text-xs font-bold">
                                         {group.devices.length} {group.devices.length === 1 ? 'Module' : 'Modules'}
                                     </span>
@@ -368,7 +350,7 @@ export default function DevicesPage() {
                                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                                         {group.devices.map((device) => (
                                             <DeviceCard 
-                                                key={device.id} 
+                                                key={device.module_id} 
                                                 device={device} 
                                                 onDelete={handleDelete} 
                                             />
@@ -393,7 +375,7 @@ export default function DevicesPage() {
                 onStartScan={startBLEScan} 
                 onProvision={provisionDevice} 
                 onRetry={() => setScanStatus('idle')}
-                buildings={BUILDINGS}
+                buildings={buildings}
                 onSelectDevice={(device) => setScanStatus('configuring')}
             />
         </main>

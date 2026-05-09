@@ -68,7 +68,7 @@ export default function BuildingManagement() {
 
   const handleAddBuilding = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingId ) {
+    if (editingId) {
       updateBuilding(editingId, newBuilding.name, newBuilding.address);
     } else if (user) {
       addBuilding(newBuilding.name, newBuilding.address, "e30c98e4-a721-4928-9db9-9c0b24c6a728" as any);

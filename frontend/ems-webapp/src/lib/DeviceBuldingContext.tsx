@@ -4,22 +4,16 @@ import { UUID } from "mongodb";
 import { createContext, useContext, useState, ReactNode } from "react";
 import { v4 as uuid } from "uuid";
 
-export interface Device {
-    id: string;
-    name: string;
-    building_id: string;
-    status: string;
-    // Add other device fields as necessary
-}
 
 interface DeviceBuildingContextType {
-    devices: Device[];
+    modules: Module[];
     buildings: Building[];
     loading: boolean;
     error: string | null;
-    fetchDevices: () => Promise<void>;
-    addDevice: (device: Omit<Device, 'id'>) => Promise<void>;
-    removeDevice: (deviceId: string) => Promise<void>;
+    fetchModules: () => Promise<void>;
+    updateModule: (moduleId: string, module: Partial<Module>) => Promise<void>;
+    addModule: (module: Omit<Module, 'module_id'>) => Promise<void>;
+    removeModule: (moduleId: string) => Promise<void>;
     fetchBuildings: () => Promise<void>;
     updateBuilding: (building_id: string, building_name: string | null, address: string | null) => Promise<void>;
     addBuilding: (building_name: string, address: string, owner_id: UUID) => Promise<void>;
@@ -34,6 +28,12 @@ export enum building_state {
     Maintenance = "MAINTENANCE",
 }
 
+export enum module_state {
+    Active = "ACTIVE",
+    Inactive = "INACTIVE",
+    Offline = "OFFLINE",
+}
+
 export interface Building {
     building_id: string;
     building_name: string;
@@ -43,23 +43,32 @@ export interface Building {
     state: building_state;
 }
 
+
+export interface Module {
+    module_id: string;
+    module_name: string;
+    building_id: string;
+    state: module_state;
+    // Add other module fields as necessary
+}
+
 export default function DeviceBuildingProvider({ children }: { children: ReactNode }) {
-    const [devices, setDevices] = useState<Device[]>([]);
+    const [modules, setModules] = useState<Module[]>([]);
     const [buildings, setBuildings] = useState<Building[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchDevices = async () => {
+    const fetchModules = async () => {
         setLoading(true);
         setError(null);
         try {
             const { data, error } = await client
-                .from('DEVICES')
+                .from('MODULE')
                 .select('*');
             if (error) {
                 setError(error.message);
             } else {
-                setDevices(data);
+                setModules(data);
             }
         } catch (error: any) {
             setError(error.message);
@@ -68,27 +77,53 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
         }
     };
 
-    const addDevice = async (device: Omit<Device, 'id'>) => {
+    const updateModule = async (moduleId: string, module: Partial<Module>) => {
+        setLoading(true);
+        setError(null);
         try {
             const { data, error } = await client
-                .from('DEVICES')
-                .insert([{ ...device, id: uuid() }])
+                .from('MODULE')
+                .update(module)
+                .eq('module_id', moduleId)
+                .select();
+            if (error) {
+                throw error;
+            }
+            if (data) {
+                setModules(modules.map(m => m.module_id === moduleId ? { ...m, ...data[0] } : m));
+            }
+        } catch (error: any) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const addModule = async (module: Omit<Module, 'module_id'>) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const { data, error } = await client
+                .from('MODULE')
+                .insert([{ ...module, module_id: uuid() }])
                 .select();
             if (error) throw error;
-            if (data) setDevices([...devices, data[0]]);
+            if (data) setModules([...modules, data[0]]);
         } catch (error: any) {
             setError(error.message);
         }
     };
 
-    const removeDevice = async (deviceId: string) => {
+    const removeModule = async (moduleId: string) => {
+        setLoading(true);
+        setError(null);
         try {
             const { error } = await client
-                .from('DEVICES')
+                .from('MODULE')
                 .delete()
-                .eq('id', deviceId);
+                .eq('module_id', moduleId);
             if (error) throw error;
-            setDevices(devices.filter(d => d.id !== deviceId));
+            setModules(modules.filter(m => m.module_id !== moduleId));
         } catch (error: any) {
             setError(error.message);
         }
@@ -171,7 +206,7 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
     };
 
     return (
-        <DeviceBuildingContext.Provider value={{ devices, buildings, loading, error, fetchDevices, addDevice, removeDevice, fetchBuildings, updateBuilding, addBuilding, removeBuildings }}>
+        <DeviceBuildingContext.Provider value={{ modules, buildings, loading, error, fetchModules, updateModule, addModule, removeModule, fetchBuildings, updateBuilding, addBuilding, removeBuildings }}>
             {children}
         </DeviceBuildingContext.Provider>
     );
