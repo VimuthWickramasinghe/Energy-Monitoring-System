@@ -168,14 +168,14 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                         <div className="w-full space-y-4">
                             <div className="space-y-3 text-left">
                                 <label className="text-xs font-bold text-gray-400 uppercase">Assign to Building</label>
-                                <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500 appearance-none">
+                                <select id="provision-building" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500 appearance-none">
                                     <option value="">Select a building...</option>
                                     {buildings.map(b => (
                                         <option key={b.building_id} value={b.building_id}>{b.building_name}</option>
                                     ))}
                                 </select>
                                 <p className="text-[10px] text-orange-600 font-medium">
-                                    Don't see your building? <Link href="building" className="underline font-bold">Register it first</Link>
+                                    Don't see your building? <Link href="./building" className="underline font-bold">Register it first</Link>
                                 </p>
                             </div>
                             <div className="space-y-3 text-left">
@@ -282,9 +282,8 @@ export default function DevicesPage() {
     const startBLEScan = async () => {
         setScanStatus('scanning');
         try {
-            const blePrefix = process.env.NEXT_PUBLIC_BLE_PREFIX || 'PROV_';
             const device = await (navigator as any).bluetooth.requestDevice({
-                filters: [{ namePrefix: blePrefix }],
+                acceptAllDevices: true,
                 optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b'] // Example UUID
             });
             setFoundDevices([device]);
@@ -301,17 +300,34 @@ export default function DevicesPage() {
         const ssid = (document.getElementById('wifi-ssid') as HTMLInputElement)?.value;
         const pass = (document.getElementById('wifi-pass') as HTMLInputElement)?.value;
 
+        if (!ssid) return alert("SSID is required");
+
         setScanStatus('provisioning');
         try {
             const server = await selectedDevice.gatt?.connect();
             const service = await server?.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
-            
+
             const ssidChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
             const passChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a9');
+            const statusChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26aa'); // Status characteristic
 
             const encoder = new TextEncoder();
             if (ssidChar) await ssidChar.writeValue(encoder.encode(ssid));
             if (passChar) await passChar.writeValue(encoder.encode(pass));
+
+            // Wait for connection status from device
+            if (statusChar) {
+                await statusChar.startNotifications();
+                const statusValue = await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error("Timeout waiting for device status")), 45000);
+                    statusChar.addEventListener('characteristicvaluechanged', (event: any) => {
+                        clearTimeout(timeout);
+                        const val = new TextDecoder().decode(event.target.value);
+                        resolve(val);
+                    }, { once: true });
+                });
+                if (statusValue !== "CONNECTED" && statusValue !== "CONNECTED\n") throw new Error(statusValue === "FAILED" ? "WiFi Connection Failed" : "Unknown Error");
+            }
 
             setScanStatus('success');
             setTimeout(() => {
