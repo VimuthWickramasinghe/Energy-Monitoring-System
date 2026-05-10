@@ -15,20 +15,24 @@ interface DeviceCardProps {
 const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
     let statusClasses = 'bg-gray-400 text-white';
     let borderClasses = 'border-gray-100 bg-gray-50/50';
+    const state = (device as any).module_state || device.state;
 
-    if (device.state === module_state.Active) {
+    if (state === module_state.Active) {
         statusClasses = 'bg-green-500 text-white';
         borderClasses = 'border-green-100';
-    } else if (device.state === module_state.Offline || device.state === module_state.Inactive) {
+    } else if (state === module_state.Offline) {
         statusClasses = 'bg-red-500 text-white';
         borderClasses = 'border-red-100 bg-red-50/30';
+    } else if (state === module_state.Inactive) {
+        statusClasses = 'bg-gray-500 text-white';
+        borderClasses = 'border-gray-200 bg-gray-100/50';
     }
 
     return (
     <div className={`bg-white rounded-2xl border-2 p-6 shadow-sm hover:shadow-md transition-all ${borderClasses}`}>
         <div className="flex justify-between items-start mb-6">
             <div className="flex gap-4">
-                <div className={`p-3 rounded-xl ${device.state === module_state.Active ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
+                <div className={`p-3 rounded-xl ${state === module_state.Active ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
                     <Cpu size={24} />
                 </div>
                 <div>
@@ -37,7 +41,7 @@ const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
                 </div>
             </div>
             <span className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-widest ${statusClasses}`}>
-                {device.state}
+                {state}
             </span>
         </div>
 
@@ -60,8 +64,8 @@ const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
             <button 
-                disabled={device.state === module_state.Offline}
-                className={`text-sm font-semibold transition-colors ${device.state === module_state.Offline ? 'text-gray-400 cursor-not-allowed' : 'text-orange-600 hover:text-orange-700'}`}
+                disabled={state === module_state.Offline}
+                className={`text-sm font-semibold transition-colors ${state === module_state.Offline ? 'text-gray-400 cursor-not-allowed' : 'text-orange-600 hover:text-orange-700'}`}
             >
                 View Details
             </button>
@@ -95,12 +99,14 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
     onProvision: () => void;
     onRetry: () => void;
     buildings: { building_id: string; building_name: string }[];
-    onSelectDevice: (device: { id: string; rssi: string }) => void;
+    onSelectDevice: (device: BluetoothDevice) => void;
+    foundDevices: BluetoothDevice[];
 }) => {
     if (!isOpen) return null;
+
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-gray-900">Provision New Module</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -108,13 +114,13 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                     </button>
                 </div>
                 <div className="p-8 flex flex-col items-center text-center">
-                    {scanStatus === 'idle' && (
+                    {(scanStatus === 'idle' || scanStatus === 'error') && (
                         <>
                             <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center text-orange-500 mb-6">
                                 <Bluetooth size={40} />
                             </div>
-                            <h3 className="text-lg font-bold mb-2">Connect via Bluetooth</h3>
-                            <p className="text-gray-500 text-sm mb-8">Ensure your modular unit is in pairing mode (blinking blue LED).</p>
+                            <h3 className="text-lg font-bold mb-2 text-black">Connect via Bluetooth</h3>
+                            <p className="text-gray-500 text-sm mb-8">Ensure your modular unit is in pairing mode <br/>(blinking blue LED).</p>
                             <button onClick={onStartScan} className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-all">
                                 Scan for Devices
                             </button>
@@ -131,17 +137,14 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                         <div className="w-full space-y-4">
                             <h3 className="text-sm font-bold text-gray-400 uppercase text-left">Select Device</h3>
                             <div className="space-y-2">
-                                {([
-                                    { id: 'ESP32-EMS-PRO-X1', rssi: '-42dBm' },
-                                    { id: 'ESP32-EMS-PRO-X2', rssi: '-65dBm' }
-                                ]).map((dev) => (
+                                {foundDevices.map((dev) => (
                                     <div 
-                                        key={dev.id}
+                                        key={dev.id || dev.name}
                                         className="w-full p-4 bg-white border border-gray-200 rounded-xl flex items-center justify-between transition-all group"
                                     >
                                         <div className="flex items-center gap-3">
                                             <Cpu className="text-gray-400 group-hover:text-orange-500" />
-                                            <span className="font-bold text-gray-900 text-sm">{dev.id}</span>
+                                            <span className="font-bold text-gray-900 text-sm">{dev.name || 'Unknown Device'}</span>
                                         </div>
                                         <button
                                             type="button"
@@ -171,9 +174,21 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                             </div>
                             <div className="space-y-3 text-left">
                                 <label className="text-xs font-bold text-gray-400 uppercase">Wi-Fi Network (SSID)</label>
-                                <input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500" placeholder="Home_Network_2.4G" />
+                                <input 
+                                    id="wifi-ssid"
+                                    type="text" 
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500" 
+                                    placeholder="Home_Network_2.4G" 
+                                    required
+                                />
                                 <label className="text-xs font-bold text-gray-400 uppercase">Password</label>
-                                <input type="password" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500" placeholder="••••••••" />
+                                <input 
+                                    id="wifi-pass"
+                                    type="password" 
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500" 
+                                    placeholder="••••••••" 
+                                    required
+                                />
                             </div>
                             <button onClick={onProvision} className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-all mt-4">
                                 Configure & Connect
@@ -206,7 +221,7 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                             </div>
                             <h3 className="text-lg font-bold text-gray-900">Provisioning Failed</h3>
                             <p className="text-gray-500 text-sm mt-2 mb-6">Connection timed out. Please check the device and try again.</p>
-                            <button onClick={() => onSelectDevice({id: '', rssi: ''})} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">Try Again</button>
+                            <button onClick={onRetry} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">Try Again</button>
                         </div>
                     )}
                 </div>
@@ -221,6 +236,8 @@ export default function DevicesPage() {
     const [selectedBuildingFilter, setSelectedBuildingFilter] = useState<string>("all");
     const [isProvisioning, setIsProvisioning] = useState(false);
     const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'found' | 'configuring' | 'provisioning' | 'success' | 'error'>('idle');
+    const [foundDevices, setFoundDevices] = useState<BluetoothDevice[]>([]);
+    const [selectedDevice, setSelectedDevice] = useState<BluetoothDevice | null>(null);
 
     useEffect(() => {
         fetchModules();
@@ -256,31 +273,63 @@ export default function DevicesPage() {
         setScanStatus('idle');
     };
 
-    const startBLEScan = () => {
+    const startBLEScan = async () => {
         setScanStatus('scanning');
-        // Simulate BLE Scan
-        setTimeout(() => setScanStatus('found'), 2000);
+        try {
+            const blePrefix = process.env.NEXT_PUBLIC_BLE_PREFIX || 'PROV_';
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ namePrefix: blePrefix }],
+                optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b'] // Example UUID
+            });
+            setFoundDevices([device]);
+            setScanStatus('found');
+        } catch (error) {
+            console.error("BLE Scan Error:", error);
+            setScanStatus('error');
+        }
     };
 
-    const provisionDevice = () => {
+    const provisionDevice = async () => {
+        if (!selectedDevice) return;
+        
+        const ssid = (document.getElementById('wifi-ssid') as HTMLInputElement)?.value;
+        const pass = (document.getElementById('wifi-pass') as HTMLInputElement)?.value;
+
         setScanStatus('provisioning');
-        setTimeout(() => {
-            // Randomly simulate success or failure for demo purposes
-            if (Math.random() > 0.3) {
-                setScanStatus('success');
-                setTimeout(() => {
-                    setIsProvisioning(false);
-                    fetchModules();
-                }, 3000);
-            } else {
-                setScanStatus('error');
-            }
-        }, 3000);
+        try {
+            const server = await selectedDevice.gatt?.connect();
+            const service = await server?.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
+            
+            const ssidChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
+            const passChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a9');
+
+            const encoder = new TextEncoder();
+            if (ssidChar) await ssidChar.writeValue(encoder.encode(ssid));
+            if (passChar) await passChar.writeValue(encoder.encode(pass));
+
+            setScanStatus('success');
+            setTimeout(() => {
+                setIsProvisioning(false);
+                fetchModules();
+            }, 2000);
+        } catch (error) {
+            console.error("Provisioning Error:", error);
+            setScanStatus('error');
+        }
     };
 
     return (
         <main className="flex-1 flex flex-col overflow-hidden bg-white">
-            <Header title="Modular Units" subtitle="Manage and monitor your hardware modules">
+            <Header 
+                title={
+                    <div className="flex items-center gap-2">
+                        <Cpu className="text-orange-500" size={24} />
+                        <span>Modular Units</span>
+                    </div>
+                } 
+                subtitle="Manage and monitor your hardware modules"
+            >
+
                 <div className="flex items-center gap-4">
                     <div className="relative hidden md:block">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -316,6 +365,9 @@ export default function DevicesPage() {
             </Header>
 
             <div className="flex-1 overflow-y-auto p-8">
+                <div className="max-w-7xl mx-auto mb-8 p-4 bg-gray-100 rounded-lg overflow-auto max-h-40">
+                    <p className="text-xs font-mono text-gray-600 break-all">{JSON.stringify(modules)}</p>
+                </div>
                 <div className="max-w-7xl mx-auto space-y-6">
                     {/* Summary Bar */}
                     <div className="flex items-center justify-between bg-orange-50 border border-orange-100 rounded-2xl p-4">
@@ -376,7 +428,11 @@ export default function DevicesPage() {
                 onProvision={provisionDevice} 
                 onRetry={() => setScanStatus('idle')}
                 buildings={buildings}
-                onSelectDevice={(device) => setScanStatus('configuring')}
+                foundDevices={foundDevices}
+                onSelectDevice={(device) => {
+                    setSelectedDevice(device);
+                    setScanStatus('configuring');
+                }}
             />
         </main>
     );

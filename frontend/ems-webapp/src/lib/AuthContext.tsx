@@ -3,8 +3,6 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, deleteUser, User, UserCredential } from "firebase/auth";
 import { auth } from "../../firebase.config.js";
 import { useRouter, usePathname } from "next/navigation";
-import { useNotification } from "./NotificationContext.js";
-
 interface AuthContextType {
     user: User | null;
     profile: any | null;
@@ -22,12 +20,10 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export default function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null); // for Firebase
     const [profile, setProfile] = useState<any | null>(null); // for supabase
-    const [isGoogleUser, setIsGoogleUser] = useState(false); 
+    const [isGoogleUser, setIsGoogleUser] = useState(false);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const pathname = usePathname();
-    const notificationContext = useNotification();
-    const addNotification = notificationContext?.addNotification;
 
     // Listen for Auth changes
     useEffect(() => {
@@ -73,9 +69,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error("Login error:", error);
             if ((error as any).code === 'auth/invalid-credential' || (error as any).code === 'auth/user-not-found' || (error as any).code === 'auth/wrong-password') {
-                addNotification?.("Invalid email or password.", "error");
+                alert("Invalid email or password.");
             } else {
-                addNotification?.("Failed to log in: " + (error as Error).message, "error");
+                alert("Failed to log in: " + (error as Error).message);
             }
         }
         finally {
@@ -94,9 +90,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error("Signup error:", error);
             if ((error as any).code === 'auth/email-already-in-use') {
-                addNotification?.("This email is already registered. Please try logging in.", "error");
+                alert("This email is already registered. Please try logging in.");
             } else {
-                addNotification?.("Failed to sign up: " + (error as Error).message, "error");
+                alert("Failed to sign up: " + (error as Error).message,);
             }
         }
         finally {
@@ -125,7 +121,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             router.push(`/${user.uid}/dashboard`);
         } catch (error) {
             console.error("Google sign-in error:", error);
-            addNotification?.("Failed to sign in with Google: " + (error as Error).message, "error");
+            alert("Failed to sign in with Google: " + (error as Error).message);
         } finally {
             setLoading(false);
         }
@@ -143,7 +139,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             router.push('/');
         } catch (error) {
             console.error("Delete account error:", error);
-            addNotification?.("Failed to delete account. You may need to re-authenticate.", "error");
+            alert("Failed to delete account. You may need to re-authenticate.");
         } finally {
             setLoading(false);
         }

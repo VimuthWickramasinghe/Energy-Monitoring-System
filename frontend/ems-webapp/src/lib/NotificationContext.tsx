@@ -1,14 +1,30 @@
 "use client"
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 
-const NotificationContext = createContext();
+interface Notification {
+    id: number;
+    message: string;
+    type: "info" | "success" | "error";
+}
 
-export function NotificationProvider({ children }) {
-    const [notifications, setNotifications] = useState([]);
+interface NotificationContextType {
+    notifications: Notification[];
+    addNotification: (message: string, type?: "info" | "success" | "error", duration?: number) => void;
+    removeNotification: (id: number) => void;
+}
 
-    const addNotification = useCallback((message, type = "info", duration = 5000) => {
+const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+
+export function NotificationProvider({ children }: { children: ReactNode }) {
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+
+    const removeNotification = useCallback((id: number) => {
+        setNotifications((prev) => prev.filter((notification) => notification.id !== id));
+    }, []);
+
+    const addNotification = useCallback((message: string, type: "info" | "success" | "error" = "info", duration = 5000) => {
         const id = Date.now();
-        const newNotification = { id, message, type };
+        const newNotification: Notification = { id, message, type };
 
         setNotifications((prev) => [...prev, newNotification]);
 
@@ -17,11 +33,7 @@ export function NotificationProvider({ children }) {
                 removeNotification(id);
             }, duration);
         }
-    }, []);
-
-    const removeNotification = useCallback((id) => {
-        setNotifications((prev) => prev.filter((notification) => notification.id !== id));
-    }, []);
+    }, [removeNotification]);
 
     return (
         <NotificationContext.Provider value={{ notifications, addNotification, removeNotification }}>

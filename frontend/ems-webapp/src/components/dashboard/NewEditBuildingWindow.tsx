@@ -80,7 +80,7 @@ const BuildingModal = ({
                                     <p className="text-[10px] font-bold text-red-600">TYPE ID TO CONFIRM <br />ID <span className="select-all bg-red-50 px-1">{editingId}</span></p>
                                     <input
                                         type="text"
-                                        className="w-full p-2 bg-red-50 border border-red-100 rounded-lg outline-none text-sm"
+                                        className="w-full p-2 bg-red-50 border border-red-100 rounded-lg outline-none text-black text-sm"
                                         placeholder="Enter Building ID"
                                         value={confirmId}
                                         onChange={e => setConfirmId(e.target.value)}
