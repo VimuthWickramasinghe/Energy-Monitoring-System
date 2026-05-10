@@ -12,6 +12,12 @@ interface DeviceCardProps {
     onDelete: (id: string) => void;
 }
 
+interface BluetoothDevice {
+    id: string;
+    name?: string;
+    gatt?: any;
+}
+
 const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
     let statusClasses = 'bg-gray-400 text-white';
     let borderClasses = 'border-gray-100 bg-gray-50/50';
@@ -91,7 +97,7 @@ const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
     );
 };
 
-const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry, buildings, onSelectDevice }: {
+const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry, buildings, onSelectDevice, foundDevices }: {
     isOpen: boolean;
     onClose: () => void;
     scanStatus: string;
@@ -99,8 +105,8 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
     onProvision: () => void;
     onRetry: () => void;
     buildings: { building_id: string; building_name: string }[];
-    onSelectDevice: (device: BluetoothDevice) => void;
     foundDevices: BluetoothDevice[];
+    onSelectDevice: (device: BluetoothDevice) => void;
 }) => {
     if (!isOpen) return null;
 
@@ -277,7 +283,7 @@ export default function DevicesPage() {
         setScanStatus('scanning');
         try {
             const blePrefix = process.env.NEXT_PUBLIC_BLE_PREFIX || 'PROV_';
-            const device = await navigator.bluetooth.requestDevice({
+            const device = await (navigator as any).bluetooth.requestDevice({
                 filters: [{ namePrefix: blePrefix }],
                 optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b'] // Example UUID
             });
@@ -321,12 +327,7 @@ export default function DevicesPage() {
     return (
         <main className="flex-1 flex flex-col overflow-hidden bg-white">
             <Header 
-                title={
-                    <div className="flex items-center gap-2">
-                        <Cpu className="text-orange-500" size={24} />
-                        <span>Modular Units</span>
-                    </div>
-                } 
+                title="Modular Units"
                 subtitle="Manage and monitor your hardware modules"
             >
 
