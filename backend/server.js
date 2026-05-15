@@ -50,17 +50,10 @@ mongoose.set('strictQuery', false);
 
 // Schema (kept because you requested to store one dataset)
 const SensorSchema = new mongoose.Schema({
-  volt: Number,
-  current1: Number,
-  current2: Number,
-  current3: Number,
-  power1: Number,
-  power2: Number,
-  power3: Number,
-  total_power: Number,
-  watt: Number, // Kept for ML compatibility (mapped from total_power)
-  temperature: Number,
-  humidity: Number,
+  device_id: { type: String, required: true },
+  voltage: Number,
+  current: Number,
+  power: Number,
   time: { type: Date, default: Date.now }
 });
 
@@ -125,33 +118,17 @@ app.post('/send', async (req, res) => {
     }
 
     const {
-      volt,
-      current1, current2, current3,
-      power1, power2, power3,
-      total_power,
-      temperature, humidity
+      device_id,
+      voltage,
+      current,
+      power,
     } = req.body;
 
-    const docObj = {};
-
-    if (typeof volt !== 'undefined' && !isNaN(volt)) docObj.volt = Number(volt);
-
-    if (typeof current1 !== 'undefined' && !isNaN(current1)) docObj.current1 = Number(current1);
-    if (typeof current2 !== 'undefined' && !isNaN(current2)) docObj.current2 = Number(current2);
-    if (typeof current3 !== 'undefined' && !isNaN(current3)) docObj.current3 = Number(current3);
-
-    if (typeof power1 !== 'undefined' && !isNaN(power1)) docObj.power1 = Number(power1);
-    if (typeof power2 !== 'undefined' && !isNaN(power2)) docObj.power2 = Number(power2);
-    if (typeof power3 !== 'undefined' && !isNaN(power3)) docObj.power3 = Number(power3);
-
-    if (typeof total_power !== 'undefined' && !isNaN(total_power)) {
-      docObj.total_power = Number(total_power);
-      docObj.watt = Number(total_power); // Map to watt for ML compatibility
-    }
-
-    if (typeof temperature !== 'undefined' && !isNaN(temperature)) docObj.temperature = Number(temperature);
-    if (typeof humidity !== 'undefined' && !isNaN(humidity)) docObj.humidity = Number(humidity);
-
+    const docObj = { device_id };
+    if (typeof voltage !== 'undefined' && !isNaN(voltage)) docObj.voltage = Number(voltage);
+    if (typeof current !== 'undefined' && !isNaN(current)) docObj.current = Number(current);
+    if (typeof power !== 'undefined' && !isNaN(power)) docObj.power = Number(power);
+    
     if (Object.keys(docObj).length === 0) {
       console.log('No valid fields in incoming body:', req.body);
       return res.status(400).json({ error: 'No valid sensor fields in body' });
@@ -273,7 +250,7 @@ async function run() {
 
     const count = await Sensor.countDocuments().catch(() => 0);
     if (!count) {
-      const sampleData = new Sensor({ volt: 201.5, watt: 283.5, temperature: 20.4, humidity: 60.2 });
+      const sampleData = new Sensor({ device_id: "ESP32_01", voltage: 230.5, current: 1.2, power: 276.6 });
       await sampleData.save();
       console.log('Inserted ONE sample dataset');
     }
