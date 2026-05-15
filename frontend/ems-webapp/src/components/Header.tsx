@@ -1,7 +1,7 @@
 "use client";
 
-import { Bell, Search, Zap, X, Check, LogOut, ChevronDown, User, Settings } from "lucide-react";
-import { useContext, useState } from "react";
+import { Bell, X, Check, LogOut, ChevronDown } from "lucide-react";
+import React, { useContext, useState } from "react";
 import { AuthContext } from "@/lib/AuthContext";
 
 function NotificationButton() {
@@ -111,29 +111,19 @@ export default function Header({
     children?: React.ReactNode;
 }) {
     const { user, logout } = useContext(AuthContext) as { user: any, logout: () => void };
-
     return (
         <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 px-8 py-3 flex items-center justify-between sticky top-0 z-30">
             <div className="flex items-center gap-8">
                 <div className="header-titles">
                     <div className="flex items-center gap-2">
                         <h1 className="text-lg font-bold text-gray-900 tracking-tight">{title}</h1>
-                        <span className="flex items-center gap-1 px-2 py-0.5 bg-green-50 text-[10px] font-bold text-green-600 rounded-full uppercase tracking-wider">
-                            <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
-                            Live
+                        <span className="flex items-center gap-1 px-2 py-0.5 border border-gray-200 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                            <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse"></span>
+                            <span className="text-red-600">Live</span>
                         </span>
                     </div>
                     <p className="text-xs text-gray-500 font-medium">{subtitle}</p>
                 </div>
-
-                {/* <div className="hidden md:flex items-center bg-gray-50 border border-gray-100 rounded-xl px-3 py-1.5 w-64 group focus-within:ring-2 focus-within:ring-orange-100 transition-all">
-                    <Search size={16} className="text-gray-400 group-focus-within:text-orange-500" />
-                    <input 
-                        type="text" 
-                        placeholder="Search sensors..." 
-                        className="bg-transparent border-none text-sm ml-2 outline-none w-full text-gray-600 placeholder:text-gray-400"
-                    />
-                </div> */}
             </div>
 
             <div className="flex items-center gap-4">
