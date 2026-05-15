@@ -11,6 +11,11 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
 
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 const corsOptions = {
   // Use '*' to allow all local network devices during development
   origin: process.env.FRONTEND_URL || '*',
@@ -140,6 +145,36 @@ app.post('/send', async (req, res) => {
     res.status(201).json({ message: 'Data saved', id: saved._id, data: docObj });
   } catch (err) {
     console.error('Error saving data:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API endpoint to register a new device (Supabase Metadata)
+app.post('/register-device', authenticateFirebaseToken, async (req, res) => {
+  try {
+    const { device_id, name, building_id, phase } = req.body;
+
+    if (!device_id || !name || !building_id) {
+      return res.status(400).json({ error: 'Missing required registration fields' });
+    }
+
+    // Save metadata to Supabase
+    const { data, error } = await supabase
+      .from('devices')
+      .upsert({ 
+        device_id, 
+        name, 
+        building_id, 
+        phase,
+        user_id: req.user.uid,
+        updated_at: new Date() 
+      });
+
+    if (error) throw error;
+
+    res.status(200).json({ message: 'Registration Success', data });
+  } catch (err) {
+    console.error('Error registering device:', err);
     res.status(500).json({ error: err.message });
   }
 });
