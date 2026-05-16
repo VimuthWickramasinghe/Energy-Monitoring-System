@@ -59,10 +59,10 @@ export default function UserNav() {
                 </div>
                 <button
                     onClick={logout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors font-medium"
+                    className="w-full flex items-center justify-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 font-medium group"
                 >
-                    <LogOut size={18} />
-                    Sign Out
+                    <span>Sign Out</span>
+                    <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
                 </button>
             </div>
         </aside>
