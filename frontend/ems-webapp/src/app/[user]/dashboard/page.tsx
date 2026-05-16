@@ -39,7 +39,92 @@ const deviceData = [
   { name: "Others", value: 5 },
 ];
 
-const COLORS = ["#f97316", "#3b82f6", "#10b981", "#8b5cf6", "#64748b"];
+const COLORS = ['#3B82F6', '#F59E0B', '#10B981', '#8B5CF6', '#EF4444'];
+
+const totalPowerKw = 2.4;
+const getKwh = (percent: number) => (percent * totalPowerKw / 100).toFixed(2);
+
+const UsageByCategory = () => {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-6 pt-5 pb-2">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">Usage by Category</h3>
+          <p className="text-gray-500 text-sm mt-0.5">Real‑time energy distribution</p>
+        </div>
+        <div className="bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+          Live Data
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-5 pt-2">
+        <div className="lg:col-span-2 flex justify-center items-center">
+          <div className="w-full max-w-md h-80 lg:h-96">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={deviceData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={65}
+                  outerRadius={105}
+                  paddingAngle={3}
+                  dataKey="value"
+                  cornerRadius={8}
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {deviceData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <text x="50%" y="43%" textAnchor="middle" dominantBaseline="middle" className="fill-orange-500 text-xl">
+                  ⚡
+                </text>
+                <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle">
+                  <tspan className="fill-gray-900 text-3xl font-bold">2.4 kW</tspan>
+                  <tspan x="50%" dy="24" className="fill-gray-400 text-[10px] font-bold tracking-[3px]">
+                    CURRENT USAGE
+                  </tspan>
+                </text>
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: '12px',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    padding: '8px 12px',
+                    fontSize: '12px',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {deviceData.map((item, index) => (
+            <div key={index} className="flex items-center justify-between bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="flex items-center gap-3 w-3/5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index] }} />
+                <span className="font-semibold text-gray-800 text-sm">{item.name}</span>
+                <div className="hidden sm:block w-16 bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${item.value}%`, backgroundColor: COLORS[index] }} />
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-xl font-bold" style={{ color: COLORS[index] }}>{item.value}%</span>
+                <span className="text-gray-400 text-xs ml-1">({getKwh(item.value)} kWh)</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState("24h");
@@ -105,148 +190,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Device Distribution */}
-<div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-
-  {/* Header */}
-  <div className="flex items-center justify-between mb-4">
-    <div>
-      <h3 className="text-lg font-bold text-gray-900">
-        Usage by Category
-      </h3>
-
-      <p className="text-gray-500 mt-1 text-sm">
-        Real-time energy distribution
-      </p>
-    </div>
-
-    <div className="bg-orange-50 text-orange-500 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
-      <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
-      Live Data
-    </div>
-  </div>
-
-  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-center">
-
-    {/* Donut Chart */}
-    <div className="h-[260px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={deviceData}
-            cx="50%"
-            cy="50%"
-            innerRadius={55}
-            outerRadius={95}
-            paddingAngle={5}
-            dataKey="value"
-            cornerRadius={10}
-            stroke="none"
-            label={({ percent }) =>
-              `${(percent * 100).toFixed(0)}%`
-            }
-            labelLine={false}
-          >
-            {deviceData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={COLORS[index % COLORS.length]}
-              />
-            ))}
-          </Pie>
-
-          {/* Center Icon */}
-          <text
-            x="50%"
-            y="43%"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            className="fill-orange-500 text-sm"
-          >
-            ⚡
-          </text>
-
-          {/* Center Text */}
-          <text
-            x="50%"
-            y="54%"
-            textAnchor="middle"
-            dominantBaseline="middle"
-          >
-            <tspan className="fill-gray-900 text-3xl font-bold">
-              2.4 kW
-            </tspan>
-
-            <tspan
-              x="50%"
-              dy="22"
-              className="fill-gray-400 text-[10px] font-bold tracking-[3px]"
-            >
-              CURRENT USAGE
-            </tspan>
-          </text>
-
-          <Tooltip
-            contentStyle={{
-              borderRadius: "12px",
-              border: "none",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-              padding: "10px",
-            }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-
-                    {/* Right Side Cards */}
-                    <div className="space-y-5">
-                      {deviceData.map((item, index) => (
-                        <div
-                          key={index}
-                          className="border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300"
-                        >
-                          <div className="flex items-center justify-between">
-                            {/* Left */}
-                            <div className="flex items-center gap-4">
-                              <div
-                                className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
-                                style={{ backgroundColor: COLORS[index] }}
-                              >
-                                {item.name.charAt(0)}
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-xl text-gray-900">
-                                  {item.name}
-                                </h4>
-                                <div className="w-52 bg-gray-100 h-3 rounded-full mt-3 overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full"
-                                    style={{
-                                      width: `${item.value}%`,
-                                      backgroundColor: COLORS[index],
-                                    }}
-                                  ></div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Right */}
-                            <div className="text-right">
-                              <p
-                                className="text-3xl font-bold"
-                                style={{ color: COLORS[index] }}
-                              >
-                                {item.value}%
-                              </p>
-                              <p className="text-gray-400 mt-1 text-sm">
-                                {(item.value * 0.024).toFixed(2)} kWh
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <UsageByCategory />
               </div>
             </div>
           </div>
