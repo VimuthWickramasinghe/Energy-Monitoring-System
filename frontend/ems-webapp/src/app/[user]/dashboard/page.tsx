@@ -19,17 +19,33 @@ import { Card } from "@/components/Card";
 import NewNav from "@/components/NewNav";
 import Header from "@/components/Header";
 
-
 // Mock Data for the charts
-const consumptionData = [
-  { time: "00:00", usage: 45, cost: 1.2 },
-  { time: "04:00", usage: 30, cost: 0.8 },
-  { time: "08:00", usage: 85, cost: 2.5 },
-  { time: "12:00", usage: 120, cost: 4.1 },
-  { time: "16:00", usage: 95, cost: 3.2 },
-  { time: "20:00", usage: 110, cost: 3.8 },
-  { time: "23:59", usage: 60, cost: 1.9 },
-];
+const consumptionDataMap: Record<string, any[]> = {
+  "24h": [
+    { time: "00:00", usage: 45 },
+    { time: "04:00", usage: 30 },
+    { time: "08:00", usage: 85 },
+    { time: "12:00", usage: 120 },
+    { time: "16:00", usage: 95 },
+    { time: "20:00", usage: 110 },
+    { time: "23:59", usage: 60 },
+  ],
+  "7d": [
+    { time: "Mon", usage: 450 },
+    { time: "Tue", usage: 520 },
+    { time: "Wed", usage: 480 },
+    { time: "Thu", usage: 610 },
+    { time: "Fri", usage: 590 },
+    { time: "Sat", usage: 320 },
+    { time: "Sun", usage: 280 },
+  ],
+  "30d": [
+    { time: "Week 1", usage: 2800 },
+    { time: "Week 2", usage: 3100 },
+    { time: "Week 3", usage: 2950 },
+    { time: "Week 4", usage: 3400 },
+  ],
+};
 
 const deviceData = [
   { name: "HVAC System", value: 45 },
@@ -129,6 +145,8 @@ const UsageByCategory = () => {
 export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState("24h");
 
+  const currentData = consumptionDataMap[timeRange] || consumptionDataMap["24h"];
+
   return (
     <main className="flex-1 flex flex-row overflow-hidden">
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -164,8 +182,8 @@ export default function DashboardPage() {
                     </select>
                   </div>
                   <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={consumptionData}>
+                    <ResponsiveContainer width="100%" height="100%" key={timeRange}>
+                      <AreaChart data={currentData}>
                         <defs>
                           <linearGradient id="colorUsage" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#f97316" stopOpacity={0.1} />
