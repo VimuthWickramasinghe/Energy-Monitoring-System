@@ -74,17 +74,17 @@ const UsageByCategory = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-5 pt-2">
-        <div className="lg:col-span-2 flex justify-center">
-          <div className="w-full max-w-md h-80 lg:h-96">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 p-5 pt-2">
+        <div className="lg:col-span-3 flex justify-center">
+          <div className="w-full max-w-sm h-72 lg:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={deviceData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={120}
-                  outerRadius={170}
+                  innerRadius={80}
+                  outerRadius={120}
                   paddingAngle={3}
                   dataKey="value"
                   cornerRadius={8}
@@ -96,12 +96,12 @@ const UsageByCategory = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <text x="50%" y="43%" textAnchor="middle" dominantBaseline="middle" className="fill-orange-500 text-2xl">
+                <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle" className="fill-orange-500 text-xl">
                   ⚡
                 </text>
-                <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle">
-                  <tspan className="fill-gray-900 text-4xl font-bold">2.4 kW</tspan>
-                  <tspan x="50%" dy="28" className="fill-gray-400 text-[12px] font-bold tracking-[3px]">
+                <text x="50%" y="55%" textAnchor="middle" dominantBaseline="middle">
+                  <tspan className="fill-gray-900 text-2xl font-bold">2.4 kW</tspan>
+                  <tspan x="50%" dy="20" className="fill-gray-400 text-[10px] font-bold tracking-[2px]">
                     CURRENT USAGE
                   </tspan>
                 </text>
@@ -120,7 +120,7 @@ const UsageByCategory = () => {
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="lg:col-span-2 space-y-2">
           {deviceData.map((item, index) => (
             <div key={index} className="flex items-center justify-between bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition-all duration-200" style={{ borderLeft: `4px solid ${COLORS[index]}` }}>
               <div className="flex items-center gap-3 w-3/5">
