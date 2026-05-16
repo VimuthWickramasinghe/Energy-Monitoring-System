@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/lib/AuthContext";
-
+import { ProfileProvider } from "@/lib/ProfileContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,7 +27,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans bg-gray-50 text-gray-900" suppressHydrationWarning>
         <AuthProvider>
-        {children}
+          <ProfileProvider>
+            {children}
+          </ProfileProvider>
         </AuthProvider>
       </body>
     </html>

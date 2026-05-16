@@ -11,46 +11,8 @@ import {
     WifiOff, Cpu
 } from "lucide-react";
 import Header from "@/components/Header";
-import { useBuilding } from "@/lib/DeviceBuldingContext";
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-interface BuildingData {
-    id: string;
-    name: string;
-    totalEnergy: number;
-    totalLoad: number;
-    dailyEnergy: number;
-    avgVoltage: number;
-    peakDemand: number;
-    devices: { name: string; energy: number; power: number }[];
-}
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const BUILDING_DATA: BuildingData[] = [
-    {
-        id: 'b1', name: 'Corporate HQ', totalEnergy: 450,
-        totalLoad: 12.4, dailyEnergy: 450, avgVoltage: 231.4, peakDemand: 16.8,
-        devices: [
-            { name: 'Main Panel', energy: 310, power: 8.2 },
-            { name: 'EV Charger', energy: 140, power: 4.3 },
-        ],
-    },
-    {
-        id: 'b2', name: 'West Warehouse', totalEnergy: 280,
-        totalLoad: 7.8, dailyEnergy: 280, avgVoltage: 229.6, peakDemand: 11.2,
-        devices: [
-            { name: 'HVAC Controller', energy: 280, power: 6.8 },
-        ],
-    },
-    {
-        id: 'b3', name: 'Downtown Hub', totalEnergy: 120,
-        totalLoad: 3.2, dailyEnergy: 120, avgVoltage: 228.8, peakDemand: 5.6,
-        devices: [
-            { name: 'Main Panel', energy: 80, power: 2.1 },
-            { name: 'EV Charger', energy: 40, power: 1.1 },
-        ],
-    },
-];
+import { useBuilding, Building } from "@/lib/DeviceBuldingContext";
+import { useProfile } from "@/lib/ProfileContext";
 
 const TREND_DATA = [
     { time: '00:00', load: 120, energy: 400, voltage: 230 },
@@ -110,10 +72,10 @@ const MiniStat = ({ label, value, color }: { label: string; value: string; color
 );
 
 /** Per-building card */
-const BuildingCard = ({ building }: { building: BuildingData }) => {
+const BuildingCard = ({ building, devices }: { building: Building, devices: any[] }) => {
     const [period, setPeriod] = useState('24H');
 
-    const barData = building.devices.map(d => ({ name: d.name, value: d.energy }));
+    const barData = devices.map(d => ({ name: d.module_name, value: 0 }));
 
     return (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-5 hover:border-orange-200 transition-colors">
@@ -123,17 +85,17 @@ const BuildingCard = ({ building }: { building: BuildingData }) => {
                     <Building2 size={20} />
                 </div>
                 <div>
-                    <h3 className="text-base font-bold text-gray-900">{building.name}</h3>
-                    <p className="text-xs text-gray-400">Total: {building.totalEnergy} kWh</p>
+                    <h3 className="text-base font-bold text-gray-900">{building.building_name}</h3>
+                    <p className="text-xs text-gray-400">{building.address}</p>
                 </div>
             </div>
 
             {/* Mini KPIs */}
             <div className="grid grid-cols-4 gap-2 border-b border-gray-50 pb-4">
-                <MiniStat label="Total Load" value={`${building.totalLoad} kW`} color="text-orange-500" />
-                <MiniStat label="Daily Energy" value={`${building.dailyEnergy} kWh`} color="text-blue-500" />
-                <MiniStat label="Avg. Voltage" value={`${building.avgVoltage} V`} color="text-purple-500" />
-                <MiniStat label="Peak Demand" value={`${building.peakDemand} kW`} color="text-orange-600" />
+                <MiniStat label="Total Load" value="-- kW" color="text-orange-500" />
+                <MiniStat label="Daily Energy" value="-- kWh" color="text-blue-500" />
+                <MiniStat label="Avg. Voltage" value="-- V" color="text-purple-500" />
+                <MiniStat label="Peak Demand" value="-- kW" color="text-orange-600" />
             </div>
 
             {/* Device bar chart */}
@@ -208,22 +170,28 @@ const BuildingCard = ({ building }: { building: BuildingData }) => {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
-    const { fetchBuildings } = useBuilding() as any;
+    const { buildings, modules, fetchBuildings, fetchModules } = useBuilding();
+    const { profile } = useProfile();
 
     const [activeTab, setActiveTab] = useState<'overview' | string>('overview');
     const [globalPeriod, setGlobalPeriod] = useState('24H');
     const [showElectrical, setShowElectrical] = useState(false);
 
-    useEffect(() => { fetchBuildings(); }, []);
+    useEffect(() => {
+        fetchBuildings();
+        fetchModules();
+    }, []);
 
-    const tabs = [
+    const tabs = useMemo(() => [
         { id: 'overview', label: 'Overview' },
-        ...BUILDING_DATA.map(b => ({ id: b.id, label: b.name })),
-    ];
+        ...buildings.map(b => ({ id: b.building_id, label: b.building_name })),
+    ], [buildings]);
 
-    const visibleBuildings = activeTab === 'overview'
-        ? BUILDING_DATA
-        : BUILDING_DATA.filter(b => b.id === activeTab);
+    const visibleBuildings = useMemo(() => 
+        activeTab === 'overview'
+            ? buildings
+            : buildings.filter(b => b.building_id === activeTab)
+    , [buildings, activeTab]);
 
     const subtitle = "Total consumption by infrastructure";
 
@@ -241,8 +209,8 @@ export default function AnalyticsPage() {
                             value={activeTab}
                         >
                             <option value="overview">All Buildings</option>
-                            {BUILDING_DATA.map(b => (
-                                <option key={b.id} value={b.id}>{b.name}</option>
+                            {buildings.map(b => (
+                                <option key={b.building_id} value={b.building_id}>{b.building_name}</option>
                             ))}
                         </select>
                         <ChevronDown size={14} className="text-gray-400" />
@@ -327,8 +295,12 @@ export default function AnalyticsPage() {
 
                     {/* ── Building Cards ── */}
                     <div className={`grid gap-5 ${visibleBuildings.length === 1 ? 'grid-cols-1 max-w-2xl' : 'grid-cols-1 lg:grid-cols-3'}`}>
-                        {visibleBuildings.map(b => (
-                            <BuildingCard key={b.id} building={b} />
+                        {visibleBuildings.map(building => (
+                            <BuildingCard 
+                                key={building.building_id} 
+                                building={building} 
+                                devices={modules.filter(m => m.building_id === building.building_id)}
+                            />
                         ))}
                     </div>
 

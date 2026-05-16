@@ -63,8 +63,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             setUser(userCredential.user);
-            const username = userCredential.user.uid; // Using UID is safer for routing than email prefix
-            router.push(`/${username}/dashboard`);
+            const userEmail = userCredential.user.email;
+            router.push(`/${userEmail}/dashboard`);
             return userCredential;
         } catch (error) {
             console.error("Login error:", error);
@@ -118,7 +118,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-            router.push(`/${user.uid}/dashboard`);
+            router.push(`/${user.email}/dashboard`);
         } catch (error) {
             console.error("Google sign-in error:", error);
             alert("Failed to sign in with Google: " + (error as Error).message);
@@ -156,7 +156,4 @@ export const useAuth = () => {
         throw new Error("useAuth must be used within an AuthProvider");
     }
     return context;
-};
-export const getUsernameFromEmail = (email: string) => {
-    return email.split('@')[0];
 };

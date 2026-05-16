@@ -1,49 +1,89 @@
 "use client";
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
     User, Shield, History, Trash2, Camera, Lock, ChevronDown, AlertCircle, Save, Globe, Mail
 } from "lucide-react";
 import Header from "@/components/Header";
-import { AuthContext } from "@/lib/AuthContext";
+import { useAuth } from "@/lib/AuthContext";
+import { useProfile } from "@/lib/ProfileContext";
+import { useNotification } from "@/lib/NotificationContext";
+import { client as supabase } from "@/utils/supabase/client";
 
 export default function SettingsPage() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [showPasswordForm, setShowPasswordForm] = useState(false);
     const [profileImage, setProfileImage] = useState<string | null>(null);
-    const { user, logout, isGoogleUser } = useContext(AuthContext) as { user: any, logout: () => void, isGoogleUser: boolean };
+    const { user, logout, isGoogleUser, deleteAccount } = useAuth();
+    const { profile, updateProfile, uploadAvatar } = useProfile();
+    const { addNotification } = useNotification();
+    const [isUploading, setIsUploading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [hasChanges, setHasChanges] = useState(false);
 
-    const [profile, setProfile] = useState({
-        id: "USR-9921-X",
+    const [formData, setFormData] = useState({
         name: "",
-        email: "",
-        role: "User",
-        phone: "+94 77 123 4567",
-        provider: "Email/Password"
+        phone: "",
     });
 
     useEffect(() => {
-        if (user) {
-            setProfile(prev => ({
-                ...prev,
-                name: user.name || "",
-                email: user.email || "",
-                role: user.role || "User",
-            }));
+        if (profile) {
+            const initialData = {
+                name: profile.user_name || "",
+                phone: profile.phone || "",
+            };
+            setFormData(initialData);
+            if (profile.avatar_url) {
+                setProfileImage(profile.avatar_url);
+            }
         }
-    }, [user]);
+    }, [profile]);
 
-    const handleSaveChanges = () => {
-        // Logic to save profile changes would go here
-        console.log("Saving profile changes:", profile);
-        alert("Profile updated successfully!");
+    useEffect(() => {
+        if (profile) {
+            const isChanged =
+                formData.name !== (profile.user_name || "") ||
+                formData.phone !== (profile.phone || "");
+            setHasChanges(isChanged);
+        }
+    }, [formData, profile]);
+
+    const handleSaveChanges = async () => {
+        if (!profile?.user_id) return;
+        setIsSaving(true);
+        try {
+            await updateProfile({
+                user_name: formData.name,
+                phone: formData.phone
+            });
+
+            addNotification("Profile updated successfully!", "success");
+        } catch (error: any) {
+            console.error("Error updating profile:", error);
+            addNotification(error.message || "Failed to update profile", "error");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => setProfileImage(reader.result as string);
-            reader.readAsDataURL(file);
+            setSelectedFile(file);
+            setProfileImage(URL.createObjectURL(file));
+        }
+    };
+
+    const handleUploadAvatar = async () => {
+        if (!selectedFile || !profile?.user_id) return;
+        setIsUploading(true);
+        try {
+            await uploadAvatar(selectedFile);
+            setSelectedFile(null);
+            addNotification("Profile picture updated!", "success");
+        } catch (error: any) {
+            addNotification(error.message || "Failed to upload image", "error");
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -62,62 +102,100 @@ export default function SettingsPage() {
                         <h3 className="font-bold text-gray-900 flex items-center gap-2">
                             <User size={18} className="text-orange-500" /> Public Profile
                         </h3>
-                        <button 
+                        <button
                             onClick={handleSaveChanges}
-                            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-medium transition-colors shadow-sm shadow-orange-200 text-sm"
+                            disabled={isSaving || !hasChanges}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all shadow-sm text-sm ${isSaving || !hasChanges ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-200'}`}
                         >
-                            <Save size={16} />
-                            Save Changes
+                            {isSaving ? <Save size={16} className="animate-spin" /> : <Save size={16} />}
+                            {isSaving ? "Saving..." : "Save Changes"}
                         </button>
                     </div>
                     <div className="p-8 flex flex-col md:flex-row gap-12">
                         <div className="flex flex-col items-center gap-4">
                             <div className="relative group">
                                 <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center text-3xl font-bold text-gray-400 overflow-hidden border-4 border-white shadow-md">
-                                    {profileImage ? (
+                                    {isUploading ? (
+                                        <div className="flex flex-col items-center gap-1">
+                                            <Save size={20} className="animate-spin text-orange-500" />
+                                            <span className="text-[10px] uppercase font-black">Uploading</span>
+                                        </div>
+                                    ) : profileImage ? (
                                         <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
-                                        profile.name?.charAt(0) || "U"
+                                        formData.name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || "U"
                                     )}
                                 </div>
-                                <label className="absolute bottom-0 right-0 p-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-all shadow-lg cursor-pointer">
-                                    <Camera size={18} />
-                                    <input 
-                                        type="file" 
-                                        className="hidden" 
-                                        accept="image/*" 
-                                        onChange={handleImageUpload}
-                                    />
-                                </label>
+                                {!isUploading && (
+                                    <label className="absolute bottom-0 right-0 p-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-all shadow-lg cursor-pointer">
+                                        <Camera size={18} />
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/png, image/jpeg"
+                                            onChange={handleFileSelect}
+                                        />
+                                    </label>
+                                )}
                             </div>
+                            {selectedFile && (
+                                <button
+                                    onClick={handleUploadAvatar}
+                                    disabled={isUploading}
+                                    className="mt-2 px-4 py-1.5 bg-orange-100 text-orange-600 rounded-lg text-xs font-bold hover:bg-orange-200 transition-all flex items-center gap-2"
+                                >
+                                    {isUploading ? <Save size={14} className="animate-spin" /> : <Camera size={14} />}
+                                    Save Photo
+                                </button>
+                            )}
                             <p className="text-xs text-gray-400">JPG or PNG. Max 2MB.</p>
                         </div>
 
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                                <input type="text" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-gray-900" />
+                                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                                    Full Name
+                                    {formData.name !== (profile?.user_name || "") && <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" title="Changed" />}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-gray-900 transition-colors ${formData.name !== (profile?.user_name || "") ? 'border-blue-300 bg-blue-50/30' : 'border-gray-200'}`}
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                                 <input
                                     type="email"
-                                    value={profile.email}
-                                    disabled={isGoogleUser}
-                                    className={`w-full px-4 py-2 border rounded-xl outline-none text-gray-900 ${isGoogleUser ? 'bg-gray-50 border-gray-100 text-gray-500 cursor-not-allowed' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`}
+                                    value={user?.email || ""}
+                                    disabled
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 cursor-not-allowed"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
-                                <input type="text" value={profile.id} disabled className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 cursor-not-allowed" />
+                                <input type="text" value={profile?.user_id || "Loading..."} disabled className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 cursor-not-allowed" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                                <input type="text" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-gray-900" />
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Firebase UID</label>
+                                <input type="text" value={profile?.firebase_uid || "Loading..."} disabled className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 cursor-not-allowed" />
+                            </div>
+                            <div>
+                                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                                    Phone Number
+                                    {formData.phone !== (profile?.phone || "") && <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" title="Changed" />}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    className={`w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-gray-900 transition-colors ${formData.phone !== (profile?.phone || "") ? 'border-blue-300 bg-blue-50/30' : 'border-gray-200'}`}
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                                <input type="text" value={profile.role} disabled className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 cursor-not-allowed" />
+                                <input type="text" value="User" disabled className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 cursor-not-allowed" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Authentication Provider</label>
@@ -211,7 +289,7 @@ export default function SettingsPage() {
                             </div>
                             <div className="flex items-center gap-3 w-full md:w-auto">
                                 <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 md:flex-none px-6 py-3 bg-white text-gray-600 border border-gray-200 rounded-xl font-bold hover:bg-gray-50 transition-all">Cancel</button>
-                                <button onClick={logout} className="flex-1 md:flex-none px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200">Yes, Delete My Account</button>
+                                <button onClick={deleteAccount} className="flex-1 md:flex-none px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200">Yes, Delete My Account</button>
                             </div>
                         </div>
                     )}

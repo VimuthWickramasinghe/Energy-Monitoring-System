@@ -3,6 +3,7 @@ import { client } from "@/utils/supabase/client";
 import { UUID } from "mongodb";
 import { createContext, useContext, useState, ReactNode } from "react";
 import { v4 as uuid } from "uuid";
+import { useAuth } from "./AuthContext";
 
 
 interface DeviceBuildingContextType {
@@ -16,7 +17,7 @@ interface DeviceBuildingContextType {
     removeModule: (moduleId: string) => Promise<void>;
     fetchBuildings: () => Promise<void>;
     updateBuilding: (building_id: string, building_name: string | null, address: string | null) => Promise<void>;
-    addBuilding: (building_name: string, address: string, owner_id: UUID) => Promise<void>;
+    addBuilding: (building_name: string, address: string, owner_id: string) => Promise<void>;
     removeBuildings: (buildingId: string) => Promise<void>;
 }
 
@@ -57,18 +58,22 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
     const [buildings, setBuildings] = useState<Building[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { user } = useAuth();
 
     const fetchModules = async () => {
+        if (!user?.uid) return;
         setLoading(true);
         setError(null);
         try {
             const { data, error } = await client
                 .from('MODULE')
-                .select('*');
+                .select('*, BUILDING!inner(PROFILE!inner(firebase_uid))')
+                .eq('BUILDING.PROFILE.firebase_uid', user.uid);
+
             if (error) {
                 setError(error.message);
             } else {
-                setModules(data);
+                setModules(data as Module[]);
             }
         } catch (error: any) {
             setError(error.message);
@@ -130,15 +135,16 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
     };
 
     // Building 
-    const fetchBuildings = async (owner_id?: string) => {
+    const fetchBuildings = async () => {
+        if (!user?.uid) return;
         setLoading(true);
         setError(null);
         try {
-            let query = client.from('BUILDING').select('*');
-            if (owner_id) {
-                query = query.eq('owner_id', owner_id);
-            }
-            const { data, error } = await query;
+            const { data, error } = await client
+                .from('BUILDING')
+                .select('*, PROFILE!inner(firebase_uid)')
+                .eq('PROFILE.firebase_uid', user.uid);
+
             if (error) {
                 setError(error.message);
             } else {
@@ -172,7 +178,7 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
             setLoading(false);
         }
     }
-    const addBuilding = async (building_name: string, address: string, owner_id: UUID) => {
+    const addBuilding = async (building_name: string, address: string, owner_id: string) => {
         setLoading(true);
         setError(null);
         try {

@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import Link from "next/link";
-import { useDeviceBuilding, module_state, Module } from "@/lib/DeviceBuldingContext";
+import { useBuilding, module_state, Module } from "@/lib/DeviceBuldingContext";
 
 interface DeviceCardProps {
     device: Module;
@@ -21,7 +21,7 @@ interface BluetoothDevice {
 const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
     let statusClasses = 'bg-gray-400 text-white';
     let borderClasses = 'border-gray-100 bg-gray-50/50';
-    const state = (device as any).module_state || device.state;
+    const state = device.state;
 
     if (state === module_state.Active) {
         statusClasses = 'bg-green-500 text-white';
@@ -237,7 +237,7 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
 };
 
 export default function DevicesPage() {
-    const { modules, buildings, fetchModules, fetchBuildings, removeModule, loading } = useDeviceBuilding();
+    const { modules, buildings, fetchModules, fetchBuildings, removeModule, loading } = useBuilding();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedBuildingFilter, setSelectedBuildingFilter] = useState<string>("all");
     const [isProvisioning, setIsProvisioning] = useState(false);
@@ -251,7 +251,10 @@ export default function DevicesPage() {
     }, []);
 
     const groupedDevices = useMemo(() => {
-        const filtered = modules.filter(device => 
+        // Filter modules to only show those belonging to the user's buildings
+        const userBuildingIds = buildings.map(b => b.building_id);
+        const filtered = modules.filter(device =>
+            userBuildingIds.includes(device.building_id) &&
             (selectedBuildingFilter === "all" || device.building_id === selectedBuildingFilter) &&
             (device.module_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             device.module_id.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -283,7 +286,9 @@ export default function DevicesPage() {
         setScanStatus('scanning');
         try {
             const device = await (navigator as any).bluetooth.requestDevice({
-                acceptAllDevices: true,
+                filters: [
+                    { namePrefix: 'ems' }
+                ],
                 optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b'] // Example UUID
             });
             setFoundDevices([device]);

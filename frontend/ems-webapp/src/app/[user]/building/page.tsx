@@ -16,10 +16,10 @@ import {
   ShieldCheck,
   Thermometer,
 } from "lucide-react";
-import { UUID } from "mongodb";
 
 import Header from "@/components/Header";
 import { useBuilding, building_state } from "@/lib/DeviceBuldingContext";
+import { useProfile } from "@/lib/ProfileContext";
 import { useAuth } from "@/lib/AuthContext";
 import BuildingCard from "@/components/dashboard/BuildingCard";
 import BuildingModal from "@/components/dashboard/NewEditBuildingWindow"
@@ -32,6 +32,7 @@ import BuildingModal from "@/components/dashboard/NewEditBuildingWindow"
 export default function BuildingManagement() {
   const { buildings, fetchBuildings, updateBuilding, addBuilding, removeBuildings, loading } = useBuilding();
   const { user } = useAuth();
+  const { profile } = useProfile();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newBuilding, setNewBuilding] = useState({ name: '', address: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -41,37 +42,12 @@ export default function BuildingManagement() {
     fetchBuildings();
   }, []);
 
-
-  // Window position state
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const draggingRef = useRef(false);
-  const offsetRef = useRef({ x: 0, y: 0 });
-
-  useEffect(() => {
-    setPosition({ x: window.innerWidth / 2 - 192, y: window.innerHeight / 2 - 200 });
-  }, []);
-
-
-
-
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!draggingRef.current) return;
-    setPosition({
-      x: e.clientX - offsetRef.current.x,
-      y: e.clientY - offsetRef.current.y
-    });
-  };
-
-
-
-
   const handleAddBuilding = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
       updateBuilding(editingId, newBuilding.name, newBuilding.address);
-    } else if (user) {
-      addBuilding(newBuilding.name, newBuilding.address, "e30c98e4-a721-4928-9db9-9c0b24c6a728" as any);
+    } else if (profile?.user_id) {
+      addBuilding(newBuilding.name, newBuilding.address, profile.user_id);
     }
     setIsModalOpen(false);
     setEditingId(null);
