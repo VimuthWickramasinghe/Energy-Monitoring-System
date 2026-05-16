@@ -105,91 +105,97 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Device Distribution */}
-                <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900">
-                        Usage by Category
-                      </h3>
-                      <p className="text-gray-500 mt-2 text-lg">
-                        Real-time energy distribution
-                      </p>
-                    </div>
-                    <div className="bg-orange-50 text-orange-500 px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
-                      Live Data
-                    </div>
-                  </div>
+<div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
 
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-center">
-                    {/* Donut Chart - Reduced height from 400px to 300px */}
-                    <div className="h-[300px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={deviceData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={80}
-                            outerRadius={140}
-                            paddingAngle={6}
-                            dataKey="value"
-                            cornerRadius={18}
-                            stroke="none"
-                            label={({ percent }) =>
-                              `${(percent * 100).toFixed(0)}%`
-                            }
-                            labelLine={false}
-                          >
-                            {deviceData.map((entry, index) => (
-                              <Cell
-                                key={`cell-${index}`}
-                                fill={COLORS[index % COLORS.length]}
-                              />
-                            ))}
-                          </Pie>
+  {/* Header */}
+  <div className="flex items-center justify-between mb-4">
+    <div>
+      <h3 className="text-lg font-bold text-gray-900">
+        Usage by Category
+      </h3>
 
-                          {/* Center Content */}
-                          <text
-                            x="50%"
-                            y="47%"
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            className="fill-orange-500"
-                          >
-                            ⚡
-                          </text>
+      <p className="text-gray-500 mt-1 text-sm">
+        Real-time energy distribution
+      </p>
+    </div>
 
-                          <text
-                            x="50%"
-                            y="54%"
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                          >
-                            <tspan className="fill-gray-900 text-5xl font-extrabold">
-                              2.4 kW
-                            </tspan>
-                            <tspan
-                              x="50%"
-                              dy="35"
-                              className="fill-gray-400 text-sm font-bold tracking-[4px]"
-                            >
-                              CURRENT USAGE
-                            </tspan>
-                          </text>
+    <div className="bg-orange-50 text-orange-500 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
+      <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
+      Live Data
+    </div>
+  </div>
 
-                          <Tooltip
-                            contentStyle={{
-                              borderRadius: "20px",
-                              border: "none",
-                              boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-                              padding: "12px",
-                            }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
+  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-center">
+
+    {/* Donut Chart */}
+    <div className="h-[260px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={deviceData}
+            cx="50%"
+            cy="50%"
+            innerRadius={55}
+            outerRadius={95}
+            paddingAngle={5}
+            dataKey="value"
+            cornerRadius={10}
+            stroke="none"
+            label={({ percent }) =>
+              `${(percent * 100).toFixed(0)}%`
+            }
+            labelLine={false}
+          >
+            {deviceData.map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+          </Pie>
+
+          {/* Center Icon */}
+          <text
+            x="50%"
+            y="43%"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            className="fill-orange-500 text-sm"
+          >
+            ⚡
+          </text>
+
+          {/* Center Text */}
+          <text
+            x="50%"
+            y="54%"
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            <tspan className="fill-gray-900 text-3xl font-bold">
+              2.4 kW
+            </tspan>
+
+            <tspan
+              x="50%"
+              dy="22"
+              className="fill-gray-400 text-[10px] font-bold tracking-[3px]"
+            >
+              CURRENT USAGE
+            </tspan>
+          </text>
+
+          <Tooltip
+            contentStyle={{
+              borderRadius: "12px",
+              border: "none",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+              padding: "10px",
+            }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
 
                     {/* Right Side Cards */}
                     <div className="space-y-5">
