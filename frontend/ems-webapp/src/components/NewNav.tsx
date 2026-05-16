@@ -21,7 +21,7 @@ export default function NewNav() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-[350px] px-6 pb-6 pt-0 border-x border-b border-gray-200 rounded-b-2xl shadow-sm min-h-[700px] bg-blue-50/30">
+    <div className="flex flex-col gap-6 w-full max-w-[350px] px-6 pb-6 pt-0 border-x border-b border-gray-200 rounded-b-2xl shadow-sm min-h-[700px] bg-purple-50">
       {/* 1. GREETING */}
       <div className="text-left pt-6">
         <h2 className="text-2xl font-bold text-gray-900">{greeting}, Roshel!👋</h2>
@@ -36,7 +36,7 @@ export default function NewNav() {
           width={350} 
           height={250} 
           priority
-          className="object-contain border border-gray-200 rounded-lg"
+          className="object-contain border border-gray-200 rounded-lg bg-yellow-100"
         />
       </div>
 
