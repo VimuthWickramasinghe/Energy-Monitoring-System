@@ -1,8 +1,8 @@
 "use client";
 import React, { useContext } from "react";
 import {
-    LayoutDashboard, Settings, Activity, Battery, Bell, Building2,
-    Download, Calendar, Zap, ArrowUpRight, ArrowDownRight, LogOut
+    LayoutDashboard, Settings, Activity, Battery, Building2,
+    LogOut, User as UserIcon
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,6 +12,29 @@ export default function UserNav() {
     const pathname = usePathname();
     const { user, logout } = useContext(AuthContext) as { user: any, logout: () => void };
 
+    const handleLogout = () => {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        const playTone = (freq: number, start: number, duration: number) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.1, start);
+            gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
+            osc.start(start);
+            osc.stop(start + duration);
+        };
+
+        const now = audioCtx.currentTime;
+        // Play a two-tone "power down" sound
+        playTone(800, now, 0.2);
+        playTone(600, now + 0.1, 0.3);
+
+        setTimeout(() => logout(), 300);
+    };
+
     const navItems = [
         { label: "Dashboard", href: "dashboard", icon: LayoutDashboard },
         { label: "Analytics", href: "analytics", icon: Activity },
@@ -20,8 +43,12 @@ export default function UserNav() {
         { label: "Settings", href: "settings", icon: Settings },
     ];
 
+    // Get user initials for avatar
+    const initials = user?.name?.charAt(0) || user?.email?.charAt(0) || "U";
+    const displayName = user?.name || user?.email?.split('@')[0] || "User";
+
     return (
-        <aside className="sticky top-0 w-64 bg-white border-r border-gray-200 flex flex-col h-screen shrink-0">
+        <aside className="sticky top-0 w-64 bg-blue-50 border-r border-gray-200 flex flex-col h-screen shrink-0">
             <div className="p-6">
                 <Link href="/" className="text-2xl font-bold tracking-tight text-gray-900">
                     EMS
@@ -42,7 +69,24 @@ export default function UserNav() {
                 ))}
             </nav>
 
-            <div className="p-4 border-t border-gray-100">
+            {/* Bottom section with user info and logout button */}
+            <div className="p-4 border-t border-gray-100 mt-auto">
+                <div className="flex items-center gap-3 px-2 py-2 mb-3 rounded-xl bg-white/80 shadow-sm">
+                    <div className="w-8 h-8 bg-linear-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                        {initials}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                    </div>
+                </div>
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 font-medium group"
+                >
+                    <span>Sign Out</span>
+                    <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
+                </button>
             </div>
         </aside>
     );

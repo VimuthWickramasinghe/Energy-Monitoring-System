@@ -1,15 +1,45 @@
 "use client";
 
-import { Bell, X, Check, LogOut, ChevronDown } from "lucide-react";
-import React, { useContext, useState } from "react";
+import { Bell, X, Check, Calendar, Clock } from "lucide-react";
+import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "@/lib/AuthContext";
 
 function NotificationButton() {
     const [isOpen, setIsOpen] = useState(false);
     const [hasNotification, setHasNotification] = useState(true);
+    const [dateTime, setDateTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setDateTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const formattedDate = dateTime.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+    const formattedTime = dateTime.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+    });
 
     return (
-        <div className="relative">
+        <div className="flex items-center gap-4 order-last">
+            <div className="hidden md:flex items-center gap-4 px-4 py-1.5 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="flex items-center gap-2 text-gray-600">
+                    <Calendar size={14} className="text-orange-500" />
+                    <span className="text-xs font-semibold">{formattedDate}</span>
+                </div>
+                <div className="w-px h-3 bg-gray-300"></div>
+                <div className="flex items-center gap-2 text-gray-600">
+                    <Clock size={14} className="text-orange-500" />
+                    <span className="text-xs font-semibold tabular-nums">{formattedTime}</span>
+                </div>
+            </div>
+
+            <div className="relative">
             <button 
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 active:scale-95 active:bg-gray-100 rounded-lg transition-all relative"
@@ -37,7 +67,7 @@ function NotificationButton() {
                                 </div>
                                 <button 
                                     onClick={() => setHasNotification(false)}
-                                    className="w-full py-2 text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                    className="w-full py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors flex items-center justify-center gap-2"
                                 >
                                     <Check size={16} /> Mark all as read
                                 </button>
@@ -51,52 +81,6 @@ function NotificationButton() {
                 </div>
             )}
         </div>
-    );
-}
-
-function UserProfile({ user, logout }: { user: any, logout: () => void }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const initials = user?.name?.charAt(0) || "U";
-    const name = user?.name || "User";
-    const role = user?.role || "Account";
-
-    return (
-        <div className="relative">
-            <button 
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-3 pl-2 hover:bg-gray-50 p-1 rounded-xl transition-colors group"
-            >
-                <div className="w-9 h-9 bg-linear-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm shadow-orange-200">
-                    {initials}
-                </div>
-                <div className="hidden lg:block text-left">
-                    <p className="text-sm font-semibold text-gray-900 leading-none">{name}</p>
-                    <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-wider">{role}</p>
-                </div>
-                <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isOpen && (
-                <>
-                    <div 
-                        className="fixed inset-0 z-40" 
-                        onClick={() => setIsOpen(false)}
-                    ></div>
-                    <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-100">
-                        <div className="px-4 py-3 border-b border-gray-50 mb-1">
-                            <p className="text-sm font-bold text-gray-900 truncate">{user?.email}</p>
-                        </div>
-                        <div className="h-px bg-gray-100 my-1"></div>
-                        
-                        <button 
-                            onClick={() => { setIsOpen(false); logout(); }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium"
-                        >
-                            <LogOut size={16} /> Sign Out
-                        </button>
-                    </div>
-                </>
-            )}
         </div>
     );
 }
@@ -110,17 +94,17 @@ export default function Header({
     subtitle?: string;
     children?: React.ReactNode;
 }) {
-    const { user, logout } = useContext(AuthContext) as { user: any, logout: () => void };
+    const { user } = useContext(AuthContext) as { user: any };
+    
+    // Get user initials for avatar
+    const initials = user?.name?.charAt(0) || user?.email?.charAt(0) || "U";
+
     return (
-        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 px-8 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header className="bg-blue-50/80 backdrop-blur-md border-b border-gray-200 px-8 py-3 flex items-center justify-between sticky top-0 z-30">
             <div className="flex items-center gap-8">
-                <div className="header-titles">
+                <div className="header-titles flex flex-col">
                     <div className="flex items-center gap-2">
                         <h1 className="text-lg font-bold text-gray-900 tracking-tight">{title}</h1>
-                        <span className="flex items-center gap-1 px-2 py-0.5 border border-gray-200 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                            <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse"></span>
-                            <span className="text-red-600">Live</span>
-                        </span>
                     </div>
                     <p className="text-xs text-gray-500 font-medium">{subtitle}</p>
                 </div>
@@ -130,7 +114,6 @@ export default function Header({
                 {children}
                 <NotificationButton />
                 <div className="h-6 w-px bg-gray-200 mx-1" aria-hidden="true"></div>
-                <UserProfile user={user} logout={logout} />
             </div>
         </header>
     );

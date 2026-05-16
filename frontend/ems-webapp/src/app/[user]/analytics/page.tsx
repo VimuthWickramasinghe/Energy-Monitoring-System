@@ -2,7 +2,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-    ResponsiveContainer, AreaChart, Area, LineChart, Line, Legend
+    ResponsiveContainer, AreaChart, Area, LineChart, Line, Legend,
+    PieChart, Pie, Cell
 } from "recharts";
 import {
     Download, Building2, Zap, Activity, TrendingUp,
@@ -53,7 +54,7 @@ const BUILDING_DATA: BuildingData[] = [
 
 const TREND_DATA = [
     { time: '00:00', load: 120, energy: 400, voltage: 230 },
-    { time: '04:00', load: 80,  energy: 350, voltage: 234 },
+    { time: '04:00', load: 80, energy: 350, voltage: 234 },
     { time: '08:00', load: 350, energy: 500, voltage: 228 },
     { time: '12:00', load: 620, energy: 700, voltage: 226 },
     { time: '16:00', load: 480, energy: 650, voltage: 229 },
@@ -63,16 +64,24 @@ const TREND_DATA = [
 
 const ALERTS = [
     { id: 1, icon: AlertTriangle, title: 'High Peak Demand', desc: '28.5 kW recorded at 12:45 PM', time: '12:45 PM', color: 'text-orange-500' },
-    { id: 2, icon: Zap,           title: 'Voltage Fluctuation', desc: 'Voltage went beyond stable range', time: '11:30 AM', color: 'text-yellow-500' },
-    { id: 3, icon: WifiOff,       title: 'Device Offline', desc: 'EV Charger #2 is offline', time: '10:15 AM', color: 'text-red-500' },
+    { id: 2, icon: Zap, title: 'Voltage Fluctuation', desc: 'Voltage went beyond stable range', time: '11:30 AM', color: 'text-yellow-500' },
+    { id: 3, icon: WifiOff, title: 'Device Offline', desc: 'EV Charger #2 is offline', time: '10:15 AM', color: 'text-red-500' },
 ];
 
 const TOP_CONSUMERS = [
-    { name: 'HVAC Controller', icon: Cpu,       pct: 32, color: '#f97316' },
-    { name: 'Main Panel',      icon: Building2, pct: 26, color: '#f97316' },
-    { name: 'EV Charger',      icon: Zap,       pct: 14, color: '#f97316' },
-    { name: 'Lighting System', icon: Activity,  pct: 11, color: '#f97316' },
-    { name: 'Other Devices',   icon: Cpu,       pct: 7,  color: '#f97316' },
+    { name: 'HVAC Controller', icon: Cpu, pct: 32, color: '#f97316' },
+    { name: 'Main Panel', icon: Building2, pct: 26, color: '#f97316' },
+    { name: 'EV Charger', icon: Zap, pct: 14, color: '#f97316' },
+    { name: 'Lighting System', icon: Activity, pct: 11, color: '#f97316' },
+    { name: 'Other Devices', icon: Cpu, pct: 7, color: '#f97316' },
+];
+
+const CATEGORY_USAGE = [
+    { name: 'HVAC', value: 38, color: '#f97316' },
+    { name: 'Lighting', value: 24, color: '#3b82f6' },
+    { name: 'EV Chargers', value: 18, color: '#a855f7' },
+    { name: 'Office Equipment', value: 12, color: '#10b981' },
+    { name: 'Other', value: 8, color: '#f59e0b' },
 ];
 
 const TIME_PERIODS = ['24H', '1D', '7D', '1M', '1Y'];
@@ -121,10 +130,10 @@ const BuildingCard = ({ building }: { building: BuildingData }) => {
 
             {/* Mini KPIs */}
             <div className="grid grid-cols-4 gap-2 border-b border-gray-50 pb-4">
-                <MiniStat label="Total Load"   value={`${building.totalLoad} kW`}   color="text-orange-500" />
+                <MiniStat label="Total Load" value={`${building.totalLoad} kW`} color="text-orange-500" />
                 <MiniStat label="Daily Energy" value={`${building.dailyEnergy} kWh`} color="text-blue-500" />
-                <MiniStat label="Avg. Voltage" value={`${building.avgVoltage} V`}   color="text-purple-500" />
-                <MiniStat label="Peak Demand"  value={`${building.peakDemand} kW`}  color="text-orange-600" />
+                <MiniStat label="Avg. Voltage" value={`${building.avgVoltage} V`} color="text-purple-500" />
+                <MiniStat label="Peak Demand" value={`${building.peakDemand} kW`} color="text-orange-600" />
             </div>
 
             {/* Device bar chart */}
@@ -161,9 +170,9 @@ const BuildingCard = ({ building }: { building: BuildingData }) => {
                 </div>
                 <div className="flex items-center gap-4 mb-2">
                     {[
-                        { key: 'load',    label: 'Total Load (kW)',      color: '#ef4444' },
-                        { key: 'energy',  label: 'Daily Energy (kWh)',   color: '#3b82f6' },
-                        { key: 'voltage', label: 'Avg. Voltage (v)',     color: '#8b5cf6' },
+                        { key: 'load', label: 'Total Load (kW)', color: '#ef4444' },
+                        { key: 'energy', label: 'Daily Energy (kWh)', color: '#3b82f6' },
+                        { key: 'voltage', label: 'Avg. Voltage (v)', color: '#8b5cf6' },
                     ].map(l => (
                         <div key={l.key} className="flex items-center gap-1">
                             <span className="inline-block w-5 h-0.5 rounded" style={{ background: l.color }} />
@@ -181,8 +190,8 @@ const BuildingCard = ({ building }: { building: BuildingData }) => {
                             <Tooltip
                                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px -4px rgb(0 0 0 / 0.12)', fontSize: 11 }}
                             />
-                            <Line yAxisId="lv" type="monotone" dataKey="load"    stroke="#ef4444" strokeWidth={2} dot={false} name="Total Load (kW)" />
-                            <Line yAxisId="lv" type="monotone" dataKey="energy"  stroke="#3b82f6" strokeWidth={2} dot={false} name="Daily Energy (kWh)" />
+                            <Line yAxisId="lv" type="monotone" dataKey="load" stroke="#ef4444" strokeWidth={2} dot={false} name="Total Load (kW)" />
+                            <Line yAxisId="lv" type="monotone" dataKey="energy" stroke="#3b82f6" strokeWidth={2} dot={false} name="Daily Energy (kWh)" />
                             <Line yAxisId="rv" type="monotone" dataKey="voltage" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Avg. Voltage (V)" />
                         </LineChart>
                     </ResponsiveContainer>
@@ -199,7 +208,7 @@ const BuildingCard = ({ building }: { building: BuildingData }) => {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
-    const { fetchBuildings } = useBuilding();
+    const { fetchBuildings } = useBuilding() as any;
 
     const [activeTab, setActiveTab] = useState<'overview' | string>('overview');
     const [globalPeriod, setGlobalPeriod] = useState('24H');
@@ -242,11 +251,10 @@ export default function AnalyticsPage() {
                     {/* Electrical stability toggle */}
                     <button
                         onClick={() => setShowElectrical(v => !v)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
-                            showElectrical
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${showElectrical
                                 ? 'bg-blue-500 text-white border-blue-500'
                                 : 'bg-white text-blue-600 border-gray-200 hover:border-blue-300'
-                        }`}
+                            }`}
                     >
                         <Activity size={15} />
                         Electrical Stability
@@ -258,9 +266,8 @@ export default function AnalyticsPage() {
                             <button
                                 key={p}
                                 onClick={() => setGlobalPeriod(p)}
-                                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-                                    globalPeriod === p ? 'bg-orange-500 text-white' : 'text-gray-400 hover:bg-gray-50'
-                                }`}
+                                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${globalPeriod === p ? 'bg-orange-500 text-white' : 'text-gray-400 hover:bg-gray-50'
+                                    }`}
                             >
                                 {p}
                             </button>
@@ -308,11 +315,10 @@ export default function AnalyticsPage() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
-                                    activeTab === tab.id
+                                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === tab.id
                                         ? 'border border-orange-400 text-orange-600 bg-orange-50'
                                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                                }`}
+                                    }`}
                             >
                                 {tab.label}
                             </button>
@@ -366,22 +372,50 @@ export default function AnalyticsPage() {
                                     Today <ChevronDown size={12} />
                                 </button>
                             </div>
-                            <div className="flex flex-col gap-3.5">
-                                {TOP_CONSUMERS.map(c => (
-                                    <div key={c.name} className="flex items-center gap-3">
-                                        <div className="p-1.5 bg-orange-50 text-orange-500 rounded-lg">
-                                            <c.icon size={14} />
-                                        </div>
-                                        <span className="text-sm text-gray-700 font-medium w-36 shrink-0">{c.name}</span>
-                                        <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                                            <div
-                                                className="h-full bg-orange-500 rounded-full transition-all"
-                                                style={{ width: `${c.pct}%` }}
+                            <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+                                <div className="h-60">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={CATEGORY_USAGE}
+                                                dataKey="value"
+                                                nameKey="name"
+                                                cx="50%"
+                                                cy="45%"
+                                                innerRadius={32}
+                                                outerRadius={80}
+                                                paddingAngle={4}
+                                                stroke="none"
+                                            >
+                                                {CATEGORY_USAGE.map(entry => (
+                                                    <Cell key={entry.name} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip
+                                                formatter={(value: number) => [`${value}%`, 'Usage']}
+                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px -4px rgb(0 0 0 / 0.12)', fontSize: 12 }}
                                             />
+                                            <Legend verticalAlign="bottom" height={30} iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="flex flex-col gap-3.5">
+                                    {TOP_CONSUMERS.map(c => (
+                                        <div key={c.name} className="flex items-center gap-3">
+                                            <div className="p-1.5 rounded-lg" style={{ background: `${c.color}1a`, color: c.color }}>
+                                                <c.icon size={14} />
+                                            </div>
+                                            <span className="text-sm text-gray-700 font-medium w-36 shrink-0">{c.name}</span>
+                                            <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                                                <div
+                                                    className="h-full rounded-full transition-all"
+                                                    style={{ width: `${c.pct}%`, background: c.color }}
+                                                />
+                                            </div>
+                                            <span className="text-sm font-bold text-gray-700 w-8 text-right">{c.pct}%</span>
                                         </div>
-                                        <span className="text-sm font-bold text-gray-700 w-8 text-right">{c.pct}%</span>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                             <button className="mt-5 flex items-center gap-1.5 text-orange-500 text-xs font-bold hover:gap-2.5 transition-all">
                                 View All Devices <ArrowRight size={13} />

@@ -9,18 +9,20 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar
+  PieChart,
+  Pie,
+  Cell,
+  Legend
 } from "recharts";
 
 import { Card } from "@/components/Card";
-// import NewNav from "@/components/NewNav";
+import NewNav from "@/components/NewNav";
 import Header from "@/components/Header";
+
 
 // Mock Data for the charts
 const consumptionData = [
-  { time: "00:00", usage: 45, cost: 1.2
- },
+  { time: "00:00", usage: 45, cost: 1.2 },
   { time: "04:00", usage: 30, cost: 0.8 },
   { time: "08:00", usage: 85, cost: 2.5 },
   { time: "12:00", usage: 120, cost: 4.1 },
@@ -37,6 +39,93 @@ const deviceData = [
   { name: "Others", value: 5 },
 ];
 
+const COLORS = ['#3B82F6', '#F59E0B', '#10B981', '#8B5CF6', '#EF4444'];
+
+const totalPowerKw = 2.4;
+const getKwh = (percent: number) => (percent * totalPowerKw / 100).toFixed(2);
+
+const UsageByCategory = () => {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-6 pt-5 pb-2">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">Usage by Category</h3>
+          <p className="text-gray-500 text-sm mt-0.5">Real‑time energy distribution</p>
+        </div>
+        <div className="bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+          Live Data
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-5 pt-2">
+        <div className="lg:col-span-2 flex justify-center items-center">
+          <div className="w-full max-w-md h-80 lg:h-96">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={deviceData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={65}
+                  outerRadius={105}
+                  paddingAngle={3}
+                  dataKey="value"
+                  cornerRadius={8}
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {deviceData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <text x="50%" y="43%" textAnchor="middle" dominantBaseline="middle" className="fill-orange-500 text-xl">
+                  ⚡
+                </text>
+                <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle">
+                  <tspan className="fill-gray-900 text-3xl font-bold">2.4 kW</tspan>
+                  <tspan x="50%" dy="24" className="fill-gray-400 text-[10px] font-bold tracking-[3px]">
+                    CURRENT USAGE
+                  </tspan>
+                </text>
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: '12px',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    padding: '8px 12px',
+                    fontSize: '12px',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {deviceData.map((item, index) => (
+            <div key={index} className="flex items-center justify-between bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="flex items-center gap-3 w-3/5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index] }} />
+                <span className="font-semibold text-gray-800 text-sm">{item.name}</span>
+                <div className="hidden sm:block w-16 bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${item.value}%`, backgroundColor: COLORS[index] }} />
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-xl font-bold" style={{ color: COLORS[index] }}>{item.value}%</span>
+                <span className="text-gray-400 text-xs ml-1">({getKwh(item.value)} kWh)</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState("24h");
 
@@ -52,9 +141,9 @@ export default function DashboardPage() {
 
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Left Side: Recent Activity */}
-              {/* <div className="w-full lg:w-[350px] shrink-0">
+              <div className="w-full lg:w-[350px] shrink-0">
                 <NewNav />
-              </div> */}
+              </div>
 
               {/* Right Side: Charts */}
               <div className="flex-1 space-y-8">
@@ -101,30 +190,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Device Distribution */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                  <h3 className="font-bold text-gray-900 mb-6">Usage by Category</h3>
-                  <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={deviceData} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
-                        <XAxis type="number" hide />
-                        <YAxis
-                          dataKey="name"
-                          type="category"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fontSize: 12, fill: '#4b5563' }}
-                          width={100}
-                        />
-                        <Tooltip
-                          cursor={{ fill: 'transparent' }}
-                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                        />
-                        <Bar dataKey="value" fill="#f97316" radius={[0, 4, 4, 0]} barSize={20} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
+                <UsageByCategory />
               </div>
             </div>
           </div>
