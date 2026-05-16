@@ -106,7 +106,7 @@ const UsageByCategory = () => {
 
         <div className="space-y-3">
           {deviceData.map((item, index) => (
-            <div key={index} className="flex items-center justify-between bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition-all duration-200">
+            <div key={index} className="flex items-center justify-between bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition-all duration-200" style={{ borderLeft: `4px solid ${COLORS[index]}` }}>
               <div className="flex items-center gap-3 w-3/5">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index] }} />
                 <span className="font-semibold text-gray-800 text-sm">{item.name}</span>
