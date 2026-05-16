@@ -14,6 +14,7 @@ import {
   Cell,
   Legend
 } from "recharts";
+import { Zap } from "lucide-react";
 
 import { Card } from "@/components/Card";
 import NewNav from "@/components/NewNav";
@@ -64,7 +65,8 @@ const UsageByCategory = () => {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-6 pt-5 pb-2">
-        <div>
+        <h3 className="text-xl font-bold text-gray-900">Real-Time Energy Usage</h3>
+        <div className="flex items-center gap-2 text-xs font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
           <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
           Live Data
         </div>
@@ -92,13 +94,11 @@ const UsageByCategory = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle" className="fill-orange-500 text-xl">
-                  ⚡
-                </text>
-                <text x="50%" y="55%" textAnchor="middle" dominantBaseline="middle">
-                  <tspan className="fill-gray-900 text-2xl font-bold">2.4 kW</tspan>
-                  <tspan x="50%" dy="20" className="fill-gray-400 text-[10px] font-bold tracking-[2px]">
-                    REAL TIME ENERGY USAGE
+                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
+                  <tspan x="50%" dy="-15" className="fill-orange-500 text-3xl font-bold">⚡</tspan>
+                  <tspan x="50%" dy="30" className="fill-gray-900 text-2xl font-bold">2.4 kW</tspan>
+                  <tspan x="50%" dy="25" className="fill-gray-400 text-[10px] font-bold tracking-[2px]">
+                    CURRENT USAGE
                   </tspan>
                 </text>
                 <Tooltip
