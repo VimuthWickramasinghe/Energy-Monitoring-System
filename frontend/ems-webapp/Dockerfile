@@ -15,6 +15,11 @@ WORKDIR /app
 # Copy package-related files first to leverage Docker's caching mechanism
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
 
+# uploading required environment variables 
+# Add this line right BEFORE your "RUN if [ -f package-lock.json ]..." step
+COPY .env.production .
+
+
 # Install project dependencies with frozen lockfile for reproducible builds
 RUN --mount=type=cache,target=/root/.npm \
     --mount=type=cache,target=/usr/local/share/.cache/yarn \
@@ -110,3 +115,5 @@ EXPOSE 3000
 
 # Start Next.js standalone server
 CMD ["node", "server.js"]
+
+

@@ -252,8 +252,8 @@ export default function AnalyticsPage() {
                     <button
                         onClick={() => setShowElectrical(v => !v)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${showElectrical
-                                ? 'bg-blue-500 text-white border-blue-500'
-                                : 'bg-white text-blue-600 border-gray-200 hover:border-blue-300'
+                            ? 'bg-blue-500 text-white border-blue-500'
+                            : 'bg-white text-blue-600 border-gray-200 hover:border-blue-300'
                             }`}
                     >
                         <Activity size={15} />
@@ -316,8 +316,8 @@ export default function AnalyticsPage() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === tab.id
-                                        ? 'border border-orange-400 text-orange-600 bg-orange-50'
-                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                    ? 'border border-orange-400 text-orange-600 bg-orange-50'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                                     }`}
                             >
                                 {tab.label}
@@ -392,9 +392,10 @@ export default function AnalyticsPage() {
                                                 ))}
                                             </Pie>
                                             <Tooltip
-                                                formatter={(value: number) => [`${value}%`, 'Usage']}
-                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px -4px rgb(0 0 0 / 0.12)', fontSize: 12 }}
+                                                formatter={(value: any) => [`${value ?? 0}%`, 'Your Label Here']}
+                                                contentStyle={{ borderRadius: '12px', /* ... */ }}
                                             />
+
                                             <Legend verticalAlign="bottom" height={30} iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
                                         </PieChart>
                                     </ResponsiveContainer>
