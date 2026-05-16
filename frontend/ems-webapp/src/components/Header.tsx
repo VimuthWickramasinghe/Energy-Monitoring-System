@@ -14,28 +14,6 @@ function NotificationButton() {
         return () => clearInterval(timer);
     }, []);
 
-    useEffect(() => {
-        if (hasNotification) {
-            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const playBell = () => {
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, now); // A5 note
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.1, now + 0.01);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
-                
-                osc.connect(gain).connect(audioCtx.destination);
-                osc.start();
-                osc.stop(now + 0.5);
-            };
-            playBell();
-        }
-    }, [hasNotification]);
-
     const formattedDate = dateTime.toLocaleDateString('en-US', { 
         weekday: 'short', 
         month: 'short', 
