@@ -28,7 +28,7 @@ export function Card({ stats = DEFAULT_STATS }: CardProps) {
       {stats.map((stat, i) => (
         <div 
           key={i} 
-          className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 w-full md:w-56"
+          className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 w-full md:w-44"
         >
           <div className="flex items-center gap-2 mb-2">
             <div className={`p-1.5 rounded-lg ${stat.bg} ${stat.color}`}>
