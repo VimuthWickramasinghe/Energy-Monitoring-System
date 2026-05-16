@@ -9,12 +9,14 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar
+  PieChart,
+  Pie,
+  Cell,
+  Legend
 } from "recharts";
 
 import { Card } from "@/components/Card";
-//import NewNav from "@/components/NewNav";
+import NewNav from "@/components/NewNav";
 import Header from "@/components/Header";
 
 
@@ -37,6 +39,8 @@ const deviceData = [
   { name: "Others", value: 5 },
 ];
 
+const COLORS = ["#f97316", "#3b82f6", "#10b981", "#8b5cf6", "#64748b"];
+
 export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState("24h");
 
@@ -52,9 +56,9 @@ export default function DashboardPage() {
 
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Left Side: Recent Activity */}
-              {/* <div className="w-full lg:w-[350px] shrink-0">
+              <div className="w-full lg:w-[350px] shrink-0">
                 <NewNav />
-              </div> */}
+              </div>
 
               {/* Right Side: Charts */}
               <div className="flex-1 space-y-8">
@@ -101,28 +105,140 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Device Distribution */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                  <h3 className="font-bold text-gray-900 mb-6">Usage by Category</h3>
-                  <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={deviceData} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
-                        <XAxis type="number" hide />
-                        <YAxis
-                          dataKey="name"
-                          type="category"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fontSize: 12, fill: '#4b5563' }}
-                          width={100}
-                        />
-                        <Tooltip
-                          cursor={{ fill: 'transparent' }}
-                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                        />
-                        <Bar dataKey="value" fill="#f97316" radius={[0, 4, 4, 0]} barSize={20} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">
+                        Usage by Category
+                      </h3>
+                      <p className="text-gray-500 mt-2 text-lg">
+                        Real-time energy distribution
+                      </p>
+                    </div>
+                    <div className="bg-orange-50 text-orange-500 px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
+                      Live Data
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-center">
+                    {/* Donut Chart - Reduced height from 400px to 300px */}
+                    <div className="h-[300px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={deviceData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={80}
+                            outerRadius={140}
+                            paddingAngle={6}
+                            dataKey="value"
+                            cornerRadius={18}
+                            stroke="none"
+                            label={({ percent }) =>
+                              `${(percent * 100).toFixed(0)}%`
+                            }
+                            labelLine={false}
+                          >
+                            {deviceData.map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={COLORS[index % COLORS.length]}
+                              />
+                            ))}
+                          </Pie>
+
+                          {/* Center Content */}
+                          <text
+                            x="50%"
+                            y="47%"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            className="fill-orange-500"
+                          >
+                            ⚡
+                          </text>
+
+                          <text
+                            x="50%"
+                            y="54%"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                          >
+                            <tspan className="fill-gray-900 text-5xl font-extrabold">
+                              2.4 kW
+                            </tspan>
+                            <tspan
+                              x="50%"
+                              dy="35"
+                              className="fill-gray-400 text-sm font-bold tracking-[4px]"
+                            >
+                              CURRENT USAGE
+                            </tspan>
+                          </text>
+
+                          <Tooltip
+                            contentStyle={{
+                              borderRadius: "20px",
+                              border: "none",
+                              boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+                              padding: "12px",
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Right Side Cards */}
+                    <div className="space-y-5">
+                      {deviceData.map((item, index) => (
+                        <div
+                          key={index}
+                          className="border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300"
+                        >
+                          <div className="flex items-center justify-between">
+                            {/* Left */}
+                            <div className="flex items-center gap-4">
+                              <div
+                                className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
+                                style={{ backgroundColor: COLORS[index] }}
+                              >
+                                {item.name.charAt(0)}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-xl text-gray-900">
+                                  {item.name}
+                                </h4>
+                                <div className="w-52 bg-gray-100 h-3 rounded-full mt-3 overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{
+                                      width: `${item.value}%`,
+                                      backgroundColor: COLORS[index],
+                                    }}
+                                  ></div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Right */}
+                            <div className="text-right">
+                              <p
+                                className="text-3xl font-bold"
+                                style={{ color: COLORS[index] }}
+                              >
+                                {item.value}%
+                              </p>
+                              <p className="text-gray-400 mt-1 text-sm">
+                                {(item.value * 0.024).toFixed(2)} kWh
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>

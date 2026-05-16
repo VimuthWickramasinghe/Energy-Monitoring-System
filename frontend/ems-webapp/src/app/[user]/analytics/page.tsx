@@ -208,7 +208,7 @@ const BuildingCard = ({ building }: { building: BuildingData }) => {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
-    const { fetchBuildings } = useBuilding();
+    const { fetchBuildings } = useBuilding() as any;
 
     const [activeTab, setActiveTab] = useState<'overview' | string>('overview');
     const [globalPeriod, setGlobalPeriod] = useState('24H');
