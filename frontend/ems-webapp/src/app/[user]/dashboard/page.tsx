@@ -74,7 +74,7 @@ const UsageByCategory = () => {
                   cornerRadius={8}
                   stroke="#ffffff"
                   strokeWidth={2}
-                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  label={({ percent }) => `${((percent || 0) * 100).toFixed(0)}%`}
                   labelLine={false}
                 >
                   {deviceData.map((entry, index) => (

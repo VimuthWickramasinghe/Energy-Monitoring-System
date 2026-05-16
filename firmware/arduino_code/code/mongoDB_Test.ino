@@ -86,27 +86,14 @@ void sendMockData() {
   JsonDocument doc;
 
   // Generate mock data based on the backend schema in server.js
-  float volt = 228.0 + (random(0, 50) / 10.0); // 228.0 - 233.0
-  float current1 = 10.0 + (random(0, 50) / 10.0);
-  float current2 = 10.0 + (random(0, 50) / 10.0);
-  float current3 = 10.0 + (random(0, 50) / 10.0);
-  float power1 = volt * current1;
-  float power2 = volt * current2;
-  float power3 = volt * current3;
-  float total_power = power1 + power2 + power3;
-  float temperature = 20.0 + (random(0, 100) / 10.0); // 20.0 - 30.0
-  float humidity = 50.0 + (random(0, 200) / 10.0); // 50.0 - 70.0
+  float voltage = 228.0 + (random(0, 50) / 10.0); // 228.0 - 233.0
+  float current = 1.0 + (random(0, 50) / 10.0);   // 1.0 - 6.0
+  float power = voltage * current;
 
-  doc["volt"] = volt;
-  doc["current1"] = current1;
-  doc["current2"] = current2;
-  doc["current3"] = current3;
-  doc["power1"] = power1;
-  doc["power2"] = power2;
-  doc["power3"] = power3;
-  doc["total_power"] = total_power;
-  doc["temperature"] = temperature;
-  doc["humidity"] = humidity;
+  doc["device_id"] = "esp_esm-01";
+  doc["voltage"] = voltage;
+  doc["current"] = current;
+  doc["power"] = power;
 
   String jsonPayload;
   serializeJson(doc, jsonPayload);
