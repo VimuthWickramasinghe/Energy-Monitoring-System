@@ -59,7 +59,7 @@ const UsageByCategory = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-5 pt-2">
-        <div className="lg:col-span-2 flex justify-center items-center">
+        <div className="lg:col-span-2 flex justify-center">
           <div className="w-full max-w-md h-80 lg:h-96">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -137,7 +137,9 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-y-auto bg-gray-50">
           <div className="max-w-7xl mx-auto p-8 space-y-8">
             {/* Stats Grid */}
-            <Card />
+            <div className="flex justify-end">
+              <Card />
+            </div>
 
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Left Side: Recent Activity */}

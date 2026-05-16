@@ -24,27 +24,27 @@ interface CardProps {
 
 export function Card({ stats = DEFAULT_STATS }: CardProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="flex flex-wrap gap-3 justify-start">
       {stats.map((stat, i) => (
         <div 
           key={i} 
-          className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200"
+          className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 w-full md:w-56"
         >
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`p-2 rounded-lg ${stat.bg} ${stat.color}`}>
-              <stat.icon size={20} />
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`p-1.5 rounded-lg ${stat.bg} ${stat.color}`}>
+              <stat.icon size={16} />
             </div>
             {stat.trend && (
-              <span className={`ml-auto flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-full ${
+              <span className={`ml-auto flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${
                 stat.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
               }`}>
-                {stat.trendUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                {stat.trendUp ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
                 {stat.trend}
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-500 font-medium truncate">{stat.label}</p>
-          <h3 className="text-2xl font-bold text-gray-900 mt-1 truncate">{stat.value}</h3>
+          <p className="text-xs text-gray-500 font-medium truncate">{stat.label}</p>
+          <h3 className="text-xl font-bold text-gray-900 mt-0.5 truncate">{stat.value}</h3>
         </div>
       ))}
     </div>
