@@ -7,10 +7,12 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AuthContext } from "@/lib/AuthContext";
+import { useProfile } from "@/lib/ProfileContext";
 
 export default function UserNav() {
     const pathname = usePathname();
     const { user, logout } = useContext(AuthContext) as { user: any, logout: () => void };
+    const { profile } = useProfile();
 
     const handleLogout = () => {
         const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -44,8 +46,8 @@ export default function UserNav() {
     ];
 
     // Get user initials for avatar
-    const initials = user?.name?.charAt(0) || user?.email?.charAt(0) || "U";
-    const displayName = user?.name || user?.email?.split('@')[0] || "User";
+    const initials = profile?.user_name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || "U";
+    const displayName = profile?.user_name || user?.email?.split('@')[0] || "User";
 
     return (
         <aside className="sticky top-0 w-64 bg-blue-950 border-r border-gray-800 flex flex-col h-screen shrink-0">
@@ -73,12 +75,16 @@ export default function UserNav() {
             {/* Bottom section with user info and logout button */}
             <div className="p-4 border-t border-gray-800 mt-auto">
                 <div className="flex items-center gap-3 px-2 py-2 mb-3 rounded-xl bg-white/5 shadow-sm">
-                    <div className="w-8 h-8 bg-linear-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                        {initials}
+                    <div className="w-8 h-8 bg-linear-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm overflow-hidden">
+                        {profile?.avatar_url ? (
+                            <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            initials
+                        )}
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-white truncate">{displayName}</p>
-                        <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                        <p className="text-[10px] text-gray-400 truncate font-mono">{user?.email}</p>
                     </div>
                 </div>
                 <button
