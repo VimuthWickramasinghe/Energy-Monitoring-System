@@ -143,7 +143,7 @@ export default function DashboardPage() {
 
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Left Side: Recent Activity */}
-              <div className="w-full lg:w-[350px] shrink-0">
+              <div className="w-full lg:w-[350px] shrink-0 -mt-32">
                 <NewNav />
               </div>
 
