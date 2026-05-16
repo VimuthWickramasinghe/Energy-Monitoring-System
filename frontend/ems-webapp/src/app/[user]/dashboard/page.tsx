@@ -83,8 +83,8 @@ const UsageByCategory = () => {
                   data={deviceData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={80}
-                  outerRadius={120}
+                  innerRadius={100}
+                  outerRadius={160}
                   paddingAngle={3}
                   dataKey="value"
                   cornerRadius={8}
