@@ -52,6 +52,7 @@ export default function UserNav() {
             <div className="p-6">
                 <Link href="/" className="text-2xl font-bold tracking-tight text-white">
                     EMS
+                    <p className="text-[10px] font-medium text-gray-400 tracking-wider uppercase">Energy Monitoring System</p>
                 </Link>
             </div>
 
