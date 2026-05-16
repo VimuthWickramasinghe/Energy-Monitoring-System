@@ -48,10 +48,11 @@ export default function UserNav() {
     const displayName = user?.name || user?.email?.split('@')[0] || "User";
 
     return (
-        <aside className="sticky top-0 w-64 bg-blue-50 border-r border-gray-200 flex flex-col h-screen shrink-0">
+        <aside className="sticky top-0 w-64 bg-blue-950 border-r border-gray-800 flex flex-col h-screen shrink-0">
             <div className="p-6">
-                <Link href="/" className="text-2xl font-bold tracking-tight text-gray-900">
+                <Link href="/" className="text-2xl font-bold tracking-tight text-white">
                     EMS
+                    <p className="text-[10px] font-medium text-gray-400 tracking-wider uppercase">Energy Monitoring System</p>
                 </Link>
             </div>
 
@@ -70,19 +71,19 @@ export default function UserNav() {
             </nav>
 
             {/* Bottom section with user info and logout button */}
-            <div className="p-4 border-t border-gray-100 mt-auto">
-                <div className="flex items-center gap-3 px-2 py-2 mb-3 rounded-xl bg-white/80 shadow-sm">
+            <div className="p-4 border-t border-gray-800 mt-auto">
+                <div className="flex items-center gap-3 px-2 py-2 mb-3 rounded-xl bg-white/5 shadow-sm">
                     <div className="w-8 h-8 bg-linear-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm">
                         {initials}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
-                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                        <p className="text-sm font-semibold text-white truncate">{displayName}</p>
+                        <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                     </div>
                 </div>
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 font-medium group"
+                    className="w-full flex items-center justify-center gap-3 px-4 py-2.5 text-sm text-white hover:text-white hover:bg-white/10 active:bg-white/20 rounded-xl transition-all duration-200 font-medium group"
                 >
                     <span>Sign Out</span>
                     <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -98,12 +99,12 @@ function UserNavLink({ page, children, icon, isActive, userEmail }: { page: stri
             href={`/${userEmail}/${page}`} 
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
                 isActive 
-                ? "text-orange-600 bg-orange-50" 
-                : "text-gray-600 hover:bg-gray-50"
+                ? "text-white font-bold bg-white/10" 
+                : "text-gray-400 hover:bg-white/5 hover:text-white"
             }`}
         >
-            {icon}
-            {children}
+            <span className={isActive ? "text-white" : ""}>{icon}</span>
+            <span>{children}</span>
         </Link>
     );
 }
