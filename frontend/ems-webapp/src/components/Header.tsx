@@ -67,7 +67,7 @@ function NotificationButton() {
                                 </div>
                                 <button 
                                     onClick={() => setHasNotification(false)}
-                                    className="w-full py-2 text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                    className="w-full py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors flex items-center justify-center gap-2"
                                 >
                                     <Check size={16} /> Mark all as read
                                 </button>
@@ -100,7 +100,7 @@ export default function Header({
     const initials = user?.name?.charAt(0) || user?.email?.charAt(0) || "U";
 
     return (
-        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 px-8 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header className="bg-blue-50/80 backdrop-blur-md border-b border-gray-200 px-8 py-3 flex items-center justify-between sticky top-0 z-30">
             <div className="flex items-center gap-8">
                 <div className="header-titles flex flex-col">
                     <div className="flex items-center gap-2">
