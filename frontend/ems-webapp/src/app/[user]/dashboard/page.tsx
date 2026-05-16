@@ -146,7 +146,7 @@ export default function DashboardPage() {
   return (
     <main className="flex-1 flex flex-row overflow-hidden">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header title="Dashboard" subtitle="Real-time energy monitoring overview" />
 
         <div className="flex-1 overflow-y-auto bg-gray-50">
           <div className="max-w-7xl mx-auto p-8 space-y-8">
