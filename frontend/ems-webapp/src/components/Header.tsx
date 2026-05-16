@@ -105,10 +105,6 @@ export default function Header({
                 <div className="header-titles flex flex-col">
                     <div className="flex items-center gap-2">
                         <h1 className="text-lg font-bold text-gray-900 tracking-tight">{title}</h1>
-                        <span className="flex items-center gap-1 px-2 py-0.5 border border-gray-200 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                            <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse"></span>
-                            <span className="text-red-600">Live</span>
-                        </span>
                     </div>
                     <p className="text-xs text-gray-500 font-medium">{subtitle}</p>
                 </div>

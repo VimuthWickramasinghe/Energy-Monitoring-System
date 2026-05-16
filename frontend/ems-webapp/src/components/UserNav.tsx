@@ -12,6 +12,29 @@ export default function UserNav() {
     const pathname = usePathname();
     const { user, logout } = useContext(AuthContext) as { user: any, logout: () => void };
 
+    const handleLogout = () => {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        const playTone = (freq: number, start: number, duration: number) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.1, start);
+            gain.gain.exponentialRampToValueAtTime(0.00001, start + duration);
+            osc.start(start);
+            osc.stop(start + duration);
+        };
+
+        const now = audioCtx.currentTime;
+        // Play a two-tone "power down" sound
+        playTone(800, now, 0.2);
+        playTone(600, now + 0.1, 0.3);
+
+        setTimeout(() => logout(), 300);
+    };
+
     const navItems = [
         { label: "Dashboard", href: "dashboard", icon: LayoutDashboard },
         { label: "Analytics", href: "analytics", icon: Activity },
@@ -58,7 +81,7 @@ export default function UserNav() {
                     </div>
                 </div>
                 <button
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="w-full flex items-center justify-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 font-medium group"
                 >
                     <span>Sign Out</span>
