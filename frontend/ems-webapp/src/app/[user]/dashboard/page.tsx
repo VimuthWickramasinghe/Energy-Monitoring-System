@@ -65,10 +65,6 @@ const UsageByCategory = () => {
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-6 pt-5 pb-2">
         <div>
-          <h3 className="text-xl font-bold text-gray-900">Usage by Category</h3>
-          <p className="text-gray-500 text-sm mt-0.5">Real‑time energy distribution</p>
-        </div>
-        <div className="bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
           Live Data
         </div>
@@ -102,7 +98,7 @@ const UsageByCategory = () => {
                 <text x="50%" y="55%" textAnchor="middle" dominantBaseline="middle">
                   <tspan className="fill-gray-900 text-2xl font-bold">2.4 kW</tspan>
                   <tspan x="50%" dy="20" className="fill-gray-400 text-[10px] font-bold tracking-[2px]">
-                    CURRENT USAGE
+                    REAL TIME ENERGY USAGE
                   </tspan>
                 </text>
                 <Tooltip

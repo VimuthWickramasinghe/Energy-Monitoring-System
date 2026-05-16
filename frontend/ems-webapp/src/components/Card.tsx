@@ -12,10 +12,10 @@ interface StatItem {
 }
 
 const DEFAULT_STATS: StatItem[] = [
-  { label: "Current Usage", value: "2.4 kW", icon: Zap, color: "text-orange-600", bg: "bg-orange-50", trend: "+2.5%", trendUp: true },
-  { label: "Daily Cost", value: "$12.40", icon: TrendingUp, color: "text-green-600", bg: "bg-green-50", trend: "-0.8%", trendUp: false },
-  { label: "Active Devices", value: "12", icon: Battery, color: "text-blue-500", bg: "bg-blue-50", trend: "Stable", trendUp: true },
-  { label: "System Health", value: "98%", icon: Activity, color: "text-purple-500", bg: "bg-purple-50", trend: "Optimal", trendUp: true },
+  { label: "Current Usage", value: "2.4 kW", icon: Zap, color: "text-orange-600", bg: "bg-orange-100/50", trend: "+2.5%", trendUp: true },
+  { label: "Daily Cost", value: "$12.40", icon: TrendingUp, color: "text-green-600", bg: "bg-green-100/50", trend: "-0.8%", trendUp: false },
+  { label: "Active Devices", value: "12", icon: Battery, color: "text-blue-600", bg: "bg-blue-100/50", trend: "Stable", trendUp: true },
+  { label: "System Health", value: "98%", icon: Activity, color: "text-purple-600", bg: "bg-purple-100/50", trend: "Optimal", trendUp: true },
 ];
 
 interface CardProps {
@@ -28,7 +28,7 @@ export function Card({ stats = DEFAULT_STATS }: CardProps) {
       {stats.map((stat, i) => (
         <div 
           key={i} 
-          className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 w-full md:w-44"
+          className={`p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 w-full md:w-44 ${stat.bg.replace('bg-', 'bg-opacity-10 bg-')}`}
         >
           <div className="flex items-center gap-2 mb-2">
             <div className={`p-1.5 rounded-lg ${stat.bg} ${stat.color}`}>
