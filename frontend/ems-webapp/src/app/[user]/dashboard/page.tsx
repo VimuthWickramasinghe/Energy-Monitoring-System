@@ -12,7 +12,8 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend
+  Legend,
+  Label
 } from "recharts";
 import { Zap } from "lucide-react";
 
@@ -187,10 +188,19 @@ export default function DashboardPage() {
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                        <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                        <XAxis dataKey="time" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }}>
+                          <Label value="Time Period" offset={-5} position="insideBottom" style={{ fontSize: '12px', fill: '#6b7280', fontWeight: 600 }} />
+                        </XAxis>
+                        <YAxis axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }}>
+                          <Label value="Usage (kWh)" angle={-90} position="insideLeft" style={{ fontSize: '12px', fill: '#6b7280', fontWeight: 600 }} />
+                        </YAxis>
                         <Tooltip
-                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      contentStyle={{ 
+                        borderRadius: '12px', 
+                        border: 'none', 
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' 
+                      }}
+                      labelStyle={{ color: '#000000', fontWeight: 'bold' }}
                         />
                         <Area
                           type="monotone"
