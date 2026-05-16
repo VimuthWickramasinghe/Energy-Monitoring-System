@@ -74,19 +74,18 @@ const UsageByCategory = () => {
                   cornerRadius={8}
                   stroke="#ffffff"
                   strokeWidth={2}
-                  label={({ percent }) => `${((percent || 0) * 100).toFixed(0)}%`}
                   labelLine={false}
                 >
                   {deviceData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <text x="50%" y="43%" textAnchor="middle" dominantBaseline="middle" className="fill-orange-500 text-xl">
+                <text x="50%" y="43%" textAnchor="middle" dominantBaseline="middle" className="fill-orange-500 text-2xl">
                   ⚡
                 </text>
                 <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle">
-                  <tspan className="fill-gray-900 text-3xl font-bold">2.4 kW</tspan>
-                  <tspan x="50%" dy="24" className="fill-gray-400 text-[10px] font-bold tracking-[3px]">
+                  <tspan className="fill-gray-900 text-4xl font-bold">2.4 kW</tspan>
+                  <tspan x="50%" dy="28" className="fill-gray-400 text-[12px] font-bold tracking-[3px]">
                     CURRENT USAGE
                   </tspan>
                 </text>
@@ -98,6 +97,7 @@ const UsageByCategory = () => {
                     padding: '8px 12px',
                     fontSize: '12px',
                   }}
+                  formatter={(value: number) => [`${value}%`, 'Usage']}
                 />
               </PieChart>
             </ResponsiveContainer>
