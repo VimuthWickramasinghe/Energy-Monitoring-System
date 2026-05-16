@@ -14,13 +14,13 @@ import {
 } from "recharts";
 
 import { Card } from "@/components/Card";
-// import NewNav from "@/components/NewNav";
+//import NewNav from "@/components/NewNav";
 import Header from "@/components/Header";
+
 
 // Mock Data for the charts
 const consumptionData = [
-  { time: "00:00", usage: 45, cost: 1.2
- },
+  { time: "00:00", usage: 45, cost: 1.2 },
   { time: "04:00", usage: 30, cost: 0.8 },
   { time: "08:00", usage: 85, cost: 2.5 },
   { time: "12:00", usage: 120, cost: 4.1 },
