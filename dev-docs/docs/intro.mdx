@@ -2,46 +2,30 @@
 sidebar_position: 1
 ---
 
-# Tutorial Intro
+# Energy Monitoring System (EMS)
 
-Let's discover **Docusaurus in less than 5 minutes**.
+Welcome to the **Energy Monitoring System** documentation. This system provides real-time insights into energy consumption, efficiency metrics, and hardware status.
 
-## Getting Started
+## Project Overview
 
-Get started by **creating a new site**.
+The EMS is designed to aggregate data from smart meters and IoT sensors to help users optimize their energy usage and reduce costs.
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+### Key Features
 
-### What you'll need
+- **Real-time Dashboard**: Live visualization of power consumption.
+- **Historical Analysis**: Track energy trends over days, months, or years.
+- **Alerting System**: Notifications for unusual spikes or hardware failures.
+- **Exportable Reports**: Generate PDF/CSV summaries for auditing.
 
-- [Node.js](https://nodejs.org/en/download/) version 20.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+## Tech Stack
 
-## Generate a new site
+- **Dev_docs**: React with Docusaurus for documentation.
+- **frontend**: Next js.
+- **Backend**: Node.js / Express.
+- **Hardware**: ESP32 and SCT current clamp and ZMP voltage transformer .
+- **Database**: mongoDB and supabase.
 
-Generate a new Docusaurus site using the **classic template**.
+## Quick Start for Developers
 
-The classic template will automatically be added to your project after you run the command:
-
-```bash
-npm init docusaurus@latest my-website classic
-```
-
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
-
-The command also installs all necessary dependencies you need to run Docusaurus.
-
-## Start your site
-
-Run the development server:
-
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+To run the documentation locally, navigate to the `dev-docs` directory and run `npm install` followed by `npm start`.
+The documentation will be available at `http://localhost:3000`.
