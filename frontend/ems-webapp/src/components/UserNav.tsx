@@ -48,7 +48,7 @@ export default function UserNav() {
     const displayName = user?.name || user?.email?.split('@')[0] || "User";
 
     return (
-        <aside className="sticky top-0 w-64 bg-white border-r border-gray-200 flex flex-col h-screen shrink-0">
+        <aside className="sticky top-0 w-64 bg-blue-50 border-r border-gray-200 flex flex-col h-screen shrink-0">
             <div className="p-6">
                 <Link href="/" className="text-2xl font-bold tracking-tight text-gray-900">
                     EMS
@@ -71,7 +71,7 @@ export default function UserNav() {
 
             {/* Bottom section with user info and logout button */}
             <div className="p-4 border-t border-gray-100 mt-auto">
-                <div className="flex items-center gap-3 px-2 py-2 mb-3 rounded-xl bg-gray-50">
+                <div className="flex items-center gap-3 px-2 py-2 mb-3 rounded-xl bg-white/80 shadow-sm">
                     <div className="w-8 h-8 bg-linear-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm">
                         {initials}
                     </div>
