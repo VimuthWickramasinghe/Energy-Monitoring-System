@@ -1,8 +1,18 @@
 'use client';
 import Image from 'next/image';
 import { CheckCircle, AlertTriangle, Zap, Activity, ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function NewNav() {
+  const [greeting, setGreeting] = useState("Good Morning");
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Good Morning");
+    else if (hour < 18) setGreeting("Good Afternoon");
+    else setGreeting("Good Evening");
+  }, []);
+
   const activities = [
     { title: "HVAC System checked", desc: "All systems normal", time: "2m ago", color: "text-green-500", bgColor: "bg-green-50", borderColor: "border-green-100", badgeColor: "text-green-600", Icon: CheckCircle },
     { title: "High usage detected", desc: "Server Room", time: "15m ago", color: "text-orange-500", bgColor: "bg-orange-50", borderColor: "border-orange-100", badgeColor: "text-orange-600", Icon: AlertTriangle },
@@ -14,14 +24,14 @@ export default function NewNav() {
     <div className="flex flex-col gap-6 w-full max-w-[350px] px-6 pb-6 pt-0 border-x border-b border-gray-200 rounded-b-2xl shadow-sm min-h-[700px]">
       {/* 1. GREETING */}
       <div className="text-left pt-6">
-        <h2 className="text-2xl font-bold text-gray-900">Good morning, Roshel!👋</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{greeting}, Roshel!👋</h2>
         <p className="text-gray-500">Here's what's happening with your energy system today.</p>
       </div>
 
       {/* 2. ILLUSTRATION */}
       <div className="flex justify-start py-4">
         <Image 
-          src="/energy_saving_image.png" 
+          src="/energy_home.png" 
           alt="Energy Dashboard Illustration" 
           width={350} 
           height={250} 
