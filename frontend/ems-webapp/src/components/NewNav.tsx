@@ -29,14 +29,14 @@ export default function NewNav() {
       </div>
 
       {/* 2. ILLUSTRATION */}
-      <div className="flex justify-start py-4">
+      <div className="flex justify-center py-6 bg-linear-to-br from-orange-100 to-blue-100 rounded-2xl border border-white shadow-inner">
         <Image 
-          src="/energy_home.png" 
+          src="/energy.png" 
           alt="Energy Dashboard Illustration" 
           width={350} 
           height={250} 
           priority
-          className="object-contain"
+          className="object-contain border border-gray-200 rounded-lg"
         />
       </div>
 
