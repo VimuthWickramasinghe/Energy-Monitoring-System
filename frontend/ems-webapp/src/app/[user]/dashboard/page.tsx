@@ -64,7 +64,7 @@ const getKwh = (percent: number) => (percent * totalPowerKw / 100).toFixed(2);
 
 const UsageByCategory = () => {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-purple-50/50 rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-6 pt-5 pb-2">
         <h3 className="text-xl font-bold text-gray-900">Real-Time Energy Usage</h3>
         <div className="flex items-center gap-2 text-xs font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
@@ -165,7 +165,7 @@ export default function DashboardPage() {
               {/* Right Side: Charts */}
               <div className="flex-1 space-y-8">
                 {/* Main Consumption Chart */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="bg-orange-50/30 p-6 rounded-2xl border border-gray-100 shadow-sm">
                   <div className="flex items-center justify-between mb-8">
                     <h3 className="font-bold text-gray-900">Energy Consumption Trends</h3>
                     <select
@@ -188,10 +188,10 @@ export default function DashboardPage() {
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                        <XAxis dataKey="time" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }}>
+                        <XAxis dataKey="time" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 12, fill: '#000000', fontWeight: 500 }}>
                           <Label value="Time Period" offset={-5} position="insideBottom" style={{ fontSize: '12px', fill: '#6b7280', fontWeight: 600 }} />
                         </XAxis>
-                        <YAxis axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }}>
+                        <YAxis axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 12, fill: '#000000', fontWeight: 500 }}>
                           <Label value="Usage (kWh)" angle={-90} position="insideLeft" style={{ fontSize: '12px', fill: '#6b7280', fontWeight: 600 }} />
                         </YAxis>
                         <Tooltip
