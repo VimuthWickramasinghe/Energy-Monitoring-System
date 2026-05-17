@@ -1,16 +1,23 @@
 'use client';
 import Image from 'next/image';
 import { CheckCircle, AlertTriangle, Zap, Activity, ChevronRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { AuthContext } from '@/lib/AuthContext';
+import { useProfile } from '@/lib/ProfileContext';
 
 export default function NewNav() {
   const [greeting, setGreeting] = useState("Good Morning");
+  const { user } = useContext(AuthContext) || {};
+  const { profile } = useProfile();
 
   useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Good Morning");
-    else if (hour < 18) setGreeting("Good Afternoon");
-    else setGreeting("Good Evening");
+    const updateGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) setGreeting("Good Morning");
+      else if (hour < 18) setGreeting("Good Afternoon");
+      else setGreeting("Good Evening");
+    };
+    updateGreeting();
   }, []);
 
   const activities = [
@@ -20,11 +27,13 @@ export default function NewNav() {
     { title: "Daily report generated", desc: "Energy usage report", time: "3h ago", color: "text-purple-500", bgColor: "bg-purple-50", borderColor: "border-purple-100", badgeColor: "text-purple-600", Icon: Activity },
   ];
 
+  const displayName = profile?.user_name || user?.email?.split('@')[0] || "User";
+
   return (
     <div className="flex flex-col gap-6 w-full max-w-[350px] px-6 pb-6 pt-0 border-x border-b border-gray-200 rounded-b-2xl shadow-sm min-h-[700px] bg-purple-50">
       {/* 1. GREETING */}
       <div className="text-left pt-6">
-        <h2 className="text-2xl font-bold text-gray-900">{greeting}, Roshel!👋</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{greeting}, {displayName}!👋</h2>
         <p className="text-gray-500">Here's what's happening with your energy system today.</p>
       </div>
 

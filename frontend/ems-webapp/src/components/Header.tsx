@@ -10,7 +10,8 @@ function NotificationButton() {
     const [dateTime, setDateTime] = useState(new Date());
 
     useEffect(() => {
-        const timer = setInterval(() => setDateTime(new Date()), 1000);
+        // Update every 60 seconds since we only show minutes
+        const timer = setInterval(() => setDateTime(new Date()), 60000);
         return () => clearInterval(timer);
     }, []);
 

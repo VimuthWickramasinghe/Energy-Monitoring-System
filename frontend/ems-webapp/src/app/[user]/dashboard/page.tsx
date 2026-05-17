@@ -15,7 +15,6 @@ import {
   Legend,
   Label
 } from "recharts";
-import { Zap } from "lucide-react";
 
 import { Card } from "@/components/Card";
 import NewNav from "@/components/NewNav";
