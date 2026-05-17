@@ -13,7 +13,8 @@ import {
   Pie,
   Cell,
   Legend,
-  Label
+  Label,
+  TooltipProps
 } from "recharts";
 
 import { Card } from "@/components/Card";
@@ -109,7 +110,7 @@ const UsageByCategory = () => {
                     padding: '8px 12px',
                     fontSize: '12px',
                   }}
-                  formatter={(value: number) => [`${value}%`, 'Usage']}
+                  formatter={(value: any) => [`${value}%`, 'Usage']}
                 />
               </PieChart>
             </ResponsiveContainer>
