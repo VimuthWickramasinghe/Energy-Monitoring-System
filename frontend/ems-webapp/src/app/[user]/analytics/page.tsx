@@ -90,6 +90,14 @@ const BuildingCard = ({ building, devices }: { building: Building, devices: any[
                 </div>
             </div>
 
+            {devices.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center py-10 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                    <Cpu size={32} className="text-gray-300 mb-2" />
+                    <p className="text-sm font-medium text-gray-500">No modules registered</p>
+                    <p className="text-[10px] text-gray-400">Add a module to see analytics</p>
+                </div>
+            ) : (
+                <>
             {/* Mini KPIs */}
             <div className="grid grid-cols-4 gap-2 border-b border-gray-50 pb-4">
                 <MiniStat label="Total Load" value="-- kW" color="text-orange-500" />
@@ -159,6 +167,8 @@ const BuildingCard = ({ building, devices }: { building: Building, devices: any[
                     </ResponsiveContainer>
                 </div>
             </div>
+                </>
+            )}
 
             {/* Footer */}
             <button className="flex items-center gap-1.5 text-orange-500 text-xs font-bold hover:gap-2.5 transition-all">
@@ -177,10 +187,13 @@ export default function AnalyticsPage() {
     const [globalPeriod, setGlobalPeriod] = useState('24H');
     const [showElectrical, setShowElectrical] = useState(false);
 
+    // Fetch data on mount and when profile changes to ensure data is loaded after refresh
     useEffect(() => {
-        fetchBuildings();
-        fetchModules();
-    }, []);
+        if (profile?.user_id) {
+            fetchBuildings();
+            fetchModules();
+        }
+    }, [profile?.user_id]);
 
     const tabs = useMemo(() => [
         { id: 'overview', label: 'Overview' },
@@ -250,7 +263,7 @@ export default function AnalyticsPage() {
             </Header>
 
             <div className="flex-1 overflow-y-auto p-6 lg:p-8">
-                <div className="max-w-[1440px] mx-auto space-y-6">
+                <div className="max-w-360 mx-auto space-y-6">
 
                     {/* ── Global KPI Cards ── */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
