@@ -29,7 +29,7 @@ const char* api_key = "ems-key-123";
 #define REG_CHAR_UUID             "beb5483e-36e1-4688-b7f5-ea07361b26ab"
 
 // --- Hardware Pins ---
-#define RED_LED_PIN 8
+#define RED_LED_PIN 2
 #define BOOT_BUTTON_PIN 0  // Standard Boot button on most ESP32s
 #define VOLT_SENSOR_PIN 34 // Analog input for ZMPT101B
 #define CURR_SENSOR_PIN 35 // Analog input for SCT-013
@@ -52,15 +52,24 @@ BLECharacteristic *pStatusCharacteristic = nullptr;
 class ProvisioningCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
         String rxValue = String(pCharacteristic->getValue().c_str());
+        rxValue.trim(); // Remove any accidental whitespace or newlines
+        
         BLEUUID uuid = pCharacteristic->getUUID();
         if (rxValue.length() > 0) {
             if (uuid.equals(BLEUUID(SSID_CHAR_UUID))) {
                 provisioned_ssid = rxValue;
-                Serial.print("Received SSID: ");
-                Serial.println(provisioned_ssid);
+                Serial.print("Received SSID: '");
+                Serial.print(provisioned_ssid);
+                Serial.print("' (Length: ");
+                Serial.print(provisioned_ssid.length());
+                Serial.println(")");
             } else if (uuid.equals(BLEUUID(PASS_CHAR_UUID))) {
                 provisioned_password = rxValue;
-                Serial.println("Received Password.");
+                Serial.print("Received Password: '");
+                Serial.print(provisioned_password);
+                Serial.print("' (Length: ");
+                Serial.print(provisioned_password.length());
+                Serial.println(")");
             } else if (uuid.equals(BLEUUID(REG_CHAR_UUID))) {
                 if (rxValue == "REGISTERED") {
                     isRegistered = true;
@@ -98,8 +107,13 @@ void setup() {
     connectToWiFi();
   }
 
-  Serial.println("Starting BLE Provisioning Server...");
-  setupBLE();
+  // Only start BLE if we didn't successfully connect to WiFi
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Starting BLE Provisioning Server...");
+    setupBLE();
+  } else {
+    Serial.println("WiFi connected. Skipping BLE Provisioning.");
+  }
 }
 
 void loop() {
@@ -159,7 +173,7 @@ void loop() {
 }
 
 void setupBLE() {
-  BLEDevice::init("EMS-Config"); 
+  BLEDevice::init("ems-Config"); 
   BLEServer *pServer = BLEDevice::createServer();
   
   BLEService *pService = pServer->createService(PROVISIONING_SERVICE_UUID);
@@ -204,6 +218,9 @@ void connectToWiFi() {
   Serial.println(provisioned_ssid);
 
   if (provisioned_ssid.length() > 0) {
+    WiFi.disconnect(); // Clear any previous state
+    delay(100);
+    WiFi.mode(WIFI_STA);
     WiFi.begin(provisioned_ssid.c_str(), provisioned_password.c_str());
   } else {
     return;
