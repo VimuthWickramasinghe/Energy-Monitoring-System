@@ -1,6 +1,6 @@
 import React from "react";
 import UserNav from "@/components/UserNav";
-import DeviceBuildingProvider from "@/lib/DeviceBuldingContext";
+import DeviceBuildingProvider from "@/lib/DeviceBuildingContext";
 import { DeviceDataProvider } from "@/lib/DeviceDataContext";
 
 export default function UserLayout({

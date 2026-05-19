@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useAuth } from "./AuthContext";
-import { useBuilding } from "./DeviceBuldingContext";
+import { useBuilding } from "./DeviceBuildingContext";
 import { fetchUserDevicesData } from "../app/actions/deviceActions";
 
 export interface DeviceData {
@@ -27,7 +27,7 @@ export const DeviceDataContext = createContext<DeviceDataContextType | undefined
 export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
     const { user, loading: authLoading } = useAuth();
     const { modules, loading: buildingLoading } = useBuilding();
-    
+
     const [devices, setDevices] = useState<DeviceData[]>([]);
     const [loadingDevices, setLoadingDevices] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
         }
 
         const moduleIds = modules.map(m => m.module_id);
-        
+
         // If there are no modules registered, skip fetching from MongoDB
         if (moduleIds.length === 0) {
             setDevices([]);
@@ -70,13 +70,13 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
 
         if (user) {
             fetchDevices();
-            
+
             // Set a polling interval to periodically refresh data, 
             // especially useful if device data is initially empty.
             const interval = setInterval(() => {
                 fetchDevices();
             }, 15000); // Refresh every 15 seconds
-            
+
             return () => clearInterval(interval);
         } else {
             setDevices([]);

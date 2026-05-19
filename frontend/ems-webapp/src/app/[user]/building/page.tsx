@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import Header from "@/components/Header";
-import { useBuilding, building_state } from "@/lib/DeviceBuldingContext";
+import { useBuilding, building_state } from "@/lib/DeviceBuildingContext";
 import { useProfile } from "@/lib/ProfileContext";
 import { useAuth } from "@/lib/AuthContext";
 import BuildingCard from "@/components/dashboard/BuildingCard";

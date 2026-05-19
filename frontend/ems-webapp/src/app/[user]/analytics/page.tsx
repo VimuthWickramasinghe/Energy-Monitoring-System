@@ -11,7 +11,7 @@ import {
     WifiOff, Cpu
 } from "lucide-react";
 import Header from "@/components/Header";
-import { useBuilding, Building } from "@/lib/DeviceBuldingContext";
+import { useBuilding, Building } from "@/lib/DeviceBuildingContext";
 import { useProfile } from "@/lib/ProfileContext";
 
 const TREND_DATA = [
@@ -98,75 +98,75 @@ const BuildingCard = ({ building, devices }: { building: Building, devices: any[
                 </div>
             ) : (
                 <>
-            {/* Mini KPIs */}
-            <div className="grid grid-cols-4 gap-2 border-b border-gray-50 pb-4">
-                <MiniStat label="Total Load" value="-- kW" color="text-orange-500" />
-                <MiniStat label="Daily Energy" value="-- kWh" color="text-blue-500" />
-                <MiniStat label="Avg. Voltage" value="-- V" color="text-purple-500" />
-                <MiniStat label="Peak Demand" value="-- kW" color="text-orange-600" />
-            </div>
-
-            {/* Device bar chart */}
-            <div className="h-36">
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={barData} margin={{ top: 0, right: 0, left: -24, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                        <Tooltip
-                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px -4px rgb(0 0 0 / 0.12)', fontSize: 12 }}
-                            cursor={{ fill: '#fff7ed' }}
-                        />
-                        <Bar dataKey="value" fill="#f97316" radius={[5, 5, 0, 0]} barSize={32} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-
-            {/* Consumption Trend */}
-            <div>
-                <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold text-gray-700">Consumption Trend</span>
-                    <div className="flex gap-1">
-                        {TIME_PERIODS.map(p => (
-                            <button
-                                key={p}
-                                onClick={() => setPeriod(p)}
-                                className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${period === p ? 'bg-orange-500 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
-                            >
-                                {p}
-                            </button>
-                        ))}
+                    {/* Mini KPIs */}
+                    <div className="grid grid-cols-4 gap-2 border-b border-gray-50 pb-4">
+                        <MiniStat label="Total Load" value="-- kW" color="text-orange-500" />
+                        <MiniStat label="Daily Energy" value="-- kWh" color="text-blue-500" />
+                        <MiniStat label="Avg. Voltage" value="-- V" color="text-purple-500" />
+                        <MiniStat label="Peak Demand" value="-- kW" color="text-orange-600" />
                     </div>
-                </div>
-                <div className="flex items-center gap-4 mb-2">
-                    {[
-                        { key: 'load', label: 'Total Load (kW)', color: '#ef4444' },
-                        { key: 'energy', label: 'Daily Energy (kWh)', color: '#3b82f6' },
-                        { key: 'voltage', label: 'Avg. Voltage (v)', color: '#8b5cf6' },
-                    ].map(l => (
-                        <div key={l.key} className="flex items-center gap-1">
-                            <span className="inline-block w-5 h-0.5 rounded" style={{ background: l.color }} />
-                            <span className="text-[9px] text-gray-400">{l.label}</span>
+
+                    {/* Device bar chart */}
+                    <div className="h-36">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={barData} margin={{ top: 0, right: 0, left: -24, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px -4px rgb(0 0 0 / 0.12)', fontSize: 12 }}
+                                    cursor={{ fill: '#fff7ed' }}
+                                />
+                                <Bar dataKey="value" fill="#f97316" radius={[5, 5, 0, 0]} barSize={32} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* Consumption Trend */}
+                    <div>
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-bold text-gray-700">Consumption Trend</span>
+                            <div className="flex gap-1">
+                                {TIME_PERIODS.map(p => (
+                                    <button
+                                        key={p}
+                                        onClick={() => setPeriod(p)}
+                                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${period === p ? 'bg-orange-500 text-white' : 'text-gray-400 hover:bg-gray-50'}`}
+                                    >
+                                        {p}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    ))}
-                </div>
-                <div className="h-32">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={TREND_DATA} margin={{ top: 0, right: 0, left: -24, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                            <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
-                            <YAxis yAxisId="lv" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
-                            <YAxis yAxisId="rv" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
-                            <Tooltip
-                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px -4px rgb(0 0 0 / 0.12)', fontSize: 11 }}
-                            />
-                            <Line yAxisId="lv" type="monotone" dataKey="load" stroke="#ef4444" strokeWidth={2} dot={false} name="Total Load (kW)" />
-                            <Line yAxisId="lv" type="monotone" dataKey="energy" stroke="#3b82f6" strokeWidth={2} dot={false} name="Daily Energy (kWh)" />
-                            <Line yAxisId="rv" type="monotone" dataKey="voltage" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Avg. Voltage (V)" />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
+                        <div className="flex items-center gap-4 mb-2">
+                            {[
+                                { key: 'load', label: 'Total Load (kW)', color: '#ef4444' },
+                                { key: 'energy', label: 'Daily Energy (kWh)', color: '#3b82f6' },
+                                { key: 'voltage', label: 'Avg. Voltage (v)', color: '#8b5cf6' },
+                            ].map(l => (
+                                <div key={l.key} className="flex items-center gap-1">
+                                    <span className="inline-block w-5 h-0.5 rounded" style={{ background: l.color }} />
+                                    <span className="text-[9px] text-gray-400">{l.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="h-32">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={TREND_DATA} margin={{ top: 0, right: 0, left: -24, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
+                                    <YAxis yAxisId="lv" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
+                                    <YAxis yAxisId="rv" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 24px -4px rgb(0 0 0 / 0.12)', fontSize: 11 }}
+                                    />
+                                    <Line yAxisId="lv" type="monotone" dataKey="load" stroke="#ef4444" strokeWidth={2} dot={false} name="Total Load (kW)" />
+                                    <Line yAxisId="lv" type="monotone" dataKey="energy" stroke="#3b82f6" strokeWidth={2} dot={false} name="Daily Energy (kWh)" />
+                                    <Line yAxisId="rv" type="monotone" dataKey="voltage" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Avg. Voltage (V)" />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
                 </>
             )}
 
@@ -200,11 +200,11 @@ export default function AnalyticsPage() {
         ...buildings.map(b => ({ id: b.building_id, label: b.building_name })),
     ], [buildings]);
 
-    const visibleBuildings = useMemo(() => 
+    const visibleBuildings = useMemo(() =>
         activeTab === 'overview'
             ? buildings
             : buildings.filter(b => b.building_id === activeTab)
-    , [buildings, activeTab]);
+        , [buildings, activeTab]);
 
     const subtitle = "Total consumption by infrastructure";
 
@@ -309,9 +309,9 @@ export default function AnalyticsPage() {
                     {/* ── Building Cards ── */}
                     <div className={`grid gap-5 ${visibleBuildings.length === 1 ? 'grid-cols-1 max-w-2xl' : 'grid-cols-1 lg:grid-cols-3'}`}>
                         {visibleBuildings.map(building => (
-                            <BuildingCard 
-                                key={building.building_id} 
-                                building={building} 
+                            <BuildingCard
+                                key={building.building_id}
+                                building={building}
                                 devices={modules.filter(m => m.building_id === building.building_id)}
                             />
                         ))}
