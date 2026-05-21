@@ -19,7 +19,7 @@ interface DeviceBuildingContextType {
     updateBuilding: (building_id: string, building_name: string | null, address: string | null) => Promise<void>;
     addBuilding: (building_name: string, address: string, owner_id: string) => Promise<void>;
     removeBuildings: (buildingId: string) => Promise<void>;
-    registerModule: (moduleName: string, moduleId: string, buildingId: string) => Promise<void>;
+    registerModule: ( moduleName: string, buildingId: string, phase: number) => Promise<void>;
 }
 
 export const DeviceBuildingContext = createContext<DeviceBuildingContextType | undefined>(undefined);
@@ -120,22 +120,25 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
         }
     };
 
-    const registerModule = async (moduleName: string, moduleId: string, buildingId: string) => {
+    const registerModule = async (moduleName: string, buildingId: string, phase: number) => {
         setLoading(true);
         setError(null);
+
         try {
+            
             const { data, error } = await client
                 .from('MODULE')
                 .insert([{ 
-                    module_id: moduleId, 
                     module_name: moduleName, 
                     building_id: buildingId,
-                    state: module_state.Active 
+                    phase: phase,
+                    module_state: module_state.Active
                 }])
                 .select();
             if (error) throw error;
             if (data) setModules(prev => [...prev, data[0]]);
         } catch (error: any) {
+            console.error("Supabase Insert Error:", error);
             setError(error.message);
             throw error;
         } finally {

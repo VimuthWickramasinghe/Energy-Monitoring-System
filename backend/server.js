@@ -12,7 +12,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -160,7 +160,7 @@ app.post('/register-device', authenticateFirebaseToken, async (req, res) => {
 
     // Save metadata to Supabase
     const { data, error } = await supabase
-      .from('devices')
+      .from('MODULE')
       .upsert({ 
         device_id, 
         name, 
@@ -298,5 +298,7 @@ run().catch(console.dir);
 const port = process.env.BACKEND_PORT || 8080;
 // listen on all interfaces so other devices can reach this server
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Server listening on port ${port}`);
+  const networkInterfaces = require('os').networkInterfaces();
+  const localIp = Object.values(networkInterfaces).flat().find(i => i.family === 'IPv4' && !i.internal)?.address;
+  console.log(`Server listening on port ${port} (Local IP: ${localIp || 'localhost'})`);
 });
