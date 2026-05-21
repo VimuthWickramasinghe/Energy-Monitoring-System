@@ -183,6 +183,101 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
     );
 };
 
+const WifiUpdateModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry, foundDevices, onSelectDevice }: {
+    isOpen: boolean;
+    onClose: () => void;
+    scanStatus: string;
+    onStartScan: () => void;
+    onProvision: () => void;
+    onRetry: () => void;
+    onSelectDevice: (device: BluetoothDevice) => void;
+    foundDevices: BluetoothDevice[];
+}) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] flex flex-col border-t-4 border-blue-500">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h2 className="text-xl font-bold text-gray-900">Update Wi-Fi Credentials</h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                        <X size={24} />
+                    </button>
+                </div>
+                <div className="p-8 flex flex-col items-center text-center">
+                    {(scanStatus === 'idle' || scanStatus === 'error') && (
+                        <>
+                            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 mb-6">
+                                <Wifi size={40} />
+                            </div>
+                            <h3 className="text-lg font-bold mb-2 text-black">Reconnect Module</h3>
+                            <p className="text-gray-500 text-sm mb-8">Update Wi-Fi for an existing module. <br/>Put device in pairing mode.</p>
+                            <button onClick={onStartScan} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all">
+                                Scan for Module
+                            </button>
+                        </>
+                    )}
+                    {scanStatus === 'scanning' && (
+                        <>
+                            <Loader2 size={48} className="text-blue-500 animate-spin mb-6" />
+                            <h3 className="text-lg font-bold mb-2">Searching...</h3>
+                        </>
+                    )}
+                    {scanStatus === 'found' && (
+                        <div className="w-full space-y-2">
+                            {foundDevices.map((dev) => (
+                                <button key={dev.id} onClick={() => onSelectDevice(dev)} className="w-full p-4 border border-gray-200 rounded-xl flex items-center gap-3 hover:bg-blue-50 transition-colors">
+                                    <Cpu className="text-blue-500" />
+                                    <span className="font-bold text-gray-900">{dev.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    {scanStatus === 'configuring' && (
+                        <div className="w-full space-y-4 text-left">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase">New SSID</label>
+                                <input id="update-wifi-ssid" type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="Network Name" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase">New Password</label>
+                                <input id="update-wifi-pass" type="password" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••" />
+                            </div>
+                            <button onClick={onProvision} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all mt-4">
+                                Update Credentials
+                            </button>
+                        </div>
+                    )}
+                    {scanStatus === 'provisioning' && (
+                        <>
+                            <Loader2 size={48} className="text-blue-500 animate-spin mb-6" />
+                            <h3 className="text-lg font-bold mb-2">Updating...</h3>
+                            <p className="text-gray-500 text-sm">Sending new Wi-Fi credentials to module</p>
+                        </>
+                    )}
+                    {scanStatus === 'success' && (
+                        <div className="w-full text-center">
+                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                <ShieldCheck size={32} />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900">Wi-Fi Updated!</h3>
+                            <p className="text-gray-500 text-sm mt-2 mb-6">The module is reconnecting to the new network.</p>
+                            <button onClick={onClose} className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold">Done</button>
+                        </div>
+                    )}
+                    {scanStatus === 'error' && (
+                        <div className="flex flex-col items-center">
+                            <AlertCircle size={48} className="text-red-500 mb-4" />
+                            <h3 className="text-lg text-red-500 font-bold">Update Failed</h3>
+                            <button onClick={onRetry} className="mt-6 w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold">Try Again</button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default function DevicesPage() {
     const { modules, buildings, fetchModules, fetchBuildings, removeModule, registerModule, loading } = useBuilding();
     const [searchQuery, setSearchQuery] = useState("");
@@ -190,6 +285,8 @@ export default function DevicesPage() {
     const [isProvisioning, setIsProvisioning] = useState(false);
     const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'found' | 'configuring' | 'provisioning' | 'success' | 'error'>('idle');
     const [foundDevices, setFoundDevices] = useState<BluetoothDevice[]>([]);
+    const [isWifiUpdating, setIsWifiUpdating] = useState(false);
+    const [wifiScanStatus, setWifiScanStatus] = useState<'idle' | 'scanning' | 'found' | 'configuring' | 'provisioning' | 'success' | 'error'>('idle');
     const selectedDeviceRef = useRef<any>(null);
     const [selectedDeviceState, setSelectedDeviceState] = useState<any | null>(null);
     const [configDetails, setConfigDetails] = useState({ name: '', building: '', phase: 1, ssid: '' });
@@ -220,15 +317,75 @@ export default function DevicesPage() {
     const offlineCount = modules.filter(d => d.state === module_state.Offline).length;
     const disabledCount = modules.filter(d => d.state === module_state.Inactive).length;
 
-    const handleDelete = (id: string) => {
-        if (confirm("Are you sure you want to remove this module?")) {
-            removeModule(id);
+    const handleDelete = async (id: string) => {
+        if (window.confirm("Are you sure you want to remove this module?")) {
+            await removeModule(id);
+            fetchModules();
         }
     };
 
     const handleAddModule = () => {
         setIsProvisioning(true);
         setScanStatus('idle');
+    };
+
+    const handleWifiUpdate = () => {
+        setIsWifiUpdating(true);
+        setWifiScanStatus('idle');
+    };
+
+    const startWifiUpdateScan = async () => {
+        setWifiScanStatus('scanning');
+        try {
+            const device = await (navigator as any).bluetooth.requestDevice({
+                filters: [{ namePrefix: 'ems' }],
+                optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b']
+            });
+            setFoundDevices([device]);
+            selectedDeviceRef.current = device;
+            setWifiScanStatus('found');
+        } catch (error) {
+            setWifiScanStatus('error');
+        }
+    };
+
+    const updateWifiOnly = async () => {
+        const ssid = (document.getElementById('update-wifi-ssid') as HTMLInputElement)?.value;
+        const pass = (document.getElementById('update-wifi-pass') as HTMLInputElement)?.value;
+        if (!ssid) return alert("SSID is required");
+
+        setWifiScanStatus('provisioning');
+        try {
+            const server = await selectedDeviceRef.current.gatt?.connect();
+            const service = await server?.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
+            const ssidChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
+            const passChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a9');
+            const statusChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26aa');
+
+            const encoder = new TextEncoder();
+            if (ssidChar) await ssidChar.writeValue(encoder.encode(ssid));
+            if (passChar) await passChar.writeValue(encoder.encode(pass));
+
+            if (statusChar) {
+                await statusChar.startNotifications();
+                const statusValue = await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error("Timeout waiting for device status")), 45000);
+                    statusChar.addEventListener('characteristicvaluechanged', (event: any) => {
+                        clearTimeout(timeout);
+                        const val = new TextDecoder().decode(event.target.value);
+                        resolve(val);
+                    }, { once: true });
+                });
+
+                if (statusValue !== "CONNECTED" && statusValue !== "CONNECTED\n") {
+                    throw new Error(statusValue === "FAILED" ? "WiFi Connection Failed" : "Unknown Error");
+                }
+            }
+            setWifiScanStatus('success');
+        } catch (error) {
+            console.error(error);
+            setWifiScanStatus('error');
+        }
     };
 
     const startBLEScan = async () => {
@@ -369,6 +526,12 @@ export default function DevicesPage() {
                             ))}
                         </select>
                     </div>
+                    <button
+                        onClick={handleWifiUpdate}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-xl text-sm font-bold hover:bg-blue-100 transition-all"
+                    >
+                        <Wifi size={18} /> <span className="hidden sm:inline">Update Wi-Fi</span>
+                    </button>
                     <div className="h-8 w-px bg-gray-200 mx-2"></div>
                     <button
                         onClick={handleAddModule}
@@ -447,6 +610,20 @@ export default function DevicesPage() {
                     selectedDeviceRef.current = device;
                     setSelectedDeviceState(device);
                     setScanStatus('configuring');
+                }}
+            />
+
+            <WifiUpdateModal
+                isOpen={isWifiUpdating}
+                onClose={() => setIsWifiUpdating(false)}
+                scanStatus={wifiScanStatus}
+                onStartScan={startWifiUpdateScan}
+                onProvision={updateWifiOnly}
+                onRetry={() => setWifiScanStatus('idle')}
+                foundDevices={foundDevices}
+                onSelectDevice={(device) => {
+                    selectedDeviceRef.current = device;
+                    setWifiScanStatus('configuring');
                 }}
             />
         </main>
