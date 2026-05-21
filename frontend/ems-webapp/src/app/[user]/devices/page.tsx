@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
     Plus, Wifi, Cpu, SignalHigh, Search, Filter, Activity, Edit2, RefreshCw, Bluetooth, X, Loader2, AlertCircle, Eye, EyeOff
 } from "lucide-react";
@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useBuilding, module_state, Module } from "@/lib/DeviceBuildingContext";
 import { DeviceCard } from "@/components/device/DeviceCard";
 import { ShieldCheck } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 
 
 interface BluetoothDevice {
@@ -16,17 +17,18 @@ interface BluetoothDevice {
     gatt?: any;
 }
 
-
-const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry, buildings, onSelectDevice, foundDevices, onFinish }: {
+const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry, buildings, onSelectDevice, foundDevices, onRegister, configDetails }: {
     isOpen: boolean;
     onClose: () => void;
     scanStatus: string;
     onStartScan: () => void;
     onProvision: () => void;
     onRetry: () => void;
+    onRegister: () => void;
+    onSelectDevice: (device: BluetoothDevice) => void;
     buildings: { building_id: string; building_name: string }[];
     foundDevices: BluetoothDevice[];
-    onSelectDevice: (device: BluetoothDevice) => void;
+    configDetails: { name: string; building: string; phase: number; ssid: string };
 }) => {
     if (!isOpen) return null;
 
@@ -64,7 +66,7 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                             <h3 className="text-sm font-bold text-gray-400 uppercase text-left">Select Device</h3>
                             <div className="space-y-2">
                                 {foundDevices.map((dev) => (
-                                    <div 
+                                    <div
                                         key={dev.id || dev.name}
                                         className="w-full p-4 bg-white border border-gray-200 rounded-xl flex items-center justify-between transition-all group"
                                     >
@@ -99,20 +101,30 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                                 </p>
                             </div>
                             <div className="space-y-3 text-left">
+                                <label className="text-xs font-bold text-gray-400 uppercase">Phase Assignment</label>
+                                <select id="provision-phase" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500 appearance-none">
+                                    <option value="1">Phase 1 (L1)</option>
+                                    <option value="2">Phase 2 (L2)</option>
+                                    <option value="3">Phase 3 (L3)</option>
+                                </select>
+                                <p className="text-[10px] text-gray-500">Select which electrical phase this module is monitoring.</p>
+                            </div>
+
+                            <div className="space-y-3 text-left">
                                 <label className="text-xs font-bold text-gray-400 uppercase">Wi-Fi Network (SSID)</label>
-                                <input 
+                                <input
                                     id="wifi-ssid"
-                                    type="text" 
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500" 
-                                    placeholder="Home_Network_2.4G" 
+                                    type="text"
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500"
+                                    placeholder="Home_Network_2.4G"
                                     required
                                 />
                                 <label className="text-xs font-bold text-gray-400 uppercase">Password</label>
-                                <input 
+                                <input
                                     id="wifi-pass"
-                                    type="password" 
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500" 
-                                    placeholder="••••••••" 
+                                    type="password"
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500"
+                                    placeholder="••••••••"
                                     required
                                 />
                             </div>
@@ -132,11 +144,26 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                         </>
                     )}
                     {scanStatus === 'success' && (
-                        <div className="flex flex-col items-center py-4">
-                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
-                                <RefreshCw size={32} className="animate-spin" />
+                        <div className="w-full space-y-4">
+                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                <ShieldCheck size={32} />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900">Provisioning Successful!</h3>
+                            <h3 className="text-lg font-bold text-gray-900">Connected to Wi-Fi!</h3>
+                            <div className="w-full bg-gray-50 rounded-xl p-4 my-4 text-left space-y-2 border border-gray-100">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase">Registration Details</p>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <span className="text-gray-500">Module Name:</span>
+                                    <span className="text-gray-900 font-bold text-right">{configDetails.name}</span>
+                                    <span className="text-gray-500">Building:</span>
+                                    <span className="text-gray-900 font-bold text-right">{configDetails.building}</span>
+                                    <span className="text-gray-500">Phase:</span>
+                                    <span className="text-gray-900 font-bold text-right">Phase {configDetails.phase}</span>
+                                </div>
+                            </div>
+
+                            <button onClick={() => onRegister()} className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-all">
+                                Register Module
+                            </button>
                             <p className="text-gray-500 text-sm mt-2">Starting device configuration sequence...</p>
                         </div>
                     )}
@@ -157,27 +184,29 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
 };
 
 export default function DevicesPage() {
-    const { modules, buildings, fetchModules, fetchBuildings, removeModule, loading } = useBuilding();
+    const { modules, buildings, fetchModules, fetchBuildings, removeModule, registerModule, loading } = useBuilding();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedBuildingFilter, setSelectedBuildingFilter] = useState<string>("all");
     const [isProvisioning, setIsProvisioning] = useState(false);
     const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'found' | 'configuring' | 'provisioning' | 'success' | 'error'>('idle');
     const [foundDevices, setFoundDevices] = useState<BluetoothDevice[]>([]);
-    const [selectedDevice, setSelectedDevice] = useState<BluetoothDevice | null>(null);
+    const selectedDeviceRef = useRef<any>(null);
+    const [selectedDeviceState, setSelectedDeviceState] = useState<any | null>(null);
+    const [configDetails, setConfigDetails] = useState({ name: '', building: '', phase: 1, ssid: '' });
+    const { user, loading: authLoading } = useAuth();
 
     useEffect(() => {
-        fetchModules();
-        fetchBuildings();
-    }, []);
+        if (!authLoading && user) {
+            fetchModules();
+            fetchBuildings();
+        }
+    }, [user, authLoading]);
 
     const groupedDevices = useMemo(() => {
-        // Filter modules to only show those belonging to the user's buildings
-        const userBuildingIds = buildings.map(b => b.building_id);
+        // Filter modules based on search and building filter
         const filtered = modules.filter(device =>
-            userBuildingIds.includes(device.building_id) &&
             (selectedBuildingFilter === "all" || device.building_id === selectedBuildingFilter) &&
-            (device.module_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            device.module_id.toLowerCase().includes(searchQuery.toLowerCase()))
+            (device.module_name?.toLowerCase().includes(searchQuery.toLowerCase()) || device.module_id?.toLowerCase().includes(searchQuery.toLowerCase()))
         );
 
         return buildings.map(building => ({
@@ -212,6 +241,8 @@ export default function DevicesPage() {
                 optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b'] // Example UUID
             });
             setFoundDevices([device]);
+            selectedDeviceRef.current = device;
+            setSelectedDeviceState(device);
             setScanStatus('found');
         } catch (error) {
             console.error("BLE Scan Error:", error);
@@ -220,16 +251,20 @@ export default function DevicesPage() {
     };
 
     const provisionDevice = async () => {
-        if (!selectedDevice) return;
-        
+        if (!selectedDeviceRef.current) return;
+
         const ssid = (document.getElementById('wifi-ssid') as HTMLInputElement)?.value;
         const pass = (document.getElementById('wifi-pass') as HTMLInputElement)?.value;
+        const name = selectedDeviceRef.current?.name || "Unknown Device";
+        const buildingId = (document.getElementById('provision-building') as HTMLSelectElement)?.value;
+        const phase = parseInt((document.getElementById('provision-phase') as HTMLSelectElement)?.value || "1");
 
         if (!ssid) return alert("SSID is required");
+        if (!buildingId) return alert("Please select a building");
 
         setScanStatus('provisioning');
         try {
-            const server = await selectedDevice.gatt?.connect();
+            const server = await selectedDeviceRef.current.gatt?.connect();
             const service = await server?.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
 
             const ssidChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
@@ -254,24 +289,62 @@ export default function DevicesPage() {
                 if (statusValue !== "CONNECTED" && statusValue !== "CONNECTED\n") throw new Error(statusValue === "FAILED" ? "WiFi Connection Failed" : "Unknown Error");
             }
 
+            setConfigDetails({
+                name: name, // 
+                building: buildingId,  // uuid of the building
+                phase: phase, // integer
+                ssid: ssid // wifi SSI
+            });
             setScanStatus('success');
-            setTimeout(() => {
-                setIsProvisioning(false);
-                fetchModules();
-            }, 2000);
         } catch (error) {
             console.error("Provisioning Error:", error);
             setScanStatus('error');
         }
     };
 
+    const handleTestRegister = async () => {
+        try {
+            // Hardcoded test values
+            const testName = "esp-ems-002";
+            const testBuildingId = "0ebf0a65-ad07-4ba5-adf6-2b867703cac5";
+            const testPhase = 1;
+
+            await registerModule(testName, testBuildingId, testPhase);
+            alert("Module registered successfully!");
+        } catch (error: any) {
+            alert(`Registration failed: ${error.message}`);
+        }
+    };
+
+    const handleRegister = async () => {
+        const moduleName = configDetails.name;
+        const buildingId = configDetails.building;
+        const phaseValue = configDetails.phase;
+        let phase = typeof phaseValue === 'number' ? phaseValue : parseInt(phaseValue || "1");
+
+        console.log("Registering Module with following details:", {
+            moduleName,
+            buildingId,
+            phase,
+            originalPhaseValue: phaseValue
+        });
+        try {
+            // Use the BLE device name as the moduleId (e.g., ems-XXXXXX)
+            await registerModule(moduleName, buildingId, phase);
+            setIsProvisioning(false);
+            // fetchModules();
+            alert("Module registered successfully!");
+        } catch (error) {
+            alert(`Failed to register module in database ${error}`);
+        }
+    };
+
     return (
         <main className="flex-1 flex flex-col overflow-hidden bg-white">
-            <Header 
+            <Header
                 title="Modular Units"
                 subtitle="Manage and monitor your hardware modules"
             >
-
                 <div className="flex items-center gap-4">
                     <div className="relative hidden md:block">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -285,7 +358,7 @@ export default function DevicesPage() {
                     </div>
                     <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
                         <Filter size={16} className="text-gray-400" />
-                        <select 
+                        <select
                             className="bg-transparent text-sm font-medium text-gray-700 outline-none"
                             value={selectedBuildingFilter}
                             onChange={(e) => setSelectedBuildingFilter(e.target.value)}
@@ -307,9 +380,6 @@ export default function DevicesPage() {
             </Header>
 
             <div className="flex-1 overflow-y-auto p-8">
-                <div className="max-w-7xl mx-auto mb-8 p-4 bg-gray-100 rounded-lg overflow-auto max-h-40">
-                    <p className="text-xs font-mono text-gray-600 break-all">{JSON.stringify(modules)}</p>
-                </div>
                 <div className="max-w-7xl mx-auto space-y-6">
                     {/* Summary Bar */}
                     <div className="flex items-center justify-between bg-orange-50 border border-orange-100 rounded-2xl p-4">
@@ -343,10 +413,10 @@ export default function DevicesPage() {
                                 {group.devices.length > 0 ? (
                                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                                         {group.devices.map((device) => (
-                                            <DeviceCard 
-                                                key={device.module_id} 
-                                                device={device} 
-                                                onDelete={handleDelete} 
+                                            <DeviceCard
+                                                key={device.module_id}
+                                                device={device}
+                                                onDelete={handleDelete}
                                             />
                                         ))}
                                     </div>
@@ -362,17 +432,20 @@ export default function DevicesPage() {
                 </div>
             </div>
 
-            <ProvisioningModal 
-                isOpen={isProvisioning} 
-                onClose={() => setIsProvisioning(false)} 
-                scanStatus={scanStatus} 
-                onStartScan={startBLEScan} 
-                onProvision={provisionDevice} 
+            <ProvisioningModal
+                isOpen={isProvisioning}
+                onClose={() => setIsProvisioning(false)}
+                scanStatus={scanStatus}
+                onStartScan={startBLEScan}
+                onProvision={provisionDevice}
                 onRetry={() => setScanStatus('idle')}
+                onRegister={handleRegister}
                 buildings={buildings}
                 foundDevices={foundDevices}
+                configDetails={configDetails}
                 onSelectDevice={(device) => {
-                    setSelectedDevice(device);
+                    selectedDeviceRef.current = device;
+                    setSelectedDeviceState(device);
                     setScanStatus('configuring');
                 }}
             />
