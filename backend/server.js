@@ -1,6 +1,6 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
-
+ 
 const express = require('express');
 const mongoose = require('mongoose'); // Kept for Schema/Model functionality
 const bodyParser = require('body-parser');
