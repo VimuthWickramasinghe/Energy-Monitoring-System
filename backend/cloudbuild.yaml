@@ -1,0 +1,37 @@
+steps:
+  # Step 1: Build the Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/ems-backend'
+      - '.'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+
+  # Step 2: Push the Image to the Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/ems-backend']
+
+  # Step 3: Deploy automatically to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'ems-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/ems-backend'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      # Here is how you securely map Google Secret Manager secrets to environment variables.
+      # Format: ENV_VAR_NAME=SECRET_NAME:latest
+      # You must create these secrets in GCP Secret Manager first!
+      - '--update-secrets'
+      - 'MONGO_URI=MONGO_URI:latest,SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_SERVICE_KEY=SUPABASE_SERVICE_KEY:latest'
+
+images:
+  - 'gcr.io/$PROJECT_ID/ems-backend'
