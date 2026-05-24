@@ -11,40 +11,9 @@ import {
     WifiOff, Cpu
 } from "lucide-react";
 import Header from "@/components/Header";
-import { useBuilding, Building } from "@/lib/DeviceBuildingContext";
+import { useBuilding, Building, Module } from "@/lib/DeviceBuildingContext";
+import { useDeviceData } from "@/lib/DeviceDataContext";
 import { useProfile } from "@/lib/ProfileContext";
-
-const TREND_DATA = [
-    { time: '00:00', load: 120, energy: 400, voltage: 230 },
-    { time: '04:00', load: 80, energy: 350, voltage: 234 },
-    { time: '08:00', load: 350, energy: 500, voltage: 228 },
-    { time: '12:00', load: 620, energy: 700, voltage: 226 },
-    { time: '16:00', load: 480, energy: 650, voltage: 229 },
-    { time: '20:00', load: 210, energy: 480, voltage: 232 },
-    { time: '24:00', load: 150, energy: 420, voltage: 233 },
-];
-
-const ALERTS = [
-    { id: 1, icon: AlertTriangle, title: 'High Peak Demand', desc: '28.5 kW recorded at 12:45 PM', time: '12:45 PM', color: 'text-orange-500' },
-    { id: 2, icon: Zap, title: 'Voltage Fluctuation', desc: 'Voltage went beyond stable range', time: '11:30 AM', color: 'text-yellow-500' },
-    { id: 3, icon: WifiOff, title: 'Device Offline', desc: 'EV Charger #2 is offline', time: '10:15 AM', color: 'text-red-500' },
-];
-
-const TOP_CONSUMERS = [
-    { name: 'HVAC Controller', icon: Cpu, pct: 32, color: '#f97316' },
-    { name: 'Main Panel', icon: Building2, pct: 26, color: '#f97316' },
-    { name: 'EV Charger', icon: Zap, pct: 14, color: '#f97316' },
-    { name: 'Lighting System', icon: Activity, pct: 11, color: '#f97316' },
-    { name: 'Other Devices', icon: Cpu, pct: 7, color: '#f97316' },
-];
-
-const CATEGORY_USAGE = [
-    { name: 'HVAC', value: 38, color: '#f97316' },
-    { name: 'Lighting', value: 24, color: '#3b82f6' },
-    { name: 'EV Chargers', value: 18, color: '#a855f7' },
-    { name: 'Office Equipment', value: 12, color: '#10b981' },
-    { name: 'Other', value: 8, color: '#f59e0b' },
-];
 
 const TIME_PERIODS = ['24H', '1D', '7D', '1M', '1Y'];
 const GLOBAL_PERIODS = ['1H', '24H', '7D', '30D', '1Y'];
