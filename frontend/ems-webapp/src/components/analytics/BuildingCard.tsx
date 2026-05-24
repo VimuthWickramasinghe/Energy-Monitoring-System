@@ -2,8 +2,10 @@ import { Building2, Cpu, ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, LineChart, Line } from "recharts";
 import { Building, Module } from "@/lib/DeviceBuildingContext";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
-const TIME_PERIODS = ['24H', '1D', '7D', '1M', '1Y'];
+const TIME_PERIODS = ['12H', '24H', '3D','7D', '1M', '1Y'];
 
 /** Mini stat inside a building card */
 const MiniStat = ({ label, value, color }: { label: string; value: string; color: string }) => (
@@ -58,6 +60,8 @@ const CustomTooltip = ({ active, payload, label, viewMode }: any) => {
 export const BuildingCard = ({ building, modules, allDeviceData }: { building: Building, modules: Module[], allDeviceData: any[] }) => {
     const [period, setPeriod] = useState('24H');
     const [viewMode, setViewMode] = useState<'building' | 'device'>('building');
+    const params = useParams();
+    const user = params?.user as string;
 
     const { barData, totalLoad, avgVoltage, chartData } = useMemo(() => {
         let loadSum = 0;
@@ -95,9 +99,14 @@ export const BuildingCard = ({ building, modules, allDeviceData }: { building: B
         const now = new Date();
         const cutoff = new Date();
         switch (period) {
+            case '12H':
+                cutoff.setHours(now.getHours() - 12);
+                break;
             case '24H':
-            case '1D':
                 cutoff.setHours(now.getHours() - 24);
+                break;
+            case '3D':
+                cutoff.setDate(now.getDate() - 3);
                 break;
             case '7D':
                 cutoff.setDate(now.getDate() - 7);
@@ -109,7 +118,7 @@ export const BuildingCard = ({ building, modules, allDeviceData }: { building: B
                 cutoff.setFullYear(now.getFullYear() - 1);
                 break;
             default:
-                cutoff.setHours(now.getHours() - 24);
+                cutoff.setDate(now.getDate() - 1);
         }
 
         const buildingData = allDeviceData.filter(d => {
@@ -124,7 +133,7 @@ export const BuildingCard = ({ building, modules, allDeviceData }: { building: B
             if (!d.time) return;
             const date = new Date(d.time);
             let t = "";
-            if (period === '24H' || period === '1D') {
+            if (period === '12H' || period === '24H') {
                 t = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
             } else {
                 t = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:00`;
@@ -300,9 +309,9 @@ export const BuildingCard = ({ building, modules, allDeviceData }: { building: B
             )}
 
             {/* Footer */}
-            <button className="flex items-center gap-1.5 text-orange-500 text-xs font-bold hover:gap-2.5 transition-all">
+            <Link href={`/${user}/analytics/${encodeURIComponent(building.building_name)}`} className="flex items-center gap-1.5 text-orange-500 text-xs font-bold hover:gap-2.5 transition-all">
                 View Details <ArrowRight size={14} />
-            </button>
+            </Link>
         </div>
     );
 };

@@ -21,8 +21,8 @@ import Header from "@/components/Header";
 import { useBuilding, building_state } from "@/lib/DeviceBuildingContext";
 import { useProfile } from "@/lib/ProfileContext";
 import { useAuth } from "@/lib/AuthContext";
-import BuildingCard from "@/components/dashboard/BuildingCard";
-import BuildingModal from "@/components/dashboard/NewEditBuildingWindow"
+import BuildingCard from "@/components/building/BuildingCard";
+import BuildingModal from "@/components/building/NewEditBuildingWindow"
 // --- Components ---
 
 
