@@ -11,6 +11,10 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  env: {
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+  },
   /* config options here */
 };
 

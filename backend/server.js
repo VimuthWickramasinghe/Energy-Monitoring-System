@@ -1,6 +1,6 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
-
+ 
 const express = require('express');
 const mongoose = require('mongoose'); // Kept for Schema/Model functionality
 const bodyParser = require('body-parser');
@@ -12,7 +12,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -113,8 +113,18 @@ app.get('/current', authenticateFirebaseToken, async (req, res) => {
   }
 });
 
+// API endpoint to test data reception (same logic as /send)
+app.post('/test', async (req, res) => {
+  return handleSendData(req, res);
+});
+
 // API endpoint to receive data from ESP
 app.post('/send', async (req, res) => {
+  return handleSendData(req, res);
+});
+
+// Shared logic for /send and /test
+async function handleSendData(req, res) {
   try {
     // Basic API Key protection for hardware devices
     const apiKey = req.headers['x-api-key'];
@@ -147,7 +157,7 @@ app.post('/send', async (req, res) => {
     console.error('Error saving data:', err);
     res.status(500).json({ error: err.message });
   }
-});
+}
 
 // API endpoint to register a new device (Supabase Metadata)
 app.post('/register-device', authenticateFirebaseToken, async (req, res) => {
@@ -160,7 +170,7 @@ app.post('/register-device', authenticateFirebaseToken, async (req, res) => {
 
     // Save metadata to Supabase
     const { data, error } = await supabase
-      .from('devices')
+      .from('MODULE')
       .upsert({ 
         device_id, 
         name, 
@@ -298,5 +308,7 @@ run().catch(console.dir);
 const port = process.env.BACKEND_PORT || 8080;
 // listen on all interfaces so other devices can reach this server
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Server listening on port ${port}`);
+  const networkInterfaces = require('os').networkInterfaces();
+  const localIp = Object.values(networkInterfaces).flat().find(i => i.family === 'IPv4' && !i.internal)?.address;
+  console.log(`Server listening on port ${port} (Local IP: ${localIp || 'localhost'})`);
 });

@@ -1,16 +1,15 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
-    Plus, Wifi, Cpu, SignalHigh, Search, Filter, Activity, Edit2, RefreshCw, Bluetooth, X, Loader2, AlertCircle
+    Plus, Wifi, Cpu, SignalHigh, Search, Filter, Activity, Edit2, RefreshCw, Bluetooth, X, Loader2, AlertCircle, Eye, EyeOff
 } from "lucide-react";
 import Header from "@/components/Header";
 import Link from "next/link";
-import { useBuilding, module_state, Module } from "@/lib/DeviceBuldingContext";
+import { useBuilding, module_state, Module } from "@/lib/DeviceBuildingContext";
+import { DeviceCard } from "@/components/device/DeviceCard";
+import { ShieldCheck } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 
-interface DeviceCardProps {
-    device: Module;
-    onDelete: (id: string) => void;
-}
 
 interface BluetoothDevice {
     id: string;
@@ -18,95 +17,18 @@ interface BluetoothDevice {
     gatt?: any;
 }
 
-const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
-    let statusClasses = 'bg-gray-400 text-white';
-    let borderClasses = 'border-gray-100 bg-gray-50/50';
-    const state = device.state;
-
-    if (state === module_state.Active) {
-        statusClasses = 'bg-green-500 text-white';
-        borderClasses = 'border-green-100';
-    } else if (state === module_state.Offline) {
-        statusClasses = 'bg-red-500 text-white';
-        borderClasses = 'border-red-100 bg-red-50/30';
-    } else if (state === module_state.Inactive) {
-        statusClasses = 'bg-gray-500 text-white';
-        borderClasses = 'border-gray-200 bg-gray-100/50';
-    }
-
-    return (
-    <div className={`bg-white rounded-2xl border-2 p-6 shadow-sm hover:shadow-md transition-all ${borderClasses}`}>
-        <div className="flex justify-between items-start mb-6">
-            <div className="flex gap-4">
-                <div className={`p-3 rounded-xl ${state === module_state.Active ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
-                    <Cpu size={24} />
-                </div>
-                <div>
-                    <h3 className="font-bold text-gray-900">{device.module_name}</h3>
-                    <p className="text-xs text-gray-500 font-mono uppercase truncate max-w-[150px]">{device.module_id}</p>
-                </div>
-            </div>
-            <span className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-widest ${statusClasses}`}>
-                {state}
-            </span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="p-3 bg-gray-50 rounded-xl">
-                <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Active Load</p>
-                <p className="text-sm font-bold text-gray-900 text-center">-- kW</p>
-            </div>
-            <div className="p-3 bg-gray-50 rounded-xl">
-                <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Protocol</p>
-                <p className="text-sm font-bold text-gray-900 text-center flex items-center justify-center gap-1">
-                    <Wifi size={14} /> Wi-Fi
-                </p>
-            </div>
-            <div className="p-3 bg-gray-50 rounded-xl">
-                <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Health</p>
-                <p className="text-sm font-bold text-gray-900 text-center">--%</p>
-            </div>
-        </div>
-
-        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-            <button 
-                disabled={state === module_state.Offline}
-                className={`text-sm font-semibold transition-colors ${state === module_state.Offline ? 'text-gray-400 cursor-not-allowed' : 'text-orange-600 hover:text-orange-700'}`}
-            >
-                View Details
-            </button>
-            <div className="flex gap-2">
-                <Link
-                    href={`devices/${device.module_id}`}
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                    title="Edit Module"
-                >
-                    <Edit2 size={18} />
-                </Link>
-                <button
-                    onClick={() => onDelete(device.module_id)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                    title="Delete Module"
-                >
-                    <Edit2 size={18} className="hidden" /> {/* Placeholder for Trash icon if needed */}
-                    <Activity size={18} />
-                </button>
-            </div>
-        </div>
-    </div>
-    );
-};
-
-const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry, buildings, onSelectDevice, foundDevices }: {
+const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry, buildings, onSelectDevice, foundDevices, onRegister, configDetails }: {
     isOpen: boolean;
     onClose: () => void;
     scanStatus: string;
     onStartScan: () => void;
     onProvision: () => void;
     onRetry: () => void;
+    onRegister: () => void;
+    onSelectDevice: (device: BluetoothDevice) => void;
     buildings: { building_id: string; building_name: string }[];
     foundDevices: BluetoothDevice[];
-    onSelectDevice: (device: BluetoothDevice) => void;
+    configDetails: { name: string; building: string; phase: number; ssid: string };
 }) => {
     if (!isOpen) return null;
 
@@ -144,7 +66,7 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                             <h3 className="text-sm font-bold text-gray-400 uppercase text-left">Select Device</h3>
                             <div className="space-y-2">
                                 {foundDevices.map((dev) => (
-                                    <div 
+                                    <div
                                         key={dev.id || dev.name}
                                         className="w-full p-4 bg-white border border-gray-200 rounded-xl flex items-center justify-between transition-all group"
                                     >
@@ -179,20 +101,30 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                                 </p>
                             </div>
                             <div className="space-y-3 text-left">
+                                <label className="text-xs font-bold text-gray-400 uppercase">Phase Assignment</label>
+                                <select id="provision-phase" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500 appearance-none">
+                                    <option value="1">Phase 1 (L1)</option>
+                                    <option value="2">Phase 2 (L2)</option>
+                                    <option value="3">Phase 3 (L3)</option>
+                                </select>
+                                <p className="text-[10px] text-gray-500">Select which electrical phase this module is monitoring.</p>
+                            </div>
+
+                            <div className="space-y-3 text-left">
                                 <label className="text-xs font-bold text-gray-400 uppercase">Wi-Fi Network (SSID)</label>
-                                <input 
+                                <input
                                     id="wifi-ssid"
-                                    type="text" 
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500" 
-                                    placeholder="Home_Network_2.4G" 
+                                    type="text"
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500"
+                                    placeholder="Home_Network_2.4G"
                                     required
                                 />
                                 <label className="text-xs font-bold text-gray-400 uppercase">Password</label>
-                                <input 
+                                <input
                                     id="wifi-pass"
-                                    type="password" 
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500" 
-                                    placeholder="••••••••" 
+                                    type="password"
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black focus:ring-2 focus:ring-orange-500"
+                                    placeholder="••••••••"
                                     required
                                 />
                             </div>
@@ -212,11 +144,26 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
                         </>
                     )}
                     {scanStatus === 'success' && (
-                        <div className="flex flex-col items-center py-4">
-                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
-                                <RefreshCw size={32} className="animate-spin" />
+                        <div className="w-full space-y-4">
+                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                <ShieldCheck size={32} />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900">Provisioning Successful!</h3>
+                            <h3 className="text-lg font-bold text-gray-900">Connected to Wi-Fi!</h3>
+                            <div className="w-full bg-gray-50 rounded-xl p-4 my-4 text-left space-y-2 border border-gray-100">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase">Registration Details</p>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <span className="text-gray-500">Module Name:</span>
+                                    <span className="text-gray-900 font-bold text-right">{configDetails.name}</span>
+                                    <span className="text-gray-500">Building:</span>
+                                    <span className="text-gray-900 font-bold text-right">{configDetails.building}</span>
+                                    <span className="text-gray-500">Phase:</span>
+                                    <span className="text-gray-900 font-bold text-right">Phase {configDetails.phase}</span>
+                                </div>
+                            </div>
+
+                            <button onClick={() => onRegister()} className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-all">
+                                Register Module
+                            </button>
                             <p className="text-gray-500 text-sm mt-2">Starting device configuration sequence...</p>
                         </div>
                     )}
@@ -236,28 +183,127 @@ const ProvisioningModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvisi
     );
 };
 
+const WifiUpdateModal = ({ isOpen, onClose, scanStatus, onStartScan, onProvision, onRetry, foundDevices, onSelectDevice }: {
+    isOpen: boolean;
+    onClose: () => void;
+    scanStatus: string;
+    onStartScan: () => void;
+    onProvision: () => void;
+    onRetry: () => void;
+    onSelectDevice: (device: BluetoothDevice) => void;
+    foundDevices: BluetoothDevice[];
+}) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] flex flex-col border-t-4 border-blue-500">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h2 className="text-xl font-bold text-gray-900">Update Wi-Fi Credentials</h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                        <X size={24} />
+                    </button>
+                </div>
+                <div className="p-8 flex flex-col items-center text-center">
+                    {(scanStatus === 'idle' || scanStatus === 'error') && (
+                        <>
+                            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 mb-6">
+                                <Wifi size={40} />
+                            </div>
+                            <h3 className="text-lg font-bold mb-2 text-black">Reconnect Module</h3>
+                            <p className="text-gray-500 text-sm mb-8">Update Wi-Fi for an existing module. <br/>Put device in pairing mode.</p>
+                            <button onClick={onStartScan} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all">
+                                Scan for Module
+                            </button>
+                        </>
+                    )}
+                    {scanStatus === 'scanning' && (
+                        <>
+                            <Loader2 size={48} className="text-blue-500 animate-spin mb-6" />
+                            <h3 className="text-lg font-bold mb-2">Searching...</h3>
+                        </>
+                    )}
+                    {scanStatus === 'found' && (
+                        <div className="w-full space-y-2">
+                            {foundDevices.map((dev) => (
+                                <button key={dev.id} onClick={() => onSelectDevice(dev)} className="w-full p-4 border border-gray-200 rounded-xl flex items-center gap-3 hover:bg-blue-50 transition-colors">
+                                    <Cpu className="text-blue-500" />
+                                    <span className="font-bold text-gray-900">{dev.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    {scanStatus === 'configuring' && (
+                        <div className="w-full space-y-4 text-left">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase">New SSID</label>
+                                <input id="update-wifi-ssid" type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="Network Name" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase">New Password</label>
+                                <input id="update-wifi-pass" type="password" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••" />
+                            </div>
+                            <button onClick={onProvision} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all mt-4">
+                                Update Credentials
+                            </button>
+                        </div>
+                    )}
+                    {scanStatus === 'provisioning' && (
+                        <>
+                            <Loader2 size={48} className="text-blue-500 animate-spin mb-6" />
+                            <h3 className="text-lg font-bold mb-2">Updating...</h3>
+                            <p className="text-gray-500 text-sm">Sending new Wi-Fi credentials to module</p>
+                        </>
+                    )}
+                    {scanStatus === 'success' && (
+                        <div className="w-full text-center">
+                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                <ShieldCheck size={32} />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900">Wi-Fi Updated!</h3>
+                            <p className="text-gray-500 text-sm mt-2 mb-6">The module is reconnecting to the new network.</p>
+                            <button onClick={onClose} className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold">Done</button>
+                        </div>
+                    )}
+                    {scanStatus === 'error' && (
+                        <div className="flex flex-col items-center">
+                            <AlertCircle size={48} className="text-red-500 mb-4" />
+                            <h3 className="text-lg text-red-500 font-bold">Update Failed</h3>
+                            <button onClick={onRetry} className="mt-6 w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold">Try Again</button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default function DevicesPage() {
-    const { modules, buildings, fetchModules, fetchBuildings, removeModule, loading } = useBuilding();
+    const { modules, buildings, fetchModules, fetchBuildings, removeModule, registerModule, loading } = useBuilding();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedBuildingFilter, setSelectedBuildingFilter] = useState<string>("all");
     const [isProvisioning, setIsProvisioning] = useState(false);
     const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'found' | 'configuring' | 'provisioning' | 'success' | 'error'>('idle');
     const [foundDevices, setFoundDevices] = useState<BluetoothDevice[]>([]);
-    const [selectedDevice, setSelectedDevice] = useState<BluetoothDevice | null>(null);
+    const [isWifiUpdating, setIsWifiUpdating] = useState(false);
+    const [wifiScanStatus, setWifiScanStatus] = useState<'idle' | 'scanning' | 'found' | 'configuring' | 'provisioning' | 'success' | 'error'>('idle');
+    const selectedDeviceRef = useRef<any>(null);
+    const [selectedDeviceState, setSelectedDeviceState] = useState<any | null>(null);
+    const [configDetails, setConfigDetails] = useState({ name: '', building: '', phase: 1, ssid: '' });
+    const { user, loading: authLoading } = useAuth();
 
     useEffect(() => {
-        fetchModules();
-        fetchBuildings();
-    }, []);
+        if (!authLoading && user) {
+            fetchModules();
+            fetchBuildings();
+        }
+    }, [user, authLoading]);
 
     const groupedDevices = useMemo(() => {
-        // Filter modules to only show those belonging to the user's buildings
-        const userBuildingIds = buildings.map(b => b.building_id);
+        // Filter modules based on search and building filter
         const filtered = modules.filter(device =>
-            userBuildingIds.includes(device.building_id) &&
             (selectedBuildingFilter === "all" || device.building_id === selectedBuildingFilter) &&
-            (device.module_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            device.module_id.toLowerCase().includes(searchQuery.toLowerCase()))
+            (device.module_name?.toLowerCase().includes(searchQuery.toLowerCase()) || device.module_id?.toLowerCase().includes(searchQuery.toLowerCase()))
         );
 
         return buildings.map(building => ({
@@ -271,15 +317,75 @@ export default function DevicesPage() {
     const offlineCount = modules.filter(d => d.state === module_state.Offline).length;
     const disabledCount = modules.filter(d => d.state === module_state.Inactive).length;
 
-    const handleDelete = (id: string) => {
-        if (confirm("Are you sure you want to remove this module?")) {
-            removeModule(id);
+    const handleDelete = async (id: string) => {
+        if (window.confirm("Are you sure you want to remove this module?")) {
+            await removeModule(id);
+            fetchModules();
         }
     };
 
     const handleAddModule = () => {
         setIsProvisioning(true);
         setScanStatus('idle');
+    };
+
+    const handleWifiUpdate = () => {
+        setIsWifiUpdating(true);
+        setWifiScanStatus('idle');
+    };
+
+    const startWifiUpdateScan = async () => {
+        setWifiScanStatus('scanning');
+        try {
+            const device = await (navigator as any).bluetooth.requestDevice({
+                filters: [{ namePrefix: 'ems' }],
+                optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b']
+            });
+            setFoundDevices([device]);
+            selectedDeviceRef.current = device;
+            setWifiScanStatus('found');
+        } catch (error) {
+            setWifiScanStatus('error');
+        }
+    };
+
+    const updateWifiOnly = async () => {
+        const ssid = (document.getElementById('update-wifi-ssid') as HTMLInputElement)?.value;
+        const pass = (document.getElementById('update-wifi-pass') as HTMLInputElement)?.value;
+        if (!ssid) return alert("SSID is required");
+
+        setWifiScanStatus('provisioning');
+        try {
+            const server = await selectedDeviceRef.current.gatt?.connect();
+            const service = await server?.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
+            const ssidChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
+            const passChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a9');
+            const statusChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26aa');
+
+            const encoder = new TextEncoder();
+            if (ssidChar) await ssidChar.writeValue(encoder.encode(ssid));
+            if (passChar) await passChar.writeValue(encoder.encode(pass));
+
+            if (statusChar) {
+                await statusChar.startNotifications();
+                const statusValue = await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error("Timeout waiting for device status")), 45000);
+                    statusChar.addEventListener('characteristicvaluechanged', (event: any) => {
+                        clearTimeout(timeout);
+                        const val = new TextDecoder().decode(event.target.value);
+                        resolve(val);
+                    }, { once: true });
+                });
+
+                if (statusValue !== "CONNECTED" && statusValue !== "CONNECTED\n") {
+                    throw new Error(statusValue === "FAILED" ? "WiFi Connection Failed" : "Unknown Error");
+                }
+            }
+            setWifiScanStatus('success');
+        } catch (error) {
+            console.error(error);
+            setWifiScanStatus('error');
+        }
     };
 
     const startBLEScan = async () => {
@@ -292,6 +398,8 @@ export default function DevicesPage() {
                 optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b'] // Example UUID
             });
             setFoundDevices([device]);
+            selectedDeviceRef.current = device;
+            setSelectedDeviceState(device);
             setScanStatus('found');
         } catch (error) {
             console.error("BLE Scan Error:", error);
@@ -300,16 +408,20 @@ export default function DevicesPage() {
     };
 
     const provisionDevice = async () => {
-        if (!selectedDevice) return;
-        
+        if (!selectedDeviceRef.current) return;
+
         const ssid = (document.getElementById('wifi-ssid') as HTMLInputElement)?.value;
         const pass = (document.getElementById('wifi-pass') as HTMLInputElement)?.value;
+        const name = selectedDeviceRef.current?.name || "Unknown Device";
+        const buildingId = (document.getElementById('provision-building') as HTMLSelectElement)?.value;
+        const phase = parseInt((document.getElementById('provision-phase') as HTMLSelectElement)?.value || "1");
 
         if (!ssid) return alert("SSID is required");
+        if (!buildingId) return alert("Please select a building");
 
         setScanStatus('provisioning');
         try {
-            const server = await selectedDevice.gatt?.connect();
+            const server = await selectedDeviceRef.current.gatt?.connect();
             const service = await server?.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
 
             const ssidChar = await service?.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
@@ -334,24 +446,62 @@ export default function DevicesPage() {
                 if (statusValue !== "CONNECTED" && statusValue !== "CONNECTED\n") throw new Error(statusValue === "FAILED" ? "WiFi Connection Failed" : "Unknown Error");
             }
 
+            setConfigDetails({
+                name: name, // 
+                building: buildingId,  // uuid of the building
+                phase: phase, // integer
+                ssid: ssid // wifi SSI
+            });
             setScanStatus('success');
-            setTimeout(() => {
-                setIsProvisioning(false);
-                fetchModules();
-            }, 2000);
         } catch (error) {
             console.error("Provisioning Error:", error);
             setScanStatus('error');
         }
     };
 
+    const handleTestRegister = async () => {
+        try {
+            // Hardcoded test values
+            const testName = "esp-ems-002";
+            const testBuildingId = "0ebf0a65-ad07-4ba5-adf6-2b867703cac5";
+            const testPhase = 1;
+
+            await registerModule(testName, testBuildingId, testPhase);
+            alert("Module registered successfully!");
+        } catch (error: any) {
+            alert(`Registration failed: ${error.message}`);
+        }
+    };
+
+    const handleRegister = async () => {
+        const moduleName = configDetails.name;
+        const buildingId = configDetails.building;
+        const phaseValue = configDetails.phase;
+        let phase = typeof phaseValue === 'number' ? phaseValue : parseInt(phaseValue || "1");
+
+        console.log("Registering Module with following details:", {
+            moduleName,
+            buildingId,
+            phase,
+            originalPhaseValue: phaseValue
+        });
+        try {
+            // Use the BLE device name as the moduleId (e.g., ems-XXXXXX)
+            await registerModule(moduleName, buildingId, phase);
+            setIsProvisioning(false);
+            // fetchModules();
+            alert("Module registered successfully!");
+        } catch (error) {
+            alert(`Failed to register module in database ${error}`);
+        }
+    };
+
     return (
         <main className="flex-1 flex flex-col overflow-hidden bg-white">
-            <Header 
+            <Header
                 title="Modular Units"
                 subtitle="Manage and monitor your hardware modules"
             >
-
                 <div className="flex items-center gap-4">
                     <div className="relative hidden md:block">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -365,7 +515,7 @@ export default function DevicesPage() {
                     </div>
                     <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
                         <Filter size={16} className="text-gray-400" />
-                        <select 
+                        <select
                             className="bg-transparent text-sm font-medium text-gray-700 outline-none"
                             value={selectedBuildingFilter}
                             onChange={(e) => setSelectedBuildingFilter(e.target.value)}
@@ -376,6 +526,12 @@ export default function DevicesPage() {
                             ))}
                         </select>
                     </div>
+                    <button
+                        onClick={handleWifiUpdate}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-xl text-sm font-bold hover:bg-blue-100 transition-all"
+                    >
+                        <Wifi size={18} /> <span className="hidden sm:inline">Update Wi-Fi</span>
+                    </button>
                     <div className="h-8 w-px bg-gray-200 mx-2"></div>
                     <button
                         onClick={handleAddModule}
@@ -387,9 +543,6 @@ export default function DevicesPage() {
             </Header>
 
             <div className="flex-1 overflow-y-auto p-8">
-                <div className="max-w-7xl mx-auto mb-8 p-4 bg-gray-100 rounded-lg overflow-auto max-h-40">
-                    <p className="text-xs font-mono text-gray-600 break-all">{JSON.stringify(modules)}</p>
-                </div>
                 <div className="max-w-7xl mx-auto space-y-6">
                     {/* Summary Bar */}
                     <div className="flex items-center justify-between bg-orange-50 border border-orange-100 rounded-2xl p-4">
@@ -423,10 +576,10 @@ export default function DevicesPage() {
                                 {group.devices.length > 0 ? (
                                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                                         {group.devices.map((device) => (
-                                            <DeviceCard 
-                                                key={device.module_id} 
-                                                device={device} 
-                                                onDelete={handleDelete} 
+                                            <DeviceCard
+                                                key={device.module_id}
+                                                device={device}
+                                                onDelete={handleDelete}
                                             />
                                         ))}
                                     </div>
@@ -442,18 +595,35 @@ export default function DevicesPage() {
                 </div>
             </div>
 
-            <ProvisioningModal 
-                isOpen={isProvisioning} 
-                onClose={() => setIsProvisioning(false)} 
-                scanStatus={scanStatus} 
-                onStartScan={startBLEScan} 
-                onProvision={provisionDevice} 
+            <ProvisioningModal
+                isOpen={isProvisioning}
+                onClose={() => setIsProvisioning(false)}
+                scanStatus={scanStatus}
+                onStartScan={startBLEScan}
+                onProvision={provisionDevice}
                 onRetry={() => setScanStatus('idle')}
+                onRegister={handleRegister}
                 buildings={buildings}
                 foundDevices={foundDevices}
+                configDetails={configDetails}
                 onSelectDevice={(device) => {
-                    setSelectedDevice(device);
+                    selectedDeviceRef.current = device;
+                    setSelectedDeviceState(device);
                     setScanStatus('configuring');
+                }}
+            />
+
+            <WifiUpdateModal
+                isOpen={isWifiUpdating}
+                onClose={() => setIsWifiUpdating(false)}
+                scanStatus={wifiScanStatus}
+                onStartScan={startWifiUpdateScan}
+                onProvision={updateWifiOnly}
+                onRetry={() => setWifiScanStatus('idle')}
+                foundDevices={foundDevices}
+                onSelectDevice={(device) => {
+                    selectedDeviceRef.current = device;
+                    setWifiScanStatus('configuring');
                 }}
             />
         </main>

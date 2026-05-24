@@ -1,0 +1,13 @@
+.git
+.github
+node_modules
+.next
+out
+build
+dist
+.env*.local
+.gcloudignore
+Dockerfile.dockerignore
+npm-debug.log
+yarn-error.log
+pnpm-debug.log

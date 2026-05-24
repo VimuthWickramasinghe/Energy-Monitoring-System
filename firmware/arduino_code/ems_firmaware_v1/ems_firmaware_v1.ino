@@ -14,9 +14,10 @@ String provisioned_ssid = "";
 String provisioned_password = "";
 bool isRegistered = false;
 bool shouldConnectWiFi = false;
+String device_id = ""; // Dynamically generated using MAC Address
 
 // --- Backend Configuration ---
-const char* server_ip = "10.108.198.53";
+const char* server_ip = "192.168.8.103";
 const int server_port = 8080;
 const char* api_key = "ems-key-123";
 
@@ -95,11 +96,16 @@ void setup() {
   pinMode(RED_LED_PIN, OUTPUT);
   pinMode(BOOT_BUTTON_PIN, INPUT_PULLUP);
   
+  // Generate dynamic device identity mapping matching your front-end name filters
+  uint64_t chipId = ESP.getEfuseMac();
+  device_id = "ems-esp-" + String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
+  device_id.toLowerCase();
+
   emon1.voltage(VOLT_SENSOR_PIN, VOLT_CAL, 1.7); // Voltage: input pin, calibration, phase_shift
   emon1.current(CURR_SENSOR_PIN, CURR_CAL);       // Current: input pin, calibration.
 
   Serial.println("--- EMS Device Initialization ---");
-  Serial.println("Device Name: esp_esm-01");
+  Serial.printf("Device ID: %s\n", device_id.c_str());
   
   loadCredentials();
 
@@ -173,7 +179,7 @@ void loop() {
 }
 
 void setupBLE() {
-  BLEDevice::init("ems-Config"); 
+  BLEDevice::init(device_id.c_str()); 
   BLEServer *pServer = BLEDevice::createServer();
   
   BLEService *pService = pServer->createService(PROVISIONING_SERVICE_UUID);
@@ -303,7 +309,7 @@ void sendSensorData() {
     return;
   }
 
-  doc["device_id"] = "esp_esm-01";
+  doc["device_id"] = device_id;
   doc["voltage"] = voltage;
   doc["current"] = current;
   doc["power"] = power;

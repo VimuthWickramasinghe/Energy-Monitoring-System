@@ -2,35 +2,26 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-    ResponsiveContainer, AreaChart, Area, LineChart, Line, Legend,
-    PieChart, Pie, Cell
+    ResponsiveContainer, LineChart, Line
 } from "recharts";
 import {
-    Download, Building2, Zap, Activity, TrendingUp,
-    AlertTriangle, Calendar, ChevronDown, Bell, ArrowRight,
-    WifiOff, Cpu
+    Building2, Zap, Activity, TrendingUp,
+    AlertTriangle, Calendar, Cpu, ArrowRight
 } from "lucide-react";
 import Header from "@/components/Header";
-import { useBuilding, Building, Module } from "@/lib/DeviceBuildingContext";
+import { useBuilding } from "@/lib/DeviceBuildingContext";
 import { useDeviceData } from "@/lib/DeviceDataContext";
 import { useProfile } from "@/lib/ProfileContext";
 import { BuildingCard } from "@/components/analytics/BuildingCard";
 import { KPICard } from "@/components/analytics/KPICard";
 
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
     const { buildings, modules, fetchBuildings, fetchModules, loading: buildingLoading } = useBuilding();
     const { profile } = useProfile();
     const { devices: allDeviceData, mongoDemoData, refreshDevices } = useDeviceData();
 
     const [activeTab, setActiveTab] = useState<'overview' | string>('overview');
-    const [globalPeriod, setGlobalPeriod] = useState('24H');
-    const [showElectrical, setShowElectrical] = useState(false);
 
-    /**
-     * Step 1: Fetch Building and Module metadata from Supabase
-     */
     useEffect(() => {
         if (profile?.user_id) {
             fetchBuildings();
@@ -38,10 +29,6 @@ export default function AnalyticsPage() {
         }
     }, [profile?.user_id]);
 
-    /**
-     * Step 2: Once modules are loaded, trigger the DeviceDataContext 
-     * to fetch the actual time-series data from MongoDB for those specific module IDs.
-     */
     useEffect(() => {
         if (!buildingLoading) {
             refreshDevices();
@@ -80,79 +67,15 @@ export default function AnalyticsPage() {
 
     const subtitle = `Monitoring ${modules.length} modules across ${buildings.length} buildings`;
 
-    const topConsumersData = useMemo(() => {
-        return allDeviceData
-            .map(d => {
-                const moduleInfo = modules.find(m => m.module_id === d.device_id);
-                return {
-                    ...d,
-                    name: moduleInfo?.module_name || d.device_id,
-                    value: d.power || 0
-                };
-            })
-            .sort((a, b) => (b.power || 0) - (a.power || 0))
-            .slice(0, 5);
-    }, [allDeviceData, modules]);
-
     return (
         <main className="flex-1 flex flex-col overflow-hidden bg-gray-50/60">
-            {/* ── Page Header ── */}
-            <Header title="Analytics & Insights" subtitle={subtitle}>
-                <div className="flex flex-wrap items-center gap-3">
-                    {/* Building selector */}
-                    {/* <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm cursor-pointer">
-                        <Building2 size={15} className="text-gray-400" />
-                        <select
-                            className="bg-transparent text-sm font-bold text-gray-700 outline-none"
-                            onChange={e => setActiveTab(e.target.value)}
-                            value={activeTab}
-                        >
-                            <option value="overview">All Buildings</option>
-                            {buildings.map(b => (
-                                <option key={b.building_id} value={b.building_id}>{b.building_name}</option>
-                            ))}
-                        </select>
-                        <ChevronDown size={14} className="text-gray-400" />
-                    </div> */}
-
-                    {/* Electrical stability toggle */}
-                    {/* <button
-                        onClick={() => setShowElectrical(v => !v)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${showElectrical
-                            ? 'bg-blue-500 text-white border-blue-500'
-                            : 'bg-white text-blue-600 border-gray-200 hover:border-blue-300'
-                            }`}
-                    >
-                        <Activity size={15} />
-                        Electrical Stability
-                    </button> */}
-
-                    {/* Global time period */}
-                    {/* <div className="flex bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
-                        {GLOBAL_PERIODS.map(p => (
-                            <button
-                                key={p}
-                                onClick={() => setGlobalPeriod(p)}
-                                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${globalPeriod === p ? 'bg-orange-500 text-white' : 'text-gray-400 hover:bg-gray-50'
-                                    }`}
-                            >
-                                {p}
-                            </button>
-                        ))}
-                    </div> */}
-
-                    {/* Export */}
-                    {/* <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-all shadow-sm">
-                        <Download size={15} /> Export
-                    </button> */}
-                </div>
-            </Header>
+            <Header title="Analytics & Insights" subtitle={subtitle} />
 
             <div className="flex-1 overflow-y-auto p-6 lg:p-8">
-                <div className="max-w-360 mx-auto space-y-6">
-
-                    {/* ── Global KPI Cards ── */}
-                    {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="max-w-7xl mx-auto space-y-6">
+                    
+                    {/* Global KPI Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <KPICard
                             title="Total Load" value={`${totalGlobalLoad} kW`}
                             sub={<span className="flex items-center gap-1 text-green-600"><TrendingUp size={11} /> 12% vs last hour</span>}
@@ -172,17 +95,16 @@ export default function AnalyticsPage() {
                             title="Peak Demand" value="28.5 kW"
                             sub="Occurred at 12:45 PM"
                             icon={AlertTriangle} iconColor="text-orange-600"
-                            subColor="text-gray-400"
                         />
-                    </div> */}
+                    </div>
 
-                    {/* ── Tab Navigation ── */}
-                    <div className="flex gap-1 bg-white border border-gray-100 rounded-xl p-1 shadow-sm w-fit">
+                    {/* Tab Navigation */}
+                    <div className="flex gap-1 bg-white border border-gray-100 rounded-xl p-1 shadow-sm w-fit overflow-x-auto">
                         {tabs.map(tab => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === tab.id
+                                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
                                     ? 'border border-orange-400 text-orange-600 bg-orange-50'
                                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                                     }`}
@@ -192,7 +114,7 @@ export default function AnalyticsPage() {
                         ))}
                     </div>
 
-                    {/* ── Building Cards ── */}
+                    {/* Building Cards Grid */}
                     <div className={`grid gap-5 ${visibleBuildings.length === 1 ? 'grid-cols-1 max-w-2xl' : 'grid-cols-1 lg:grid-cols-3'}`}>
                         {visibleBuildings.map(building => (
                             <BuildingCard
@@ -204,15 +126,20 @@ export default function AnalyticsPage() {
                         ))}
                     </div>
 
-                    {/* ── MongoDB Raw Data Debug (Testing) ── */}
+                    {/* Debug Section */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                         <div className="flex items-center gap-2 mb-4">
                             <Cpu size={18} className="text-purple-500" />
-                            <h3 className="font-bold text-gray-900">MongoDB Raw Data (Testing)</h3>
+                            <h3 className="font-bold text-gray-900">System Status</h3>
                         </div>
                         <div className="bg-gray-900 rounded-xl p-4 overflow-auto max-h-60">
                             <pre className="text-[10px] text-green-400 font-mono">
-                                {JSON.stringify(mongoDemoData, null, 2)}
+                                {JSON.stringify({ 
+                                    activeTab, 
+                                    buildingCount: buildings.length, 
+                                    moduleCount: modules.length,
+                                    dataPoints: allDeviceData.length 
+                                }, null, 2)}
                             </pre>
                         </div>
                     </div>

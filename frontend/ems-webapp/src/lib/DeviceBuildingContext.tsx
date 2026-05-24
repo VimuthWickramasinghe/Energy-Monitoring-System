@@ -1,6 +1,5 @@
 "use client"
 import { client } from "@/utils/supabase/client";
-import { UUID } from "mongodb";
 import { createContext, useContext, useState, ReactNode } from "react";
 import { v4 as uuid } from "uuid";
 import { useAuth } from "./AuthContext";
@@ -19,6 +18,7 @@ interface DeviceBuildingContextType {
     updateBuilding: (building_id: string, building_name: string | null, address: string | null) => Promise<void>;
     addBuilding: (building_name: string, address: string, owner_id: string) => Promise<void>;
     removeBuildings: (buildingId: string) => Promise<void>;
+    registerModule: ( moduleName: string, buildingId: string, phase: number) => Promise<void>;
 }
 
 export const DeviceBuildingContext = createContext<DeviceBuildingContextType | undefined>(undefined);
@@ -119,6 +119,32 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
         }
     };
 
+    const registerModule = async (moduleName: string, buildingId: string, phase: number) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            
+            const { data, error } = await client
+                .from('MODULE')
+                .insert([{ 
+                    module_name: moduleName, 
+                    building_id: buildingId,
+                    phase: phase,
+                    module_state: module_state.Active
+                }])
+                .select();
+            if (error) throw error;
+            if (data) setModules(prev => [...prev, data[0]]);
+        } catch (error: any) {
+            console.error("Supabase Insert Error:", error);
+            setError(error.message);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const removeModule = async (moduleId: string) => {
         setLoading(true);
         setError(null);
@@ -212,7 +238,7 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
     };
 
     return (
-        <DeviceBuildingContext.Provider value={{ modules, buildings, loading, error, fetchModules, updateModule, addModule, removeModule, fetchBuildings, updateBuilding, addBuilding, removeBuildings }}>
+        <DeviceBuildingContext.Provider value={{ modules, buildings, loading, error, fetchModules, updateModule, addModule, removeModule, fetchBuildings, updateBuilding, addBuilding, removeBuildings, registerModule }}>
             {children}
         </DeviceBuildingContext.Provider>
     );

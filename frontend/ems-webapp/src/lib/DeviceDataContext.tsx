@@ -2,9 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useAuth } from "./AuthContext";
-import { useBuilding } from "./DeviceBuldingContext";
-import { fetchUserDevicesData } from "../app/actions/deviceActions";
-
+import { useBuilding } from "./DeviceBuildingContext";
+import { fetchUserDevicesData, fetchMongoDemoDataAction } from "@/utils/mongoDB/deviceActions";
 export interface DeviceData {
     _id?: string;
     device_id: string;
@@ -20,6 +19,7 @@ export interface DeviceDataContextType {
     loadingDevices: boolean;
     error: string | null;
     refreshDevices: () => Promise<void>;
+    mongoDemoData: any[];
 }
 
 export const DeviceDataContext = createContext<DeviceDataContextType | undefined>(undefined);
@@ -27,10 +27,20 @@ export const DeviceDataContext = createContext<DeviceDataContextType | undefined
 export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
     const { user, loading: authLoading } = useAuth();
     const { modules, loading: buildingLoading } = useBuilding();
-    
+
     const [devices, setDevices] = useState<DeviceData[]>([]);
     const [loadingDevices, setLoadingDevices] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [mongoDemoData, setMongoDemoData] = useState<any[]>([]);
+
+    const fetchMongoDemoData = useCallback(async () => {
+        try {
+            const data = await fetchMongoDemoDataAction();
+            setMongoDemoData(data || []);
+        } catch (e) {
+            console.error("Failed to fetch mongo demo data:", e);
+        }
+    }, []);
 
     const fetchDevices = useCallback(async () => {
         if (!user?.uid) {
@@ -41,7 +51,7 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
         }
 
         const moduleIds = modules.map(m => m.module_id);
-        
+
         // If there are no modules registered, skip fetching from MongoDB
         if (moduleIds.length === 0) {
             setDevices([]);
@@ -54,7 +64,17 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
 
         try {
             // Using the Next.js Server Action to safely query MongoDB using module IDs
-            const data = await fetchUserDevicesData(moduleIds);
+            let data = await fetchUserDevicesData(moduleIds);
+            
+            // Prototype Fallback: If hardware device_id doesn't match registered module_id, 
+            // map the raw demo data to the first registered module so the UI populates.
+            if ((!data || data.length === 0) && moduleIds.length > 0) {
+                const fallbackData = await fetchMongoDemoDataAction();
+                if (fallbackData && fallbackData.length > 0) {
+                    data = fallbackData.map((d: any) => ({ ...d, device_id: moduleIds[0] }));
+                }
+            }
+
             setDevices(data || []);
         } catch (err: any) {
             console.error("Error in DeviceDataContext fetching devices:", err);
@@ -70,13 +90,14 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
 
         if (user) {
             fetchDevices();
-            
+            fetchMongoDemoData();
+
             // Set a polling interval to periodically refresh data, 
             // especially useful if device data is initially empty.
             const interval = setInterval(() => {
                 fetchDevices();
             }, 15000); // Refresh every 15 seconds
-            
+
             return () => clearInterval(interval);
         } else {
             setDevices([]);
@@ -86,7 +107,7 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
     }, [user, authLoading, buildingLoading, modules, fetchDevices]);
 
     return (
-        <DeviceDataContext.Provider value={{ devices, loadingDevices, error, refreshDevices: fetchDevices }}>
+        <DeviceDataContext.Provider value={{ devices, loadingDevices, error, refreshDevices: fetchDevices, mongoDemoData }}>
             {children}
         </DeviceDataContext.Provider>
     );
@@ -99,4 +120,3 @@ export const useDeviceData = () => {
     }
     return context;
 };
-
