@@ -17,7 +17,7 @@ bool shouldConnectWiFi = false;
 String device_id = ""; // Dynamically generated using MAC Address
 
 // --- Backend Configuration ---
-const char* server_ip = "10.108.198.53";
+const char* server_ip = "192.168.8.103";
 const int server_port = 8080;
 const char* api_key = "ems-key-123";
 

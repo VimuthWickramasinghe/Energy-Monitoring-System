@@ -17,8 +17,8 @@ import {
   TooltipProps
 } from "recharts";
 
-import { Card } from "@/components/Card";
-import NewNav from "@/components/NewNav";
+import { Card } from "@/components/dashboard/Card";
+import NewNav from "@/components/dashboard/NewNav";
 import Header from "@/components/Header";
 
 // Mock Data for the charts

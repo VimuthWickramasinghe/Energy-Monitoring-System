@@ -113,8 +113,18 @@ app.get('/current', authenticateFirebaseToken, async (req, res) => {
   }
 });
 
+// API endpoint to test data reception (same logic as /send)
+app.post('/test', async (req, res) => {
+  return handleSendData(req, res);
+});
+
 // API endpoint to receive data from ESP
 app.post('/send', async (req, res) => {
+  return handleSendData(req, res);
+});
+
+// Shared logic for /send and /test
+async function handleSendData(req, res) {
   try {
     // Basic API Key protection for hardware devices
     const apiKey = req.headers['x-api-key'];
@@ -147,7 +157,7 @@ app.post('/send', async (req, res) => {
     console.error('Error saving data:', err);
     res.status(500).json({ error: err.message });
   }
-});
+}
 
 // API endpoint to register a new device (Supabase Metadata)
 app.post('/register-device', authenticateFirebaseToken, async (req, res) => {

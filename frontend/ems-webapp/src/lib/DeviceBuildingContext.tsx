@@ -1,6 +1,5 @@
 "use client"
 import { client } from "@/utils/supabase/client";
-import { UUID } from "mongodb";
 import { createContext, useContext, useState, ReactNode } from "react";
 import { v4 as uuid } from "uuid";
 import { useAuth } from "./AuthContext";

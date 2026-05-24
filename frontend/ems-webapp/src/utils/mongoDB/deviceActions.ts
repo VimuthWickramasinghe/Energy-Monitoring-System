@@ -60,3 +60,28 @@ export async function fetchUserDevicesData(moduleIds: string[]) {
         return [];
     }
 }
+
+export async function fetchMongoDemoDataAction() {
+    try {
+        const client = await clientPromise;
+        const database = client.db(); 
+        
+        const collections = await database.listCollections().toArray();
+        let collectionName = "finalVolData";
+        
+        if (!collections.some(c => c.name === "finalVolData") && collections.length > 0) {
+            collectionName = collections[0].name;
+        }
+
+        const data = await database.collection(collectionName)
+            .find({})
+            .sort({ time: -1 })
+            .limit(10)
+            .toArray();
+            
+        return JSON.parse(JSON.stringify(data));
+    } catch (e) {
+        console.error("Error fetching mongo demo data:", e);
+        return [];
+    }
+}
