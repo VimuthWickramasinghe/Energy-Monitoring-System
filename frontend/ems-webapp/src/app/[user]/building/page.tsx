@@ -71,7 +71,7 @@ export default function BuildingManagement() {
   };
 
   return (
-    <main className="flex-1 overflow-y-auto bg-gray-50 relative">
+    <main className="flex-1 overflow-y-auto bg-gray-50 relative pb-20 md:pb-0">
       <Header
         title="Building Management"
         subtitle="Monitor and control your infrastructure"
@@ -82,10 +82,11 @@ export default function BuildingManagement() {
             setNewBuilding({ name: '', address: '' });
             setIsModalOpen(true);
           }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-200"
+          className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-orange-500 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-200"
         >
           <Plus size={18} />
-          <span>Add Building</span>
+          <span className="hidden sm:inline">Add Building</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </Header>
 
@@ -100,16 +101,16 @@ export default function BuildingManagement() {
         onDelete={handleDeleteBuilding}
       />
 
-      <div className="p-8 space-y-6">
+      <div className="p-4 sm:p-6 md:p-8 space-y-6">
         {/* Buildings Section */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
             <Building2 className="text-orange-500" size={20} />
             Registered Buildings
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {loading ? (
-              <div className="col-span-3 py-20 flex flex-col items-center justify-center text-gray-400 gap-3">
+              <div className="col-span-1 sm:col-span-2 md:col-span-3 py-20 flex flex-col items-center justify-center text-gray-400 gap-3">
                 <Loader2 className="animate-spin text-orange-500" size={32} />
                 <p className="text-sm font-medium">Loading buildings...</p>
               </div>

@@ -95,105 +95,37 @@ export default function AnalyticsPage() {
     }, [allDeviceData, modules]);
 
     return (
-        <main className="flex-1 flex flex-col overflow-hidden bg-gray-50/60">
+        <main className="flex-1 flex flex-col overflow-hidden bg-gray-50/60 pb-16 md:pb-0">
             {/* ── Page Header ── */}
             <Header title="Analytics & Insights" subtitle={subtitle}>
                 <div className="flex flex-wrap items-center gap-3">
-                    {/* Building selector */}
-                    {/* <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm cursor-pointer">
-                        <Building2 size={15} className="text-gray-400" />
-                        <select
-                            className="bg-transparent text-sm font-bold text-gray-700 outline-none"
-                            onChange={e => setActiveTab(e.target.value)}
-                            value={activeTab}
-                        >
-                            <option value="overview">All Buildings</option>
-                            {buildings.map(b => (
-                                <option key={b.building_id} value={b.building_id}>{b.building_name}</option>
-                            ))}
-                        </select>
-                        <ChevronDown size={14} className="text-gray-400" />
-                    </div> */}
-
-                    {/* Electrical stability toggle */}
-                    {/* <button
-                        onClick={() => setShowElectrical(v => !v)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${showElectrical
-                            ? 'bg-blue-500 text-white border-blue-500'
-                            : 'bg-white text-blue-600 border-gray-200 hover:border-blue-300'
-                            }`}
-                    >
-                        <Activity size={15} />
-                        Electrical Stability
-                    </button> */}
-
-                    {/* Global time period */}
-                    {/* <div className="flex bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
-                        {GLOBAL_PERIODS.map(p => (
-                            <button
-                                key={p}
-                                onClick={() => setGlobalPeriod(p)}
-                                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${globalPeriod === p ? 'bg-orange-500 text-white' : 'text-gray-400 hover:bg-gray-50'
-                                    }`}
-                            >
-                                {p}
-                            </button>
-                        ))}
-                    </div> */}
-
-                    {/* Export */}
-                    {/* <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-all shadow-sm">
-                        <Download size={15} /> Export
-                    </button> */}
+                    {/* Header Action Items Commented Out */}
                 </div>
             </Header>
 
-            <div className="flex-1 overflow-y-auto p-6 lg:p-8">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
                 <div className="max-w-360 mx-auto space-y-6">
 
-                    {/* ── Global KPI Cards ── */}
-                    {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <KPICard
-                            title="Total Load" value={`${totalGlobalLoad} kW`}
-                            sub={<span className="flex items-center gap-1 text-green-600"><TrendingUp size={11} /> 12% vs last hour</span>}
-                            icon={Zap} iconColor="text-orange-500"
-                        />
-                        <KPICard
-                            title="Daily Energy" value="850 kWh"
-                            sub="Projected: 1.2MWh"
-                            icon={Calendar} iconColor="text-blue-500"
-                        />
-                        <KPICard
-                            title="Avg. Voltage" value={`${globalAvgVoltage} V`}
-                            sub="Stable Range"
-                            icon={Activity} iconColor="text-purple-500"
-                        />
-                        <KPICard
-                            title="Peak Demand" value="28.5 kW"
-                            sub="Occurred at 12:45 PM"
-                            icon={AlertTriangle} iconColor="text-orange-600"
-                            subColor="text-gray-400"
-                        />
-                    </div> */}
-
                     {/* ── Tab Navigation ── */}
-                    <div className="flex gap-1 bg-white border border-gray-100 rounded-xl p-1 shadow-sm w-fit">
-                        {tabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === tab.id
-                                    ? 'border border-orange-400 text-orange-600 bg-orange-50'
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                                    }`}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
+                    <div className="flex gap-1 bg-white border border-gray-100 rounded-xl p-1 shadow-sm w-full max-w-full overflow-x-auto">
+                        <div className="flex min-w-max">
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`px-4 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
+                                        ? 'border border-orange-400 text-orange-600 bg-orange-50'
+                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* ── Building Cards ── */}
-                    <div className={`grid gap-5 ${visibleBuildings.length === 1 ? 'grid-cols-1 max-w-2xl' : 'grid-cols-1 lg:grid-cols-3'}`}>
+                    <div className={`grid gap-4 sm:gap-5 ${visibleBuildings.length === 1 ? 'grid-cols-1 max-w-2xl' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
                         {visibleBuildings.map(building => (
                             <BuildingCard
                                 key={building.building_id}
@@ -205,13 +137,13 @@ export default function AnalyticsPage() {
                     </div>
 
                     {/* ── MongoDB Raw Data Debug (Testing) ── */}
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-6">
                         <div className="flex items-center gap-2 mb-4">
                             <Cpu size={18} className="text-purple-500" />
-                            <h3 className="font-bold text-gray-900">MongoDB Raw Data (Testing)</h3>
+                            <h3 className="font-bold text-gray-900 text-sm sm:text-base">MongoDB Raw Data (Testing)</h3>
                         </div>
-                        <div className="bg-gray-900 rounded-xl p-4 overflow-auto max-h-60">
-                            <pre className="text-[10px] text-green-400 font-mono">
+                        <div className="bg-gray-900 rounded-xl p-3 sm:p-4 overflow-auto max-h-60">
+                            <pre className="text-[10px] text-green-400 font-mono break-all sm:break-normal">
                                 {JSON.stringify(mongoDemoData, null, 2)}
                             </pre>
                         </div>

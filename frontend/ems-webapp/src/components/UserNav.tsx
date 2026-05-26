@@ -50,52 +50,79 @@ export default function UserNav() {
     const displayName = profile?.user_name || user?.email?.split('@')[0] || "User";
 
     return (
-        <aside className="sticky top-0 w-64 bg-blue-950 border-r border-gray-800 flex flex-col h-screen shrink-0">
-            <div className="p-6">
-                <Link href="/" className="text-2xl font-bold tracking-tight text-white">
-                    EMS
-                    <p className="text-[10px] font-medium text-gray-400 tracking-wider uppercase">Energy Monitoring System</p>
-                </Link>
-            </div>
-
-            <nav className="flex-1 px-4 space-y-1">
-                {navItems.map((item) => (
-                    <UserNavLink 
-                        key={item.href} 
-                        page={item.href} 
-                        icon={<item.icon size={20} />}
-                        isActive={pathname.includes(`/${item.href}`)}
-                        userEmail={user?.email}
-                    >
-                        {item.label}
-                    </UserNavLink>
-                ))}
-            </nav>
-
-            {/* Bottom section with user info and logout button */}
-            <div className="p-4 border-t border-gray-800 mt-auto">
-                <div className="flex items-center gap-3 px-2 py-2 mb-3 rounded-xl bg-white/5 shadow-sm">
-                    <div className="w-8 h-8 bg-linear-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm overflow-hidden">
-                        {profile?.avatar_url ? (
-                            <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                        ) : (
-                            initials
-                        )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{displayName}</p>
-                        <p className="text-[10px] text-gray-400 truncate font-mono">{user?.email}</p>
-                    </div>
+        <>
+            {/* Desktop Sidebar */}
+            <aside className="hidden md:flex sticky top-0 w-64 bg-blue-950 border-r border-gray-800 flex-col h-screen shrink-0">
+                <div className="p-6">
+                    <Link href="/" className="text-2xl font-bold tracking-tight text-white">
+                        EMS
+                        <p className="text-[10px] font-medium text-gray-400 tracking-wider uppercase">Energy Monitoring System</p>
+                    </Link>
                 </div>
-                <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-3 px-4 py-2.5 text-sm text-white hover:text-white hover:bg-white/10 active:bg-white/20 rounded-xl transition-all duration-200 font-medium group"
+
+                <nav className="flex-1 px-4 space-y-1">
+                    {navItems.map((item) => (
+                        <UserNavLink 
+                            key={item.href} 
+                            page={item.href} 
+                            icon={<item.icon size={20} />}
+                            isActive={pathname.includes(`/${item.href}`)}
+                            userEmail={user?.email}
+                        >
+                            {item.label}
+                        </UserNavLink>
+                    ))}
+                </nav>
+
+                {/* Bottom section with user info and logout button */}
+                <div className="p-4 border-t border-gray-800 mt-auto">
+                    <div className="flex items-center gap-3 px-2 py-2 mb-3 rounded-xl bg-white/5 shadow-sm">
+                        <div className="w-8 h-8 bg-linear-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm overflow-hidden shrink-0">
+                            {profile?.avatar_url ? (
+                                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                initials
+                            )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{displayName}</p>
+                            <p className="text-[10px] text-gray-400 truncate font-mono">{user?.email}</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center justify-center gap-3 px-4 py-2.5 text-sm text-white hover:text-white hover:bg-white/10 active:bg-white/20 rounded-xl transition-all duration-200 font-medium group"
+                    >
+                        <span>Sign Out</span>
+                        <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </button>
+                </div>
+            </aside>
+
+            {/* Mobile Bottom Nav */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-blue-950 border-t border-gray-800 flex items-center justify-around z-50 px-2 py-2 pb-safe">
+                {navItems.slice(0, 4).map((item) => {
+                    const isActive = pathname.includes(`/${item.href}`);
+                    return (
+                        <Link 
+                            key={item.href}
+                            href={`/${user?.email}/${item.href}`}
+                            className={`flex flex-col items-center justify-center p-2 rounded-lg ${isActive ? "text-white" : "text-gray-400 hover:text-gray-200"}`}
+                        >
+                            <item.icon size={20} className={isActive ? "text-orange-500" : ""} />
+                            <span className="text-[10px] mt-1 font-medium">{item.label}</span>
+                        </Link>
+                    );
+                })}
+                <Link
+                    href={`/${user?.email}/settings`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg ${pathname.includes('/settings') ? "text-white" : "text-gray-400 hover:text-gray-200"}`}
                 >
-                    <span>Sign Out</span>
-                    <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
-                </button>
-            </div>
-        </aside>
+                    <Settings size={20} className={pathname.includes('/settings') ? "text-orange-500" : ""} />
+                    <span className="text-[10px] mt-1 font-medium">Settings</span>
+                </Link>
+            </nav>
+        </>
     );
 }
 
@@ -109,7 +136,7 @@ function UserNavLink({ page, children, icon, isActive, userEmail }: { page: stri
                 : "text-gray-400 hover:bg-white/5 hover:text-white"
             }`}
         >
-            <span className={isActive ? "text-white" : ""}>{icon}</span>
+            <span className={isActive ? "text-orange-500" : ""}>{icon}</span>
             <span>{children}</span>
         </Link>
     );
