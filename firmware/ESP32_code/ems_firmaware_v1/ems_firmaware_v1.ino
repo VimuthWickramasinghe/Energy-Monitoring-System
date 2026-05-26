@@ -17,7 +17,7 @@ bool shouldConnectWiFi = false;
 String device_id = ""; // Dynamically generated using MAC Address
 
 // --- Backend Configuration ---
-const char* server_url = "https://ems-backend-475776935743.asia-southeast1.run.app/test";
+const char* server_url = "https://emsb.keyblocks.org/test";
 const char* api_key = "ems-key-123";
 
 // --- BLE Provisioning Variables ---

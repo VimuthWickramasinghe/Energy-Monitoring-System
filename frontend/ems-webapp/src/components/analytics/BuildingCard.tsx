@@ -1,9 +1,10 @@
 import { Building2, Cpu, ArrowRight } from "lucide-react";
-import { useMemo, useState } from "react";
-import { BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, LineChart, Line } from "recharts";
+import { useMemo, useState, useEffect } from "react";
+import { BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, LineChart, Line, Label } from "recharts";
 import { Building, Module } from "@/lib/DeviceBuildingContext";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { client as supabaseClient } from "@/utils/supabase/client";
 
 const TIME_PERIODS = ['12H', '24H', '3D','7D', '1M', '1Y'];
 
@@ -11,7 +12,7 @@ const TIME_PERIODS = ['12H', '24H', '3D','7D', '1M', '1Y'];
 const MiniStat = ({ label, value, color }: { label: string; value: string; color: string }) => (
     <div className="flex flex-col gap-0.5">
         <span className={`text-[10px] font-bold uppercase tracking-wider ${color}`}>{label}</span>
-        <span className="text-sm font-extrabold text-gray-900">{value}</span>
+        <span className="text-sm font-extrabold text-gray-900 truncate">{value}</span>
     </div>
 );
 
@@ -62,6 +63,30 @@ export const BuildingCard = ({ building, modules, allDeviceData }: { building: B
     const [viewMode, setViewMode] = useState<'building' | 'device'>('building');
     const params = useParams();
     const user = params?.user as string;
+    const [evceData, setEvceData] = useState<any>(null);
+
+    useEffect(() => {
+        async function fetchEvce() {
+            if (!modules || modules.length === 0) return;
+            const moduleIds = modules.map(m => m.module_id);
+            try {
+                // Assuming device_id links to evce table
+                const { data, error } = await supabaseClient
+                    .from('evce')
+                    .select('*')
+                    .in('device_id', moduleIds)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                
+                if (data && data.length > 0) {
+                    setEvceData(data[0]);
+                }
+            } catch (err) {
+                console.error("Error fetching EVCE data:", err);
+            }
+        }
+        fetchEvce();
+    }, [modules]);
 
     const { barData, totalLoad, avgVoltage, chartData } = useMemo(() => {
         let loadSum = 0;
@@ -200,6 +225,16 @@ export const BuildingCard = ({ building, modules, allDeviceData }: { building: B
                         <MiniStat label="Peak Demand" value="-- kW" color="text-orange-600" />
                     </div>
 
+                    {/* EVCE Stats */}
+                    {evceData && (
+                        <div className="grid grid-cols-4 gap-2 border-b border-gray-50 pb-4">
+                            <MiniStat label="Real Pwr" value={`${evceData.real_power || 0} kW`} color="text-green-500" />
+                            <MiniStat label="Apparent" value={`${evceData.apparent_power || 0} kVA`} color="text-purple-500" />
+                            <MiniStat label="Power Factor" value={`${evceData.powerfactor || 0}`} color="text-blue-500" />
+                            <MiniStat label="Calibration" value={`${evceData.callibrationdata || 'N/A'}`} color="text-orange-500" />
+                        </div>
+                    )}
+
                     {/* Device bar chart */}
                     <div className="h-36">
                         <ResponsiveContainer width="100%" height="100%">
@@ -278,11 +313,13 @@ export const BuildingCard = ({ building, modules, allDeviceData }: { building: B
                             </div>
                         )}
 
-                        <div className="h-32">
+                        <div className="h-36">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={chartData} margin={{ top: 0, right: 0, left: -24, bottom: 0 }}>
+                                <LineChart data={chartData} margin={{ top: 0, right: 0, left: -24, bottom: 12 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
+                                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }}>
+                                        <Label value="Time Period" offset={-10} position="insideBottom" style={{ fontSize: '9px', fill: '#9ca3af', fontWeight: 600 }} />
+                                    </XAxis>
                                     <YAxis yAxisId="lv" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
                                     <YAxis yAxisId="rv" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
                                     <Tooltip content={<CustomTooltip viewMode={viewMode} />} />
