@@ -17,8 +17,7 @@ bool shouldConnectWiFi = false;
 String device_id = ""; // Dynamically generated using MAC Address
 
 // --- Backend Configuration ---
-const char* server_ip = "192.168.8.103";
-const int server_port = 8080;
+const char* server_url = "https://ems-backend-475776935743.asia-southeast1.run.app/test";
 const char* api_key = "ems-key-123";
 
 // --- BLE Provisioning Variables ---
@@ -286,10 +285,8 @@ void saveCredentials(String ssid, String pass) {
 
 void sendSensorData() {
   HTTPClient http;
-  char serverUrl[64];
-  snprintf(serverUrl, sizeof(serverUrl), "http://%s:%d/test", server_ip, server_port);
 
-  if (!http.begin(serverUrl)) return;
+  if (!http.begin(server_url)) return;
 
   http.addHeader("Content-Type", "application/json");
   http.addHeader("x-api-key", api_key);

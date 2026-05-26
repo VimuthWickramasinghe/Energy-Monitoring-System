@@ -274,24 +274,14 @@ app.get('/predict', authenticateFirebaseToken, (req, res) => {
 // Connect and optionally insert ONE sample dataset if collection empty
 const uri = process.env.MONGODB_URI || "mongodb+srv://vimuth:<db_password>@ems-device-data-cluster.b4ircf5.mongodb.net/?appName=EMS-Device-data-Cluster";
 
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
-
 async function run() {
   try {
-    // Connect the client to the server (optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-
-    // Maintain mongoose connection for the Schema/Models used in endpoints
-    await mongoose.connect(uri);
+    // Use Mongoose to connect with recommended options for Cloud hosting
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("Successfully connected to MongoDB via Mongoose!");
 
     const count = await Sensor.countDocuments().catch(() => 0);
     if (!count) {
@@ -305,7 +295,7 @@ async function run() {
 }
 run().catch(console.dir);
 
-const port = process.env.BACKEND_PORT || 8080;
+const port = process.env.PORT || process.env.BACKEND_PORT || 8080;
 // listen on all interfaces so other devices can reach this server
 app.listen(port, '0.0.0.0', () => {
   const networkInterfaces = require('os').networkInterfaces();
