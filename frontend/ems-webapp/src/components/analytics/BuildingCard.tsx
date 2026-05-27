@@ -143,47 +143,13 @@ const MetricPill = ({
  *   supabaseClient.channel('rt').on('postgres_changes', ...).subscribe()
  */
 const DeviceRealtimeCard = ({
-    module, color
+    module, data, color
 }: {
-    module: Module; color: string;
+    module: Module; data: Record<string, any> | null; color: string;
 }) => {
-    const [data, setData] = useState<Record<string, any> | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [online, setOnline] = useState<boolean | null>(null);
-    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-    const fetch = useCallback(async () => {
-        try {
-            // ── Adjust table name / column name to match your schema ──────────
-            const { data: rows, error } = await supabaseClient
-                .from('device_data')          // ← change to your actual table
-                .select('*')
-                .eq('device_id', module.module_id)
-                .order('time', { ascending: false })
-                .limit(1)
-                .single();
-
-            if (error || !rows) {
-                setOnline(false);
-                return;
-            }
-
-            // Consider the device "online" if last data arrived within 2 minutes
-            const age = Date.now() - new Date(rows.time).getTime();
-            setOnline(age < 120_000);
-            setData(rows);
-        } catch {
-            setOnline(false);
-        } finally {
-            setLoading(false);
-        }
-    }, [module.module_id]);
-
-    useEffect(() => {
-        fetch();
-        timerRef.current = setInterval(fetch, POLL_INTERVAL_MS);
-        return () => { if (timerRef.current) clearInterval(timerRef.current); };
-    }, [fetch]);
+    // Consider the device "online" if last data arrived within 2 minutes
+    const age = data?.time ? Date.now() - new Date(data.time).getTime() : Infinity;
+    const online = age < 120_000;
 
     const power = data?.real_power ?? 0;
     const voltage = data?.voltage ?? 0;
@@ -205,15 +171,19 @@ const DeviceRealtimeCard = ({
                     />
                     <span className="text-xs font-bold text-gray-800 truncate">{module.module_name}</span>
                 </div>
-                {loading ? (
-                    <span className="text-[9px] text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">…</span>
-                ) : online ? (
-                    <span className="flex items-center gap-1 text-[9px] text-emerald-600 bg-emerald-50 rounded-full px-2 py-0.5 font-bold border border-emerald-100">
-                        <Wifi size={8} /> LIVE
-                    </span>
+                {data ? (
+                    online ? (
+                        <span className="flex items-center gap-1 text-[9px] text-emerald-600 bg-emerald-50 rounded-full px-2 py-0.5 font-bold border border-emerald-100">
+                            <Wifi size={8} /> LIVE
+                        </span>
+                    ) : (
+                        <span className="flex items-center gap-1 text-[9px] text-red-500 bg-red-50 rounded-full px-2 py-0.5 font-bold border border-red-100">
+                            <WifiOff size={8} /> OFFLINE
+                        </span>
+                    )
                 ) : (
-                    <span className="flex items-center gap-1 text-[9px] text-red-500 bg-red-50 rounded-full px-2 py-0.5 font-bold border border-red-100">
-                        <WifiOff size={8} /> OFFLINE
+                    <span className="text-[9px] text-gray-400 bg-gray-100 rounded-full px-2 py-0.5 font-bold">
+                        NO DATA
                     </span>
                 )}
             </div>
@@ -221,17 +191,17 @@ const DeviceRealtimeCard = ({
             {/* Big power reading */}
             <div className="flex items-baseline gap-1">
                 <span className="text-xl font-black text-gray-900" style={{ color }}>
-                    {loading ? '—' : power.toFixed(2)}
+                    {data ? power.toFixed(2) : '—'}
                 </span>
                 <span className="text-xs text-gray-400 font-medium">kW</span>
             </div>
 
             {/* Secondary metrics grid */}
             <div className="grid grid-cols-2 gap-1.5">
-                <MetricPill icon={Zap} label="Voltage" value={loading ? '—' : voltage.toFixed(1)} unit="V" />
-                <MetricPill icon={Activity} label="Current" value={loading ? '—' : current.toFixed(2)} unit="A" />
-                <MetricPill icon={Gauge} label="PF" value={loading ? '—' : pf !== null ? Number(pf).toFixed(3) : '0.000'} />
-                <MetricPill icon={Thermometer} label="Apparent" value={loading ? '—' : Number(apparent).toFixed(2)} unit="kVA" />
+                <MetricPill icon={Zap} label="Voltage" value={data ? voltage.toFixed(1) : '—'} unit="V" />
+                <MetricPill icon={Activity} label="Current" value={data ? current.toFixed(2) : '—'} unit="A" />
+                <MetricPill icon={Gauge} label="PF" value={data ? (pf !== null ? Number(pf).toFixed(3) : '0.000') : '—'} />
+                <MetricPill icon={Thermometer} label="Apparent" value={data ? Number(apparent).toFixed(2) : '—'} unit="kVA" />
             </div>
 
             {/* Last updated */}
@@ -281,8 +251,10 @@ export const BuildingCard = ({
     const user = params?.user as string;
 
     // ── Derived chart + KPI data ─────────────────────────────────────────────
-    const { chartData, ticks, totalLoad, dailyEnergy, avgVoltage, peakDemand } = useMemo(() => {
+    const { chartData, ticks, totalLoad, dailyEnergy, avgVoltage, peakDemand, latestMap, cutoffTime, nowTime } = useMemo(() => {
         const cutoff = getCutoff(period);
+        const cutoffTime = cutoff.getTime();
+        const nowTime = Date.now();
         const moduleIds = modules.map(m => m.module_id);
 
         // Latest snapshot per device → used for KPI totals
@@ -309,7 +281,7 @@ export const BuildingCard = ({
 
         // Bucket by rounded timestamp
         // Bucket granularity: aim for ~80 data points in the chart to keep it readable
-        const windowMs = Date.now() - cutoff.getTime();
+        const windowMs = nowTime - cutoffTime;
         const bucketMs = Math.max(Math.round(windowMs / 80), 60_000); // min 1 min
         const bucketMap = new Map<number, {
             ts: number; load: number; vSum: number; vCnt: number;
@@ -337,16 +309,14 @@ export const BuildingCard = ({
             entry[`${d.device_id}_c`] = curr;
         });
 
-        // Ensure we have data points even if the bucketMap is empty
+        // Get sorted data points
         let rows = Array.from(bucketMap.values()).sort((a, b) => a.ts - b.ts);
 
         if (rows.length === 0) {
-            const nowTs = Date.now();
-            const startTs = cutoff.getTime();
             // Create two zero points at start and end to show a flat line
             rows = [
-                { ts: startTs, load: 0, vSum: 0, vCnt: 0, cSum: 0, cCnt: 0, voltage: 0, current: 0 },
-                { ts: nowTs, load: 0, vSum: 0, vCnt: 0, cSum: 0, cCnt: 0, voltage: 0, current: 0 }
+                { ts: cutoffTime, load: 0, vSum: 0, vCnt: 0, cSum: 0, cCnt: 0, voltage: 0, current: 0 },
+                { ts: nowTime, load: 0, vSum: 0, vCnt: 0, cSum: 0, cCnt: 0, voltage: 0, current: 0 }
             ];
             // Initialize module keys to 0
             modules.forEach(m => {
@@ -368,11 +338,8 @@ export const BuildingCard = ({
         // Peak demand
         const peak = rows.reduce((mx, r) => Math.max(mx, r.load), 0);
 
-        // Tick timestamps
-        const tsArr = rows.map(r => r.ts);
-        const minTs = tsArr[0];
-        const maxTs = tsArr[tsArr.length - 1];
-        const ticks = generateTicks(minTs, maxTs, TARGET_TICKS);
+        // Tick timestamps strictly based on selected timespan bounds
+        const ticks = generateTicks(cutoffTime, nowTime, TARGET_TICKS);
 
         return {
             chartData: rows,
@@ -381,6 +348,9 @@ export const BuildingCard = ({
             dailyEnergy: energyKwh.toFixed(2),
             avgVoltage: voltCount > 0 ? (voltSum / voltCount).toFixed(1) : '--',
             peakDemand: peak.toFixed(2),
+            latestMap,
+            cutoffTime,
+            nowTime
         };
     }, [modules, allDeviceData, period]);
 
@@ -391,6 +361,16 @@ export const BuildingCard = ({
             else next.add(deviceId);
             return next;
         });
+    };
+
+    const handleLegendClick = (e: any) => {
+        const { dataKey } = e;
+        if (typeof dataKey === 'string') {
+            const cleanId = dataKey.replace(/_[vc]$/, '');
+            if (modules.some(m => m.module_id === cleanId)) {
+                toggleDevice(cleanId);
+            }
+        }
     };
 
     // ── Render ───────────────────────────────────────────────────────────────
@@ -437,6 +417,7 @@ export const BuildingCard = ({
                                 <DeviceRealtimeCard
                                     key={m.module_id}
                                     module={m}
+                                    data={latestMap.get(m.module_id)}
                                     color={MODULE_COLORS[i % MODULE_COLORS.length]}
                                 />
                             ))}
@@ -529,7 +510,7 @@ export const BuildingCard = ({
                                                     dataKey="ts"
                                                     type="number"
                                                     scale="time"
-                                                    domain={['dataMin', 'dataMax']}
+                                                    domain={[cutoffTime, nowTime]}
                                                     ticks={ticks}
                                                     tickFormatter={(v) => formatXTick(v, period)}
                                                     axisLine={false}
@@ -606,25 +587,24 @@ export const BuildingCard = ({
                                         <ResponsiveContainer width="100%" height="100%">
                                             <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -18, bottom: 16 }}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                                <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} ticks={ticks} tickFormatter={(v) => formatXTick(v, period)} axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
+                                                <XAxis dataKey="ts" type="number" scale="time" domain={[cutoffTime, nowTime]} ticks={ticks} tickFormatter={(v) => formatXTick(v, period)} axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
                                                 <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} width={40} />
                                                 <Tooltip content={<AreaTooltip period={period} />} />
-                                                <Legend verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4 }} />
-                                                {modules
-                                                    .filter(m => !hiddenDevices.has(m.module_id))
-                                                    .map((m, i) => (
-                                                        <Area
-                                                            key={m.module_id}
-                                                            yAxisId="left"
-                                                            type="monotone"
-                                                            dataKey={m.module_id}
-                                                            stroke={MODULE_COLORS[i % MODULE_COLORS.length]}
-                                                            fill={`url(#grad_${m.module_id})`}
-                                                            strokeWidth={2}
-                                                            dot={false}
-                                                            name={m.module_name}
-                                                        />
-                                                    ))}
+                                                <Legend onClick={handleLegendClick} verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4, cursor: 'pointer' }} />
+                                                {modules.map((m, i) => (
+                                                    <Area
+                                                        key={m.module_id}
+                                                        yAxisId="left"
+                                                        type="monotone"
+                                                        dataKey={m.module_id}
+                                                        hide={hiddenDevices.has(m.module_id)}
+                                                        stroke={MODULE_COLORS[i % MODULE_COLORS.length]}
+                                                        fill={`url(#grad_${m.module_id})`}
+                                                        strokeWidth={2}
+                                                        dot={false}
+                                                        name={m.module_name}
+                                                    />
+                                                ))}
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -652,27 +632,26 @@ export const BuildingCard = ({
                                                     ))}
                                                 </defs>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                                <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} ticks={ticks} tickFormatter={(v) => formatXTick(v, period)} axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
+                                                <XAxis dataKey="ts" type="number" scale="time" domain={[cutoffTime, nowTime]} ticks={ticks} tickFormatter={(v) => formatXTick(v, period)} axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
                                                 <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} width={40} domain={['auto', 'auto']} />
                                                 <Tooltip content={<AreaTooltip period={period} />} />
-                                                <Legend verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4 }} />
+                                                <Legend onClick={handleLegendClick} verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4, cursor: 'pointer' }} />
                                                 <Area yAxisId="left" type="monotone" dataKey="voltage" stroke="#8b5cf6" fill="url(#grad_voltage)" strokeWidth={2} dot={false} name="Avg Voltage" />
-                                                {modules
-                                                    .filter(m => !hiddenDevices.has(m.module_id))
-                                                    .map((m, i) => (
-                                                        <Area
-                                                            key={`${m.module_id}_v`}
-                                                            yAxisId="left"
-                                                            type="monotone"
-                                                            dataKey={`${m.module_id}_v`}
-                                                            stroke={MODULE_COLORS[i % MODULE_COLORS.length]}
-                                                            fill={`url(#grad_${m.module_id}_v)`}
-                                                            strokeWidth={2}
-                                                            fillOpacity={1}
-                                                            dot={false}
-                                                            name={`${m.module_name} V`}
-                                                        />
-                                                    ))}
+                                                {modules.map((m, i) => (
+                                                    <Area
+                                                        key={`${m.module_id}_v`}
+                                                        yAxisId="left"
+                                                        type="monotone"
+                                                        dataKey={`${m.module_id}_v`}
+                                                        hide={hiddenDevices.has(m.module_id)}
+                                                        stroke={MODULE_COLORS[i % MODULE_COLORS.length]}
+                                                        fill={`url(#grad_${m.module_id}_v)`}
+                                                        strokeWidth={2}
+                                                        fillOpacity={1}
+                                                        dot={false}
+                                                        name={`${m.module_name} V`}
+                                                    />
+                                                ))}
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -700,27 +679,26 @@ export const BuildingCard = ({
                                                     ))}
                                                 </defs>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                                <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} ticks={ticks} tickFormatter={(v) => formatXTick(v, period)} axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
+                                                <XAxis dataKey="ts" type="number" scale="time" domain={[cutoffTime, nowTime]} ticks={ticks} tickFormatter={(v) => formatXTick(v, period)} axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
                                                 <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} width={40} />
                                                 <Tooltip content={<AreaTooltip period={period} />} />
-                                                <Legend verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4 }} />
+                                                <Legend onClick={handleLegendClick} verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4, cursor: 'pointer' }} />
                                                 <Area yAxisId="left" type="monotone" dataKey="current" stroke="#10b981" fill="url(#grad_current)" strokeWidth={2} dot={false} name="Avg Current" />
-                                                {modules
-                                                    .filter(m => !hiddenDevices.has(m.module_id))
-                                                    .map((m, i) => (
-                                                        <Area
-                                                            key={`${m.module_id}_c`}
-                                                            yAxisId="left"
-                                                            type="monotone"
-                                                            dataKey={`${m.module_id}_c`}
-                                                            stroke={MODULE_COLORS[i % MODULE_COLORS.length]}
-                                                            fill={`url(#grad_${m.module_id}_c)`}
-                                                            strokeWidth={2}
-                                                            fillOpacity={1}
-                                                            dot={false}
-                                                            name={`${m.module_name} A`}
-                                                        />
-                                                    ))}
+                                                {modules.map((m, i) => (
+                                                    <Area
+                                                        key={`${m.module_id}_c`}
+                                                        yAxisId="left"
+                                                        type="monotone"
+                                                        dataKey={`${m.module_id}_c`}
+                                                        hide={hiddenDevices.has(m.module_id)}
+                                                        stroke={MODULE_COLORS[i % MODULE_COLORS.length]}
+                                                        fill={`url(#grad_${m.module_id}_c)`}
+                                                        strokeWidth={2}
+                                                        fillOpacity={1}
+                                                        dot={false}
+                                                        name={`${m.module_name} A`}
+                                                    />
+                                                ))}
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Plus,
   MapPin,
@@ -33,6 +34,7 @@ export default function BuildingManagement() {
   const { buildings, fetchBuildings, updateBuilding, addBuilding, removeBuildings, loading } = useBuilding();
   const { user } = useAuth();
   const { profile } = useProfile();
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newBuilding, setNewBuilding] = useState({ name: '', address: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -125,7 +127,7 @@ export default function BuildingManagement() {
                     status: building.state?.toLowerCase() as ('active' | 'inactive' | 'maintenance') || 'inactive'
                   }}
                   onEdit={(e) => handleEditClick(e, building)}
-                  onClick={() => setSelectedBuilding(building)}
+                  onClick={() => router.push(`/${user?.email}/analytics/${building.building_id}`)}
                 />
               ))
             )}

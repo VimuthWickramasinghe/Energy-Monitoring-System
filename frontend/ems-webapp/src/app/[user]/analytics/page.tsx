@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
                     value: d.real_power || d.power || 0
                 };
             })
-            .sort((a, b) => (b.real_power || b.power || 0) - (a.real_power || a.power || 0))
+            .sort((a, b) => b.value - a.value)
             .slice(0, 5);
     }, [allDeviceData, modules]);
 

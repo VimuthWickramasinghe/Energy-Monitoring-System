@@ -14,13 +14,22 @@ import { useDeviceData } from "@/lib/DeviceDataContext";
 import { useProfile } from "@/lib/ProfileContext";
 import { BuildingCard } from "@/components/analytics/BuildingCard";
 import { KPICard } from "@/components/analytics/KPICard";
+import { useParams } from "next/navigation";
 
 export default function AnalyticsPage() {
     const { buildings, modules, fetchBuildings, fetchModules, loading: buildingLoading } = useBuilding();
     const { profile } = useProfile();
     const { devices: allDeviceData, mongoDemoData, refreshDevices } = useDeviceData();
+    const params = useParams();
+    const buildingParam = params?.building as string;
 
-    const [activeTab, setActiveTab] = useState<'overview' | string>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | string>(buildingParam || 'overview');
+
+    useEffect(() => {
+        if (buildingParam) {
+            setActiveTab(buildingParam);
+        }
+    }, [buildingParam]);
 
     useEffect(() => {
         if (profile?.user_id) {

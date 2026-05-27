@@ -73,7 +73,11 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
             if (error) {
                 setError(error.message);
             } else {
-                setModules(data as Module[]);
+                const mapped = (data || []).map((m: any) => ({
+                    ...m,
+                    state: m.state || m.module_state || module_state.Inactive
+                }));
+                setModules(mapped);
             }
         } catch (error: any) {
             setError(error.message);
@@ -95,7 +99,11 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
                 throw error;
             }
             if (data) {
-                setModules(modules.map(m => m.module_id === moduleId ? { ...m, ...data[0] } : m));
+                const mappedUpdated = {
+                    ...data[0],
+                    state: data[0].state || data[0].module_state
+                };
+                setModules(modules.map(m => m.module_id === moduleId ? { ...m, ...mappedUpdated } : m));
             }
         } catch (error: any) {
             setError(error.message);
@@ -113,7 +121,13 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
                 .insert([{ ...module, module_id: uuid() }])
                 .select();
             if (error) throw error;
-            if (data) setModules([...modules, data[0]]);
+            if (data) {
+                const mappedNew = {
+                    ...data[0],
+                    state: data[0].state || data[0].module_state || module_state.Inactive
+                };
+                setModules([...modules, mappedNew]);
+            }
         } catch (error: any) {
             setError(error.message);
         }
@@ -135,7 +149,13 @@ export default function DeviceBuildingProvider({ children }: { children: ReactNo
                 }])
                 .select();
             if (error) throw error;
-            if (data) setModules(prev => [...prev, data[0]]);
+            if (data) {
+                const mappedNew = {
+                    ...data[0],
+                    state: data[0].state || data[0].module_state || module_state.Active
+                };
+                setModules(prev => [...prev, mappedNew]);
+            }
         } catch (error: any) {
             console.error("Supabase Insert Error:", error);
             setError(error.message);

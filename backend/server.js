@@ -68,10 +68,7 @@ try {
   });
 }
 
-// listen on all interfaces so other devices can reach this server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server listening on port ${port}`);
-});
+
 
 // MongoDB connection (dotenv)
 const mongoUri = process.env.MONGODB_URI;
