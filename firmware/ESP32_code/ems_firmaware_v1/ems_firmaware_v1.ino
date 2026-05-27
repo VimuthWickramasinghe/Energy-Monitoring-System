@@ -6,7 +6,6 @@
 #include <BLEUtils.h>      // Helper utilities for BLE UUIDs and data formatting
 #include <BLE2902.h>       // Enables Client Characteristic Configuration Descriptor (CCCD) for notifications
 #include <Preferences.h>   // Provides access to Non-Volatile Storage (NVS) to persist WiFi credentials
-#include "EmonLib.h"       // Library for SCT-013 and ZMPT101B analog sensors
 
 // put function declarations here:
 // Replace with your network credentials
@@ -34,19 +33,31 @@ const char* api_key = "ems-key-123";
 #define VOLT_SENSOR_PIN 34 // Analog input for ZMPT101B
 #define CURR_SENSOR_PIN 35 // Analog input for SCT-013
 
-// Calibration constants (Adjust these based on your specific divider/burden resistor)
-#define VOLT_CAL 440.0
-#define CURR_CAL 30.0
+// --- Power Calculation Parameters ---
+const double referenceVoltage = 3.3;
+const int adcMax = 4095;
+const double mVperAmp = 1000 / 30.0; 
+const int bufferSize = 200;
+const int sampleDelayUs = 500;
+double voltageCalibration = 1.0; // Default, can be updated
+
+// Global measurement variables
+double voltageRMS = 0;
+double currentRMS = 0;
+double realPower = 0;
+int voltageBuffer[bufferSize];
+int currentBuffer[bufferSize];
 
 // --- Function Prototypes ---
 void connectToWiFi();
 void setupBLE();
 void loadCredentials();
 void saveCredentials(String ssid, String pass);
+void sampleSynchronized();
+void calculatePower();
 void sendSensorData();
 
 Preferences preferences;
-EnergyMonitor emon1;
 BLECharacteristic *pStatusCharacteristic = nullptr;
 
 class ProvisioningCallbacks: public BLECharacteristicCallbacks {
@@ -100,8 +111,10 @@ void setup() {
   device_id = "ems-esp-" + String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
   device_id.toLowerCase();
 
-  emon1.voltage(VOLT_SENSOR_PIN, VOLT_CAL, 1.7); // Voltage: input pin, calibration, phase_shift
-  emon1.current(CURR_SENSOR_PIN, CURR_CAL);       // Current: input pin, calibration.
+  analogReadResolution(12);
+  analogSetAttenuation(ADC_11db);
+  pinMode(VOLT_SENSOR_PIN, INPUT);
+  pinMode(CURR_SENSOR_PIN, INPUT);
 
   Serial.println("--- EMS Device Initialization ---");
   Serial.printf("Device ID: %s\n", device_id.c_str());
@@ -161,6 +174,8 @@ void loop() {
   if (WiFi.status() == WL_CONNECTED) {
     static unsigned long lastMsg = 0;
     if (millis() - lastMsg > 10000) {
+      sampleSynchronized();
+      calculatePower();
       sendSensorData();
       lastMsg = millis();
     }
@@ -283,6 +298,48 @@ void saveCredentials(String ssid, String pass) {
   Serial.println("Credentials saved to NVS.");
 }
 
+void sampleSynchronized() {
+  for (int i = 0; i < bufferSize; i++) {
+    voltageBuffer[i] = analogRead(VOLT_SENSOR_PIN);
+    currentBuffer[i] = analogRead(CURR_SENSOR_PIN);
+    delayMicroseconds(sampleDelayUs);
+  }
+}
+
+void calculatePower() {
+  double vSum = 0, vSumSq = 0, cSum = 0, cSumSq = 0, powerSum = 0;
+  
+  for (int i = 0; i < bufferSize; i++) {
+    vSum += voltageBuffer[i];
+    cSum += currentBuffer[i];
+  }
+  double vAvg = vSum / bufferSize;
+  double cAvg = cSum / bufferSize;
+  
+  for (int i = 0; i < bufferSize; i++) {
+    double vDiff = voltageBuffer[i] - vAvg;
+    double cDiff = currentBuffer[i] - cAvg;
+    
+    vSumSq += vDiff * vDiff;
+    cSumSq += cDiff * cDiff;
+    
+    double vInstant = (vDiff * referenceVoltage / adcMax) * voltageCalibration;
+    double cInstant = (cDiff * referenceVoltage / adcMax) / (mVperAmp / 1000);
+    powerSum += vInstant * cInstant;
+  }
+  
+  double vRMS_raw = sqrt(vSumSq / bufferSize);
+  double cRMS_raw = sqrt(cSumSq / bufferSize);
+  
+  voltageRMS = (vRMS_raw * referenceVoltage / adcMax) * voltageCalibration;
+  currentRMS = (cRMS_raw * referenceVoltage / adcMax) / (mVperAmp / 1000);
+  
+  if (currentRMS < 0.05) currentRMS = 0;
+  
+  realPower = powerSum / bufferSize;
+  if (fabs(realPower) < 0.5) realPower = 0;
+}
+
 void sendSensorData() {
   HTTPClient http;
 
@@ -294,22 +351,10 @@ void sendSensorData() {
   // Create a JSON document
   JsonDocument doc;
 
-  // Calculate energy data (crossings, timeout)
-  emon1.calcVI(20, 2000);
-  float voltage = emon1.Vrms;
-  float current = emon1.Irms;
-  float power   = emon1.apparentPower;
-
-  if (voltage < 0 || current < 0) {
-    Serial.println("Error reading from sensor");
-    http.end();
-    return;
-  }
-
   doc["device_id"] = device_id;
-  doc["voltage"] = voltage;
-  doc["current"] = current;
-  doc["power"] = power;
+  doc["voltage"] = voltageRMS;
+  doc["current"] = currentRMS;
+  doc["power"] = realPower;
 
   String jsonPayload;
   serializeJson(doc, jsonPayload);
