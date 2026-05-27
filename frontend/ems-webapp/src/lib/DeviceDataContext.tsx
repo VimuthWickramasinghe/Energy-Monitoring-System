@@ -102,8 +102,11 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
             fetchDevices();
             fetchMongoDemoData();
 
-            // 2. Set up Socket.io for Real-time push updates
-            socket = io(BACKEND_URL);
+            const socketUrl = typeof window !== "undefined" && !window.location.hostname.endsWith("keyblocks.org")
+                ? `http://${window.location.hostname}:8080`
+                : (BACKEND_URL || "http://localhost:8080");
+
+            socket = io(socketUrl);
 
             socket.on("connect", () => {
                 console.log("Connected to backend WebSocket for live data");

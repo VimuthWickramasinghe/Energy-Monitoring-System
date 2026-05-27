@@ -16,13 +16,13 @@ const server = http.createServer(app);
 
 const corsOptions = {
   // Use '*' to allow all local network devices during development
-  origin: process.env.FRONTEND_URL || '*',
+  origin: process.env.NODE_ENV === 'development' ? '*' : (process.env.FRONTEND_URL || '*'),
   optionsSuccessStatus: 200
 };
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || '*',
+    origin: process.env.NODE_ENV === 'development' ? '*' : (process.env.FRONTEND_URL || '*'),
     methods: ["GET", "POST"]
   }
 });
@@ -302,6 +302,38 @@ app.get('/predict', authenticateFirebaseToken, (req, res) => {
   });
 });
 
+// Background mock data generator for testing
+function startMockDataGenerator() {
+  console.log("[Mock Generator] Starting background telemetry generator for 'ems-esm-test'...");
+  setInterval(async () => {
+    try {
+      const voltage = parseFloat((220 + Math.random() * 20).toFixed(1)); // 220V - 240V
+      const current = parseFloat((0.5 + Math.random() * 5).toFixed(2)); // 0.5A - 5.5A
+      const real_power = parseFloat(((voltage * current * 0.92) / 1000).toFixed(3)); // kW
+      const apparent_power = parseFloat(((voltage * current) / 1000).toFixed(3)); // kVA
+      const power_factor = 0.92;
+
+      const mockEntry = new Sensor({
+        device_id: "ems-esm-test",
+        voltage,
+        current,
+        real_power,
+        apparent_power,
+        power_factor,
+        time: new Date()
+      });
+
+      const saved = await mockEntry.save();
+      console.log(`[Mock Generator] Saved telemetry for 'ems-esm-test' - ID: ${saved._id}`);
+      
+      // Broadcast live update over Socket.io
+      io.emit('deviceData', saved);
+    } catch (err) {
+      console.error("[Mock Generator] Failed to generate mock telemetry:", err);
+    }
+  }, 10000); // every 10 seconds
+}
+
 // Connect and optionally insert ONE sample dataset if collection empty
 const uri = process.env.MONGODB_URI || "mongodb+srv://vimuth:<db_password>@ems-device-data-cluster.b4ircf5.mongodb.net/?appName=EMS-Device-data-Cluster";
 
@@ -313,6 +345,7 @@ async function run() {
       useUnifiedTopology: true,
     });
     console.log("Successfully connected to MongoDB via Mongoose!");
+    startMockDataGenerator();
 
     const count = await Sensor.countDocuments().catch(() => 0);
     if (!count) {
