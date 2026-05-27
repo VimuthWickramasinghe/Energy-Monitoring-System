@@ -2,6 +2,8 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
  
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const mongoose = require('mongoose'); // Kept for Schema/Model functionality
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -10,17 +12,34 @@ const admin = require('firebase-admin');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(supabaseUrl, supabaseKey);
+const server = http.createServer(app);
 
 const corsOptions = {
   // Use '*' to allow all local network devices during development
   origin: process.env.FRONTEND_URL || '*',
   optionsSuccessStatus: 200
 };
+
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || '*',
+    methods: ["GET", "POST"]
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log(`[Socket.io] Client connected: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log(`[Socket.io] Client disconnected: ${socket.id}`);
+  });
+});
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
@@ -63,7 +82,9 @@ const SensorSchema = new mongoose.Schema({
   device_id: { type: String, required: true },
   voltage: Number,
   current: Number,
-  power: Number,
+  apparent_power: Number,
+  real_power: Number,
+  power_factor: Number,
   time: { type: Date, default: Date.now }
 });
 
@@ -141,15 +162,19 @@ async function handleSendData(req, res) {
       device_id,
       voltage,
       current,
-      power,
+      apparent_power,
+      real_power,
+      power_factor,
     } = req.body;
 
     const docObj = { device_id };
     if (typeof voltage !== 'undefined' && !isNaN(voltage)) docObj.voltage = Number(voltage);
     if (typeof current !== 'undefined' && !isNaN(current)) docObj.current = Number(current);
-    if (typeof power !== 'undefined' && !isNaN(power)) docObj.power = Number(power);
+    if (typeof apparent_power !== 'undefined' && !isNaN(apparent_power)) docObj.apparent_power = Number(apparent_power);
+    if (typeof real_power !== 'undefined' && !isNaN(real_power)) docObj.real_power = Number(real_power);
+    if (typeof power_factor !== 'undefined' && !isNaN(power_factor)) docObj.power_factor = Number(power_factor);
     
-    if (Object.keys(docObj).length === 0) {
+    if (Object.keys(docObj).length <= 1) {
       console.log('No valid fields in incoming body:', req.body);
       return res.status(400).json({ error: 'No valid sensor fields in body' });
     }
@@ -157,6 +182,10 @@ async function handleSendData(req, res) {
     const data = new Sensor(docObj);
     const saved = await data.save();
     console.log('Saved document id:', saved._id.toString());
+    
+    // Broadcast the new data to all connected WebSocket clients
+    io.emit('deviceData', saved);
+    
     res.status(201).json({ message: 'Data saved', id: saved._id, data: docObj });
   } catch (err) {
     console.error('Error saving data:', err);
@@ -302,7 +331,7 @@ run().catch(console.dir);
 
 const port = process.env.PORT || process.env.BACKEND_PORT || 8080;
 // listen on all interfaces so other devices can reach this server
-app.listen(port, '0.0.0.0', () => {
+server.listen(port, '0.0.0.0', () => {
   const networkInterfaces = require('os').networkInterfaces();
   const localIp = Object.values(networkInterfaces).flat().find(i => i.family === 'IPv4' && !i.internal)?.address;
   console.log(`Server listening on port ${port} (Local IP: ${localIp || 'localhost'})`);
