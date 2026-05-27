@@ -65,13 +65,12 @@ export default function AnalyticsPage() {
         let count = 0;
 
         allDeviceData.forEach(d => {
-            load += (d.power || 0);
+            load += (d.real_power || d.power || 0);
             if (d.voltage) {
                 volt += d.voltage;
                 count++;
             }
         });
-
         return {
             totalGlobalLoad: load.toFixed(2),
             globalAvgVoltage: count > 0 ? (volt / count).toFixed(1) : "0.0"
@@ -87,10 +86,10 @@ export default function AnalyticsPage() {
                 return {
                     ...d,
                     name: moduleInfo?.module_name || d.device_id,
-                    value: d.power || 0
+                    value: d.real_power || d.power || 0
                 };
             })
-            .sort((a, b) => (b.power || 0) - (a.power || 0))
+            .sort((a, b) => (b.real_power || b.power || 0) - (a.real_power || a.power || 0))
             .slice(0, 5);
     }, [allDeviceData, modules]);
 

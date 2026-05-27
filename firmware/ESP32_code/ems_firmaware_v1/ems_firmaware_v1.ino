@@ -30,6 +30,7 @@ const char* api_key = "ems-key-123";
 // --- Hardware Pins ---
 #define RED_LED_PIN 2
 #define BOOT_BUTTON_PIN 0  // Standard Boot button on most ESP32s
+#define CALIB_BUTTON_PIN 4 // Button to trigger calibration
 #define VOLT_SENSOR_PIN 34 // Analog input for ZMPT101B
 #define CURR_SENSOR_PIN 35 // Analog input for SCT-013
 
@@ -40,13 +41,21 @@ const double mVperAmp = 1000 / 30.0;
 const int bufferSize = 200;
 const int sampleDelayUs = 500;
 double voltageCalibration = 1.0; // Default, can be updated
+const double currentNoiseThreshold = 0.05; // 50mA threshold
+const int samplesPerCycle = 40;      // Samples per 50Hz cycle
 
 // Global measurement variables
+double voltageOffset = 0;
+double currentOffset = 0;
 double voltageRMS = 0;
 double currentRMS = 0;
 double realPower = 0;
+double apparentPower = 0;
+double powerFactor = 0;
+double phaseAngle = 0;
 int voltageBuffer[bufferSize];
 int currentBuffer[bufferSize];
+bool debugMode = true;
 
 // --- Function Prototypes ---
 void connectToWiFi();
@@ -56,6 +65,8 @@ void saveCredentials(String ssid, String pass);
 void sampleSynchronized();
 void calculatePower();
 void sendSensorData();
+void calibrateSensors();
+void debugReadings();
 
 Preferences preferences;
 BLECharacteristic *pStatusCharacteristic = nullptr;
@@ -115,6 +126,7 @@ void setup() {
   analogSetAttenuation(ADC_11db);
   pinMode(VOLT_SENSOR_PIN, INPUT);
   pinMode(CURR_SENSOR_PIN, INPUT);
+  pinMode(CALIB_BUTTON_PIN, INPUT_PULLUP);
 
   Serial.println("--- EMS Device Initialization ---");
   Serial.printf("Device ID: %s\n", device_id.c_str());
@@ -136,6 +148,12 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+  // Debug mode - show raw readings first
+  if (debugMode) {
+    debugReadings();
+    debugMode = false;  // Run once, remove this line to keep debugging
+  }
 
   // Check for Button Long Press (3 seconds) to reset provisioning
   if (digitalRead(BOOT_BUTTON_PIN) == LOW) {
@@ -165,6 +183,24 @@ void loop() {
     }
   }
 
+  // Check for Calibration Button Long Press (3 seconds)
+  if (digitalRead(CALIB_BUTTON_PIN) == LOW) {
+    unsigned long calibPressStart = millis();
+    while (digitalRead(CALIB_BUTTON_PIN) == LOW) {
+      // Rapid blink to indicate calibration is pending
+      digitalWrite(RED_LED_PIN, !digitalRead(RED_LED_PIN));
+      delay(100);
+      if (millis() - calibPressStart > 3000) {
+        break;
+      }
+    }
+
+    if (millis() - calibPressStart > 3000) {
+      digitalWrite(RED_LED_PIN, HIGH); // Solid ON during calibration
+      calibrateSensors();
+    }
+  }
+
   // Check WiFi connection status
   if (shouldConnectWiFi && WiFi.status() != WL_CONNECTED) {
     shouldConnectWiFi = false; // Reset flag to prevent loop
@@ -176,6 +212,14 @@ void loop() {
     if (millis() - lastMsg > 10000) {
       sampleSynchronized();
       calculatePower();
+      
+      Serial.println("\n--- Power Readings ---");
+      Serial.printf("Voltage: %.2f V\n", voltageRMS);
+      Serial.printf("Current: %.3f A\n", currentRMS);
+      Serial.printf("Real Power: %.2f W\n", realPower);
+      Serial.printf("Apparent Power: %.2f VA\n", apparentPower);
+      Serial.printf("Power Factor: %.3f\n", powerFactor);
+
       sendSensorData();
       lastMsg = millis();
     }
@@ -307,8 +351,11 @@ void sampleSynchronized() {
 }
 
 void calculatePower() {
-  double vSum = 0, vSumSq = 0, cSum = 0, cSumSq = 0, powerSum = 0;
+  double vSum = 0, vSumSq = 0;
+  double cSum = 0, cSumSq = 0;
+  double powerSum = 0;
   
+  // Calculate averages (DC offset)
   for (int i = 0; i < bufferSize; i++) {
     vSum += voltageBuffer[i];
     cSum += currentBuffer[i];
@@ -316,6 +363,7 @@ void calculatePower() {
   double vAvg = vSum / bufferSize;
   double cAvg = cSum / bufferSize;
   
+  // Calculate RMS and real power
   for (int i = 0; i < bufferSize; i++) {
     double vDiff = voltageBuffer[i] - vAvg;
     double cDiff = currentBuffer[i] - cAvg;
@@ -323,21 +371,50 @@ void calculatePower() {
     vSumSq += vDiff * vDiff;
     cSumSq += cDiff * cDiff;
     
+    // Convert to actual values
     double vInstant = (vDiff * referenceVoltage / adcMax) * voltageCalibration;
     double cInstant = (cDiff * referenceVoltage / adcMax) / (mVperAmp / 1000);
     powerSum += vInstant * cInstant;
   }
   
+  // Calculate RMS values
   double vRMS_raw = sqrt(vSumSq / bufferSize);
   double cRMS_raw = sqrt(cSumSq / bufferSize);
   
   voltageRMS = (vRMS_raw * referenceVoltage / adcMax) * voltageCalibration;
   currentRMS = (cRMS_raw * referenceVoltage / adcMax) / (mVperAmp / 1000);
   
-  if (currentRMS < 0.05) currentRMS = 0;
+  // Apply noise threshold
+  if (currentRMS < currentNoiseThreshold) {
+    currentRMS = 0;
+  }
   
+  // Calculate powers
   realPower = powerSum / bufferSize;
-  if (fabs(realPower) < 0.5) realPower = 0;
+  
+  // Ensure real power isn't negative due to noise
+  if (fabs(realPower) < 0.5) {
+    realPower = 0;
+  }
+  
+  apparentPower = voltageRMS * currentRMS;
+  
+  // Calculate power factor
+  powerFactor = 0;
+  
+  if (apparentPower > 0.01) {
+    powerFactor = realPower / apparentPower;
+  }
+  
+  // Limit PF
+  if (powerFactor > 1.0)
+    powerFactor = 1.0;
+  
+  if (powerFactor < -1.0)
+    powerFactor = -1.0;
+  
+  // Phase angle
+  phaseAngle = acos(powerFactor) * 180.0 / PI;
 }
 
 void sendSensorData() {
@@ -354,7 +431,9 @@ void sendSensorData() {
   doc["device_id"] = device_id;
   doc["voltage"] = voltageRMS;
   doc["current"] = currentRMS;
-  doc["power"] = realPower;
+  doc["apparent_power"] = apparentPower;
+  doc["real_power"] = realPower;
+  doc["power_factor"] = powerFactor;
 
   String jsonPayload;
   serializeJson(doc, jsonPayload);
@@ -372,4 +451,121 @@ void sendSensorData() {
   }
 
   http.end();
+}
+
+// Calibrate sensors
+void calibrateSensors() {
+  Serial.println("\n=== CALIBRATION START ===");
+  
+  // Calibrate current sensor (zero current)
+  Serial.println("Step 1: Current Sensor Calibration");
+  Serial.println("Make sure NO LOAD is connected to ACS712!");
+  delay(3000);
+  
+  long currentSum = 0;
+  for (int i = 0; i < 1000; i++) {
+    currentSum += analogRead(CURR_SENSOR_PIN);
+    delay(1);
+  }
+  currentOffset = currentSum / 1000.0;
+  Serial.printf("Current sensor offset: %.2f ADC (%.3f V)\n", 
+                currentOffset, (currentOffset * referenceVoltage / adcMax));
+  
+  // Calibrate voltage sensor (find zero crossing offset)
+  Serial.println("\nStep 2: Voltage Sensor Zero Calibration");
+  long voltageSum = 0;
+  for (int i = 0; i < 1000; i++) {
+    voltageSum += analogRead(VOLT_SENSOR_PIN);
+    delay(1);
+  }
+  voltageOffset = voltageSum / 1000.0;
+  Serial.printf("Voltage sensor zero offset: %.2f ADC (%.3f V)\n", 
+                voltageOffset, (voltageOffset * referenceVoltage / adcMax));
+  
+  // Voltage gain calibration
+  Serial.println("\nStep 3: Voltage Gain Calibration");
+  Serial.println("You have 60 seconds to connect a multimeter and measure the actual AC voltage");
+  Serial.println("Apply known AC voltage (e.g., 220V or 110V) to ZMPT101B");
+  
+  // Countdown for user to connect multimeter and measure
+  for (int countdown = 60; countdown > 0; countdown--) {
+    if (countdown % 10 == 0 || countdown <= 5) {
+      Serial.printf("Time remaining: %d seconds\n", countdown);
+    }
+    delay(1000);
+  }
+  
+  double vSumSq = 0;
+  for (int i = 0; i < 1000; i++) {
+    int rawADC = analogRead(VOLT_SENSOR_PIN);
+    double diff = rawADC - voltageOffset;
+    vSumSq += diff * diff;
+    delayMicroseconds(500);
+  }
+  double measuredVRMS_raw = sqrt(vSumSq / 1000);
+  double measuredVRMS = (measuredVRMS_raw * referenceVoltage / adcMax);
+  
+  Serial.printf("Measured voltage (raw): %.2f V\n", measuredVRMS);
+  Serial.println("\nNow enter the ACTUAL voltage you measured with the multimeter:");
+  Serial.print("Enter ACTUAL RMS voltage (e.g., 230): ");
+  
+  unsigned long inputTimeout = millis() + 30000;  // 30 second timeout for input
+  while (!Serial.available()) {
+    if (millis() > inputTimeout) {
+      Serial.println("\nTimeout! Using default calibration (1.0)");
+      voltageCalibration = 1.0;
+      Serial.println("=== CALIBRATION COMPLETE ===\n");
+      return;
+    }
+    delay(100);
+  }
+  
+  double actualVoltage = Serial.parseFloat();
+  if (actualVoltage > 0) {
+    voltageCalibration = actualVoltage / measuredVRMS;
+    Serial.printf("Voltage calibration factor: %.3f\n", voltageCalibration);
+  } else {
+    voltageCalibration = 1.0;
+    Serial.println("Using default calibration (1.0)");
+  }
+  
+  Serial.println("=== CALIBRATION COMPLETE ===\n");
+}
+
+// Debug: raw ADC readings
+void debugReadings() {
+  Serial.println("\n=== RAW ADC DEBUG ===");
+  
+  // Read raw values
+  int vRaw = analogRead(VOLT_SENSOR_PIN);
+  int cRaw = analogRead(CURR_SENSOR_PIN);
+  
+  Serial.printf("Voltage Pin (GPIO%d): ADC = %d (%.3f V)\n", 
+                VOLT_SENSOR_PIN, vRaw, vRaw * referenceVoltage / adcMax);
+  Serial.printf("Current Pin (GPIO%d): ADC = %d (%.3f V)\n", 
+                CURR_SENSOR_PIN, cRaw, cRaw * referenceVoltage / adcMax);
+  
+  // Check for stuck ADC
+  if (vRaw == 0 || vRaw == 4095) {
+    Serial.println("WARNING: Voltage ADC seems stuck! Check wiring.");
+  }
+  if (cRaw == 0 || cRaw == 4095) {
+    Serial.println("WARNING: Current ADC seems stuck! Check wiring.");
+  }
+  
+  // Check offset calibration
+  Serial.printf("\nCurrent Offset: %.2f ADC\n", currentOffset);
+  Serial.printf("Voltage Offset: %.2f ADC\n", voltageOffset);
+  
+  // Quick RMS test
+  double vSumSq = 0;
+  for (int i = 0; i < 100; i++) {
+    int val = analogRead(VOLT_SENSOR_PIN);
+    double diff = val - voltageOffset;
+    vSumSq += diff * diff;
+    delayMicroseconds(500);
+  }
+  double testRMS = sqrt(vSumSq / 100);
+  double testVoltage = (testRMS * referenceVoltage / adcMax) * voltageCalibration;
+  Serial.printf("Quick voltage test: %.2f V RMS\n", testVoltage);
 }

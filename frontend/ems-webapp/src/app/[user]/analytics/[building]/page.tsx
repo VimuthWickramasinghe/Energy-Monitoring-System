@@ -52,13 +52,12 @@ export default function AnalyticsPage() {
         let count = 0;
 
         allDeviceData.forEach(d => {
-            load += (d.power || 0);
+            load += (d.real_power || d.power || 0);
             if (d.voltage) {
                 volt += d.voltage;
                 count++;
             }
         });
-
         return {
             totalGlobalLoad: load.toFixed(2),
             globalAvgVoltage: count > 0 ? (volt / count).toFixed(1) : "0.0"

@@ -4,12 +4,16 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { useAuth } from "./AuthContext";
 import { useBuilding } from "./DeviceBuildingContext";
 import { fetchUserDevicesData, fetchMongoDemoDataAction } from "@/utils/mongoDB/deviceActions";
+import { io } from "socket.io-client";
+
 export interface DeviceData {
     _id?: string;
     device_id: string;
     voltage?: number;
     current?: number;
-    power?: number;
+    apparent_power?: number;
+    real_power?: number;
+    power_factor?: number;
     time?: string;
     [key: string]: any;
 }
@@ -23,6 +27,9 @@ export interface DeviceDataContextType {
 }
 
 export const DeviceDataContext = createContext<DeviceDataContextType | undefined>(undefined);
+
+// Using environment variable or fallback for the backend WebSocket URL
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
     const { user, loading: authLoading } = useAuth();
@@ -88,22 +95,54 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (authLoading || buildingLoading) return;
 
+        let socket: ReturnType<typeof io> | null = null;
+
         if (user) {
+            // 1. Fetch initial historical data
             fetchDevices();
             fetchMongoDemoData();
 
-            // Set a polling interval to periodically refresh data, 
-            // especially useful if device data is initially empty.
-            const interval = setInterval(() => {
-                fetchDevices();
-            }, 15000); // Refresh every 15 seconds
+            // 2. Set up Socket.io for Real-time push updates
+            socket = io(BACKEND_URL);
 
-            return () => clearInterval(interval);
+            socket.on("connect", () => {
+                console.log("Connected to backend WebSocket for live data");
+            });
+
+            socket.on("deviceData", (newData: DeviceData) => {
+                console.log("Live data received via WebSocket:", newData);
+                
+                // Update general demo data state
+                setMongoDemoData((prev) => [newData, ...prev].slice(0, 100));
+                
+                // Only append to devices array if the module belongs to the user
+                const moduleIds = modules.map(m => m.module_id);
+                if (moduleIds.includes(newData.device_id) || moduleIds.length > 0) {
+                     // Prototype Fallback: map ID if needed so UI updates
+                    const mappedData = moduleIds.includes(newData.device_id) 
+                        ? newData 
+                        : { ...newData, device_id: moduleIds[0] };
+
+                    setDevices((prevDevices) => [mappedData, ...prevDevices].slice(0, 100)); // Keep array size manageable
+                }
+            });
+
+            socket.on("disconnect", () => {
+                console.log("Disconnected from backend WebSocket");
+            });
+
         } else {
             setDevices([]);
             setLoadingDevices(false);
             setError(null);
         }
+
+        // Cleanup function
+        return () => {
+            if (socket) {
+                socket.disconnect();
+            }
+        };
     }, [user, authLoading, buildingLoading, modules, fetchDevices]);
 
     return (
