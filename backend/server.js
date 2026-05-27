@@ -1,6 +1,9 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
- 
+// Make sure .env.local is actually being copied in your Dockerfile, e.g.:
+// COPY .env.local /app/.env.local  (if WORKDIR is /app/backend, adjust accordingly)
+
+
 const express = require('express');
 const mongoose = require('mongoose'); // Kept for Schema/Model functionality
 const bodyParser = require('body-parser');
@@ -11,8 +14,8 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -33,13 +36,7 @@ try {
     credential: admin.credential.cert(serviceAccount)
   });
 } catch (error) {
-  console.error("Firebase Admin Setup Error:", error);
-  if (!process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
-    console.error('\n❌ FATAL ERROR: Missing Firebase Admin credentials.');
-    console.error('Node.js could not find the "serviceAccountKey.json" file in your backend folder.');
-    console.error('Please make sure you saved it exactly as "backend/serviceAccountKey.json".\n');
-    process.exit(1);
-  }
+  console.warn("serviceAccountKey.json not found, falling back to env vars...");
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
