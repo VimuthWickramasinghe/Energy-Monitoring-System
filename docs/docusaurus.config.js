@@ -65,6 +65,8 @@ const config = {
         id: 'user-manual',
         path: 'user-manual',
         routeBasePath: 'user-manual',
+        editUrl:
+          'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System/tree/main/docs/',
       }
     ],
     [
@@ -73,6 +75,8 @@ const config = {
         id: 'developer-guide',
         path: 'developer-guide',
         routeBasePath: 'developer-guide',
+        editUrl:
+          'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System/tree/main/docs/',
       },
     ],
   ],
