@@ -8,7 +8,7 @@ import Heading from '@theme/Heading';
 import styles from './index.module.css';
 
 function HomepageHeader() {
-  const {siteConfig} = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext();
   return (
     <header className={styles.heroBanner}>
       <div className="container">
@@ -24,8 +24,13 @@ function HomepageHeader() {
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/developer-guide/setup">
-            Developer Setup 🛠️
+            to="/docs/technical-documentation/architecture">
+            Technical Documentation 🛠️
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/developer-guide/setup">
+            Developer Guide 🛠️
           </Link>
         </div>
       </div>
@@ -34,7 +39,7 @@ function HomepageHeader() {
 }
 
 export default function Home() {
-  const {siteConfig} = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
       title={`${siteConfig.title}`}

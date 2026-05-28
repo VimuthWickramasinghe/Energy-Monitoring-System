@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import Heading from '@theme/Heading';
 import styles from './styles.module.css';
 
-function UserManualSvg({className}) {
+function UserManualSvg({ className }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
       <rect x="15" y="10" width="50" height="60" rx="6" stroke="currentColor" strokeWidth="2.5" />
@@ -15,7 +15,7 @@ function UserManualSvg({className}) {
   );
 }
 
-function TechSpecSvg({className}) {
+function TechSpecSvg({ className }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
       <rect x="20" y="20" width="40" height="40" rx="8" stroke="currentColor" strokeWidth="2.5" />
@@ -36,7 +36,7 @@ function TechSpecSvg({className}) {
   );
 }
 
-function DevGuideSvg({className}) {
+function DevGuideSvg({ className }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
       <rect x="12" y="18" width="56" height="44" rx="6" stroke="currentColor" strokeWidth="2.5" />
@@ -56,17 +56,17 @@ const FeatureList = [
     SvgComponent: UserManualSvg,
     description: (
       <>
-        A guide for homeowners and facility administrators. Learn to read telemetry meters, 
+        A guide for homeowners and facility administrators. Learn to read telemetry meters,
         set up consumption thresholds, and generate auditor-ready reports.
       </>
     ),
   },
   {
-    title: 'Technical Specifications',
+    title: 'Technical Documentationifications',
     SvgComponent: TechSpecSvg,
     description: (
       <>
-        Hardware wiring designs for the ESP32 chip, SCT-013 current clamp, and ZMPT101B 
+        Hardware wiring designs for the ESP32 chip, SCT-013 current clamp, and ZMPT101B
         sensors. Explore the hybrid MongoDB/Supabase database architecture.
       </>
     ),
@@ -76,14 +76,14 @@ const FeatureList = [
     SvgComponent: DevGuideSvg,
     description: (
       <>
-        Start contributing in minutes. Setup guidelines for local Next.js frontends, Express API 
+        Start contributing in minutes. Setup guidelines for local Next.js frontends, Express API
         servers, ESP32 firmware compiles, and coding guidelines.
       </>
     ),
   },
 ];
 
-function Feature({SvgComponent, title, description}) {
+function Feature({ SvgComponent, title, description }) {
   return (
     <div className={clsx('col col--4', 'margin-bottom--lg')}>
       <div className={styles.featureCard}>

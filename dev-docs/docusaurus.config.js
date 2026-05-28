@@ -4,7 +4,7 @@
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
-import {themes as prismThemes} from 'prism-react-renderer';
+import { themes as prismThemes } from 'prism-react-renderer';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -65,7 +65,14 @@ const config = {
         id: 'user-manual',
         path: 'user-manual',
         routeBasePath: 'user-manual',
-        sidebarPath: './sidebarsUserManual.js',
+      }
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'developer-guide',
+        path: 'developer-guide',
+        routeBasePath: 'developer-guide',
       },
     ],
   ],
@@ -91,12 +98,12 @@ const config = {
             position: 'left',
           },
           {
-            to: 'docs/technical-spec/architecture',
-            label: 'Technical Spec',
+            to: 'docs/technical-documentation/architecture',
+            label: 'Technical Documentation',
             position: 'left',
           },
           {
-            to: 'docs/developer-guide/setup',
+            to: 'developer-guide/setup',
             label: 'Developer Guide',
             position: 'left',
           },
@@ -118,12 +125,12 @@ const config = {
                 to: '/user-manual/overview',
               },
               {
-                label: 'Technical Spec',
-                to: '/docs/technical-spec/architecture',
+                label: 'Technical Documentation',
+                to: '/docs/technical-documentation/architecture',
               },
               {
                 label: 'Developer Guide',
-                to: '/docs/developer-guide/setup',
+                to: '/developer-guide/setup',
               },
             ],
           },
