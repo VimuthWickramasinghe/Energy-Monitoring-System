@@ -30,7 +30,6 @@ const char* api_key = "ems-key-123";
 // --- Hardware Pins ---
 #define RED_LED_PIN 2
 #define BOOT_BUTTON_PIN 0  // Standard Boot button on most ESP32s
-#define CALIB_BUTTON_PIN 4 // Button to trigger calibration
 #define VOLT_SENSOR_PIN 34 // Analog input for ZMPT101B
 #define CURR_SENSOR_PIN 35 // Analog input for SCT-013
 
@@ -126,14 +125,19 @@ void setup() {
   analogSetAttenuation(ADC_11db);
   pinMode(VOLT_SENSOR_PIN, INPUT);
   pinMode(CURR_SENSOR_PIN, INPUT);
-  pinMode(CALIB_BUTTON_PIN, INPUT_PULLUP);
 
   Serial.println("--- EMS Device Initialization ---");
   Serial.printf("Device ID: %s\n", device_id.c_str());
   
   loadCredentials();
 
-  if (provisioned_ssid.length() > 0) {
+  // Check if calibration exists, if not, force calibration
+  if (voltageOffset == 0 && currentOffset == 0) {
+    Serial.println("No calibration data found! Starting calibration...");
+    calibrateSensors();
+  }
+
+  if (provisioned_ssid.length() > 0 && WiFi.status() != WL_CONNECTED) {
     connectToWiFi();
   }
 
@@ -153,6 +157,15 @@ void loop() {
   if (debugMode) {
     debugReadings();
     debugMode = false;  // Run once, remove this line to keep debugging
+  }
+
+  // Check for Serial commands
+  if (Serial.available() > 0) {
+    String command = Serial.readStringUntil('\n');
+    command.trim();
+    if (command.equalsIgnoreCase("CALIBRATE")) {
+      calibrateSensors();
+    }
   }
 
   // Check for Button Long Press (3 seconds) to reset provisioning
@@ -180,24 +193,6 @@ void loop() {
       shouldConnectWiFi = false;
       Serial.println("Data cleared. Restarting...");
       ESP.restart();
-    }
-  }
-
-  // Check for Calibration Button Long Press (3 seconds)
-  if (digitalRead(CALIB_BUTTON_PIN) == LOW) {
-    unsigned long calibPressStart = millis();
-    while (digitalRead(CALIB_BUTTON_PIN) == LOW) {
-      // Rapid blink to indicate calibration is pending
-      digitalWrite(RED_LED_PIN, !digitalRead(RED_LED_PIN));
-      delay(100);
-      if (millis() - calibPressStart > 3000) {
-        break;
-      }
-    }
-
-    if (millis() - calibPressStart > 3000) {
-      digitalWrite(RED_LED_PIN, HIGH); // Solid ON during calibration
-      calibrateSensors();
     }
   }
 
@@ -330,8 +325,15 @@ void loadCredentials() {
   preferences.begin("wifi-gate", true);
   provisioned_ssid = preferences.getString("ssid", "");
   provisioned_password = preferences.getString("pass", "");
+  
+  // Load calibration data
+  voltageCalibration = preferences.getDouble("vCal", 1.0);
+  voltageOffset = preferences.getDouble("vOff", 0.0);
+  currentOffset = preferences.getDouble("cOff", 0.0);
   preferences.end();
+  
   if(provisioned_ssid.length() > 0) Serial.println("Loaded stored credentials.");
+  if(voltageOffset != 0) Serial.println("Loaded stored calibration data.");
 }
 
 void saveCredentials(String ssid, String pass) {
@@ -528,6 +530,13 @@ void calibrateSensors() {
     voltageCalibration = 1.0;
     Serial.println("Using default calibration (1.0)");
   }
+
+  // Save calibration to NVM
+  preferences.begin("wifi-gate", false);
+  preferences.putDouble("vCal", voltageCalibration);
+  preferences.putDouble("vOff", voltageOffset);
+  preferences.putDouble("cOff", currentOffset);
+  preferences.end();
   
   Serial.println("=== CALIBRATION COMPLETE ===\n");
 }
