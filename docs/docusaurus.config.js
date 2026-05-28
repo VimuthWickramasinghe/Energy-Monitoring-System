@@ -48,7 +48,7 @@ const config = {
         docs: {
           sidebarPath: './sidebars.js',
           editUrl:
-            'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System/tree/main/dev-docs/',
+            'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System/tree/main/docs/',
         },
         blog: false,
         theme: {
@@ -98,7 +98,7 @@ const config = {
             position: 'left',
           },
           {
-            to: 'docs/technical-documentation/architecture',
+            to: 'technical-documentation/architecture',
             label: 'Technical Documentation',
             position: 'left',
           },
@@ -126,7 +126,7 @@ const config = {
               },
               {
                 label: 'Technical Documentation',
-                to: '/docs/technical-documentation/architecture',
+                to: '/technical-documentation/architecture',
               },
               {
                 label: 'Developer Guide',
