@@ -35,9 +35,14 @@ export default function Home() {
                 Get Started
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
               </Link>
-              <button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 px-7 py-3 rounded-full font-medium transition-colors w-full sm:w-auto">
-                View Demo
-              </button>
+              <a 
+                href="https://vimuthwickramasinghe.github.io/Energy-Monitoring-System/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 px-7 py-3 rounded-full font-medium transition-all w-full sm:w-auto text-center flex items-center justify-center gap-2 shadow-sm hover:shadow-md active:scale-[0.98]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                Documentation
+              </a>
             </div>
           </div>
           <div className="relative">
