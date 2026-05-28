@@ -133,7 +133,6 @@ const config = {
                 label: 'User Manual',
                 to: '/user-manual/overview',
               },
-              ,
               {
                 label: 'Technical Documentation',
                 to: '/docs/architecture',
