@@ -1,6 +1,6 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
- 
+
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -14,9 +14,14 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 const server = http.createServer(app);
 
+// Clean FRONTEND_URL to strip any trailing slash, ensuring compatibility with browser Origin headers.
+const rawFrontendUrl = process.env.FRONTEND_URL || '*';
+const allowedOrigin = process.env.NODE_ENV === 'development' 
+  ? '*' 
+  : rawFrontendUrl.replace(/\/$/, '');
+
 const corsOptions = {
-  // Use '*' to allow all local network devices during development
-  origin: process.env.NODE_ENV === 'development' ? '*' : (process.env.FRONTEND_URL || '*'),
+  origin: allowedOrigin,
   optionsSuccessStatus: 200
 };
 
@@ -35,7 +40,7 @@ const io = new Server(server, {
   // (e.g. Next.js running on localhost:3000) to connect without CORS browser violations.
   // In production, we restrict connections to our designated FRONTEND_URL.
   cors: {
-    origin: process.env.NODE_ENV === 'development' ? '*' : (process.env.FRONTEND_URL || '*'),
+    origin: allowedOrigin,
     methods: ["GET", "POST"]
   }
 });
@@ -44,7 +49,7 @@ const io = new Server(server, {
 // Each time a frontend client connects (e.g. dashboard tab), a new socket session is initialized.
 io.on('connection', (socket) => {
   console.log(`[Socket.io] Client connected: ${socket.id}`);
-  
+
   // Clean up and log when a client closes the connection (e.g. closes the browser tab).
   socket.on('disconnect', () => {
     console.log(`[Socket.io] Client disconnected: ${socket.id}`);
@@ -187,7 +192,7 @@ async function handleSendData(req, res) {
     if (typeof apparent_power !== 'undefined' && !isNaN(apparent_power)) docObj.apparent_power = Number(apparent_power);
     if (typeof real_power !== 'undefined' && !isNaN(real_power)) docObj.real_power = Number(real_power);
     if (typeof power_factor !== 'undefined' && !isNaN(power_factor)) docObj.power_factor = Number(power_factor);
-    
+
     if (Object.keys(docObj).length <= 1) {
       console.log('No valid fields in incoming body:', req.body);
       return res.status(400).json({ error: 'No valid sensor fields in body' });
@@ -198,7 +203,7 @@ async function handleSendData(req, res) {
     const data = new Sensor(docObj);
     const saved = await data.save();
     console.log('Saved document id:', saved._id.toString());
-    
+
     // ========================================================================
     // WEBSOCKET BROADCAST LOGIC
     // ========================================================================
@@ -215,7 +220,7 @@ async function handleSendData(req, res) {
     // the frontend clients do not have to poll the database or make repetitive HTTP requests.
     // They just listen for 'deviceData' updates and update their local state reactively.
     io.emit('deviceData', saved);
-    
+
     // Respond back to the hardware device to confirm receipt and successful database storage.
     res.status(201).json({ message: 'Data saved', id: saved._id, data: docObj });
   } catch (err) {
@@ -236,13 +241,13 @@ app.post('/register-device', authenticateFirebaseToken, async (req, res) => {
     // Save metadata to Supabase
     const { data, error } = await supabase
       .from('MODULE')
-      .upsert({ 
-        device_id, 
-        name, 
-        building_id, 
+      .upsert({
+        device_id,
+        name,
+        building_id,
         phase,
         user_id: req.user.uid,
-        updated_at: new Date() 
+        updated_at: new Date()
       });
 
     if (error) throw error;
@@ -359,7 +364,7 @@ function startMockDataGenerator() {
 
       const saved = await mockEntry.save();
       console.log(`[Mock Generator] Saved telemetry for 'ems-esm-test' - ID: ${saved._id}`);
-      
+
       // Broadcast live update over Socket.io
       io.emit('deviceData', saved);
     } catch (err) {
@@ -369,8 +374,7 @@ function startMockDataGenerator() {
 }
 
 // Connect and optionally insert ONE sample dataset if collection empty
-const uri = process.env.MONGODB_URI || "mongodb+srv://vimuth:<db_password>@ems-device-data-cluster.b4ircf5.mongodb.net/?appName=EMS-Device-data-Cluster";
-
+const uri = process.env.MONGODB_URI
 async function run() {
   try {
     // Use Mongoose to connect with recommended options for Cloud hosting
@@ -379,7 +383,6 @@ async function run() {
       useUnifiedTopology: true,
     });
     console.log("Successfully connected to MongoDB via Mongoose!");
-    startMockDataGenerator();
 
     const count = await Sensor.countDocuments().catch(() => 0);
     if (!count) {

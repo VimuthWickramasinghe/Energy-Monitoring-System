@@ -31,7 +31,7 @@ steps:
       # Format: ENV_VAR_NAME=SECRET_NAME:latest
       # You must create these secrets in GCP Secret Manager first!
       - '--update-secrets'
-      - 'MONGO_URI=MONGO_URI:latest,SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_SERVICE_KEY=SUPABASE_SERVICE_KEY:latest'
+      - 'MONGO_URI=MONGO_URI:latest,SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_PUBLISHABLE_KEY=SUPABASE_PUBLISHABLE_KEY:latest,FIREBASE_CLIENT_EMAIL=FIREBASE_CLIENT_EMAIL:latest,FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest,HARDWARE_API_KEY=HARDWARE_API_KEY:latest'
 
 images:
   - 'gcr.io/$PROJECT_ID/ems-backend'

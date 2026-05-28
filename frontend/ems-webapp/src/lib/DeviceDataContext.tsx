@@ -129,7 +129,13 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
 
             // 3. Instantiate the Socket.io client connection.
             // This opens a persistent TCP-based WebSocket connection to the backend.
-            socket = io(socketUrl);
+            // We force 'websocket' as the only transport. This bypasses the default HTTP long-polling
+            // handshake upgrade stage, preventing "Session ID unknown" or 400 Bad Request handshake errors
+            // when deployed on containerized serverless hosting like Google Cloud Run (which routes multi-request polls across different instances).
+            socket = io(socketUrl, {
+                transports: ['websocket'],
+                upgrade: false
+            });
 
             // Log connection state for debugging
             socket.on("connect", () => {
@@ -141,8 +147,8 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
             socket.on("deviceData", (newData: DeviceData) => {
                 console.log("Live data received via WebSocket:", newData);
                 
-                // Update general historical demo data list
-                setMongoDemoData((prev) => [newData, ...prev].slice(0, 100));
+                // Update general historical demo data list (keep up to 1000 items)
+                setMongoDemoData((prev) => [newData, ...prev].slice(0, 1000));
                 
                 // Only process and react to the telemetry packet if it belongs to one of the user's modules
                 const moduleIds = modules.map(m => m.module_id);
@@ -157,8 +163,8 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
 
                     // Prepend the new telemetry reading to the state array.
                     // Since the array is stateful, this instantly updates the UI in all consuming pages (like analytics)
-                    // without any page reloads or API polling. We slice it to keep the last 100 readings.
-                    setDevices((prevDevices) => [mappedData, ...prevDevices].slice(0, 100));
+                    // without any page reloads or API polling. We slice it to keep the last 1000 readings to preserve history.
+                    setDevices((prevDevices) => [mappedData, ...prevDevices].slice(0, 1000));
                 }
             });
 

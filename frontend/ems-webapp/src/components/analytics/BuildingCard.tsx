@@ -44,7 +44,7 @@ import { client as supabaseClient } from "@/utils/supabase/client";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const TIME_PERIODS = ['1H', '6H', '12H', '24H', '3D', '7D', '1M', '1Y'] as const;
+const TIME_PERIODS = ['LIVE', '30M', '1H', '6H', '12H', '24H', '3D', '7D', '1M', '1Y'] as const;
 type TimePeriod = typeof TIME_PERIODS[number];
 
 /** How many X-axis ticks to aim for (Recharts will round to nearest data point). */
@@ -58,9 +58,11 @@ const MODULE_COLORS = ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899'];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getCutoff(period: TimePeriod): Date {
-    const now = new Date();
+function getCutoff(period: TimePeriod, referenceTime: number): Date {
+    const now = new Date(referenceTime);
     switch (period) {
+        case 'LIVE': return new Date(now.getTime() - 3 * 60_000); // Scrolling 3-minute window
+        case '30M': return new Date(now.getTime() - 30 * 60_000);
         case '1H': return new Date(now.getTime() - 1 * 3_600_000);
         case '6H': return new Date(now.getTime() - 6 * 3_600_000);
         case '12H': return new Date(now.getTime() - 12 * 3_600_000);
@@ -74,7 +76,11 @@ function getCutoff(period: TimePeriod): Date {
 
 function formatXTick(ts: number, period: TimePeriod): string {
     const d = new Date(ts);
-    if (['1H', '6H', '12H', '24H'].includes(period)) {
+    if (period === 'LIVE') {
+        // Show seconds in LIVE mode so the user can see high-frequency changes
+        return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
+    }
+    if (['30M', '1H', '6H', '12H', '24H'].includes(period)) {
         return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
     }
     return `${(d.getMonth() + 1)}/${d.getDate()} ${d.getHours()}:00`;
@@ -147,6 +153,19 @@ const DeviceRealtimeCard = ({
 }: {
     module: Module; data: Record<string, any> | null; color: string;
 }) => {
+    const [isFlashing, setIsFlashing] = useState(false);
+
+    // Trigger a brief flash/blink animation whenever a new telemetry data packet arrives (detected by time property change)
+    useEffect(() => {
+        if (data?.time) {
+            setIsFlashing(true);
+            const timer = setTimeout(() => {
+                setIsFlashing(false);
+            }, 1000); // flash for 1 second
+            return () => clearTimeout(timer);
+        }
+    }, [data?.time]);
+
     // Consider the device "online" if last data arrived within 2 minutes
     const age = data?.time ? Date.now() - new Date(data.time).getTime() : Infinity;
     const online = age < 120_000;
@@ -173,8 +192,14 @@ const DeviceRealtimeCard = ({
                 </div>
                 {data ? (
                     online ? (
-                        <span className="flex items-center gap-1 text-[9px] text-emerald-600 bg-emerald-50 rounded-full px-2 py-0.5 font-bold border border-emerald-100">
+                        <span className="flex items-center gap-1.5 text-[9px] text-emerald-600 bg-emerald-50 rounded-full px-2 py-0.5 font-bold border border-emerald-100">
                             <Wifi size={8} /> LIVE
+                            <span className="relative flex h-1.5 w-1.5 ml-0.5">
+                                {isFlashing && (
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                )}
+                                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isFlashing ? 'bg-emerald-400 scale-125 transition-all' : 'bg-emerald-600'}`}></span>
+                            </span>
                         </span>
                     ) : (
                         <span className="flex items-center gap-1 text-[9px] text-red-500 bg-red-50 rounded-full px-2 py-0.5 font-bold border border-red-100">
@@ -250,6 +275,18 @@ export const BuildingCard = ({
     const params = useParams();
     const user = params?.user as string;
 
+    // State to track current time for shifting graph boundaries periodically
+    const [currentTime, setCurrentTime] = useState(Date.now());
+
+    // Update current time dynamically: every 2 seconds for LIVE mode, 30 seconds for historical modes
+    useEffect(() => {
+        const ms = period === 'LIVE' ? 2000 : 30000;
+        const interval = setInterval(() => {
+            setCurrentTime(Date.now());
+        }, ms);
+        return () => clearInterval(interval);
+    }, [period]);
+
     // ── Derived chart + KPI data ─────────────────────────────────────────────
     // This useMemo hook recalculates the chart datasets and KPI totals whenever
     // the timespan changes, or when new live device data arrives via the WebSockets
@@ -257,9 +294,9 @@ export const BuildingCard = ({
     // reactively on every broadcast, this calculation is automatically triggered,
     // providing real-time data updates without any browser polling.
     const { chartData, ticks, totalLoad, dailyEnergy, avgVoltage, peakDemand, latestMap, cutoffTime, nowTime } = useMemo(() => {
-        const cutoff = getCutoff(period);
+        const cutoff = getCutoff(period, currentTime);
         const cutoffTime = cutoff.getTime();
-        const nowTime = Date.now();
+        const nowTime = currentTime;
         const moduleIds = modules.map(m => m.module_id);
 
         // ====================================================================
@@ -296,9 +333,12 @@ export const BuildingCard = ({
             .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
         // Bucket by rounded timestamp
-        // Bucket granularity: aim for ~80 data points in the chart to keep it readable
+        // Bucket granularity: aim for ~80 data points in the chart to keep it readable.
+        // For LIVE mode, we use 2-second buckets to ensure every telemetry packet is plotted distinctly.
         const windowMs = nowTime - cutoffTime;
-        const bucketMs = Math.max(Math.round(windowMs / 80), 60_000); // min 1 min
+        const bucketMs = period === 'LIVE'
+            ? 2000
+            : Math.max(Math.round(windowMs / 80), 60_000); // min 1 min for historical modes
         const bucketMap = new Map<number, {
             ts: number; load: number; vSum: number; vCnt: number;
             cSum: number; cCnt: number;
@@ -368,7 +408,7 @@ export const BuildingCard = ({
             cutoffTime,
             nowTime
         };
-    }, [modules, allDeviceData, period]);
+    }, [modules, allDeviceData, period, currentTime]);
 
     const toggleDevice = (deviceId: string) => {
         setHiddenDevices(prev => {
@@ -585,9 +625,9 @@ export const BuildingCard = ({
                                                     wrapperStyle={{ fontSize: 9, paddingBottom: 4 }}
                                                 />
 
-                                                <Area yAxisId="left" type="monotone" dataKey="load" stroke="#ef4444" fill="url(#grad_load)" strokeWidth={2} dot={false} name="Building Load (kW)" />
-                                                <Area yAxisId="right" type="monotone" dataKey="voltage" stroke="#8b5cf6" fill="url(#grad_voltage)" strokeWidth={1.5} dot={false} name="Avg Voltage (V)" />
-                                                <Area yAxisId="right" type="monotone" dataKey="current" stroke="#10b981" fill="url(#grad_current)" strokeWidth={1.5} dot={false} name="Avg Current (A)" />
+                                                <Area yAxisId="left" type="monotone" dataKey="load" stroke="#ef4444" fill="url(#grad_load)" strokeWidth={2} dot={false} name="Building Load (kW)" isAnimationActive={period !== 'LIVE'} />
+                                                <Area yAxisId="right" type="monotone" dataKey="voltage" stroke="#8b5cf6" fill="url(#grad_voltage)" strokeWidth={1.5} dot={false} name="Avg Voltage (V)" isAnimationActive={period !== 'LIVE'} />
+                                                <Area yAxisId="right" type="monotone" dataKey="current" stroke="#10b981" fill="url(#grad_current)" strokeWidth={1.5} dot={false} name="Avg Current (A)" isAnimationActive={period !== 'LIVE'} />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -619,6 +659,7 @@ export const BuildingCard = ({
                                                         strokeWidth={2}
                                                         dot={false}
                                                         name={m.module_name}
+                                                        isAnimationActive={period !== 'LIVE'}
                                                     />
                                                 ))}
                                             </AreaChart>
@@ -652,7 +693,7 @@ export const BuildingCard = ({
                                                 <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} width={40} domain={['auto', 'auto']} />
                                                 <Tooltip content={<AreaTooltip period={period} />} />
                                                 <Legend onClick={handleLegendClick} verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4, cursor: 'pointer' }} />
-                                                <Area yAxisId="left" type="monotone" dataKey="voltage" stroke="#8b5cf6" fill="url(#grad_voltage)" strokeWidth={2} dot={false} name="Avg Voltage" />
+                                                <Area yAxisId="left" type="monotone" dataKey="voltage" stroke="#8b5cf6" fill="url(#grad_voltage)" strokeWidth={2} dot={false} name="Avg Voltage" isAnimationActive={period !== 'LIVE'} />
                                                 {modules.map((m, i) => (
                                                     <Area
                                                         key={`${m.module_id}_v`}
@@ -666,6 +707,7 @@ export const BuildingCard = ({
                                                         fillOpacity={1}
                                                         dot={false}
                                                         name={`${m.module_name} V`}
+                                                        isAnimationActive={period !== 'LIVE'}
                                                     />
                                                 ))}
                                             </AreaChart>
@@ -699,7 +741,7 @@ export const BuildingCard = ({
                                                 <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} width={40} />
                                                 <Tooltip content={<AreaTooltip period={period} />} />
                                                 <Legend onClick={handleLegendClick} verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4, cursor: 'pointer' }} />
-                                                <Area yAxisId="left" type="monotone" dataKey="current" stroke="#10b981" fill="url(#grad_current)" strokeWidth={2} dot={false} name="Avg Current" />
+                                                <Area yAxisId="left" type="monotone" dataKey="current" stroke="#10b981" fill="url(#grad_current)" strokeWidth={2} dot={false} name="Avg Current" isAnimationActive={period !== 'LIVE'} />
                                                 {modules.map((m, i) => (
                                                     <Area
                                                         key={`${m.module_id}_c`}
@@ -713,6 +755,7 @@ export const BuildingCard = ({
                                                         fillOpacity={1}
                                                         dot={false}
                                                         name={`${m.module_name} A`}
+                                                        isAnimationActive={period !== 'LIVE'}
                                                     />
                                                 ))}
                                             </AreaChart>
