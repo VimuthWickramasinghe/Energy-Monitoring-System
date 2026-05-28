@@ -33,11 +33,8 @@
 
 import { Building2, Cpu, ArrowRight, Wifi, WifiOff, Zap, Activity, Gauge, Thermometer } from "lucide-react";
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
-import {
-    AreaChart, Area, CartesianGrid, ResponsiveContainer, Tooltip,
-    XAxis, YAxis, ReferenceLine, Legend
-} from "recharts";
 import { Building, Module } from "@/lib/DeviceBuildingContext";
+import { useDeviceData } from "@/lib/DeviceDataContext";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { client as supabaseClient } from "@/utils/supabase/client";
@@ -153,7 +150,9 @@ const DeviceRealtimeCard = ({
 }: {
     module: Module; data: Record<string, any> | null; color: string;
 }) => {
+    const { clockSkew } = useDeviceData();
     const [isFlashing, setIsFlashing] = useState(false);
+    const [online, setOnline] = useState(false);
 
     // Trigger a brief flash/blink animation whenever a new telemetry data packet arrives (detected by time property change)
     useEffect(() => {
@@ -166,9 +165,21 @@ const DeviceRealtimeCard = ({
         }
     }, [data?.time]);
 
-    // Consider the device "online" if last data arrived within 2 minutes
-    const age = data?.time ? Date.now() - new Date(data.time).getTime() : Infinity;
-    const online = age < 120_000;
+    // Periodically update online status every 5 seconds, corrected by server clockSkew
+    useEffect(() => {
+        const updateOnlineStatus = () => {
+            if (!data?.time) {
+                setOnline(false);
+                return;
+            }
+            const age = (Date.now() - clockSkew) - new Date(data.time).getTime();
+            setOnline(age < 120_000); // Online if last telemetry arrived within 2 minutes
+        };
+
+        updateOnlineStatus(); // initial check
+        const interval = setInterval(updateOnlineStatus, 5000);
+        return () => clearInterval(interval);
+    }, [data?.time, clockSkew]);
 
     const power = data?.real_power ?? 0;
     const voltage = data?.voltage ?? 0;
@@ -216,46 +227,407 @@ const DeviceRealtimeCard = ({
             {/* Big power reading */}
             <div className="flex items-baseline gap-1">
                 <span className="text-xl font-black text-gray-900" style={{ color }}>
-                    {data ? power.toFixed(2) : '—'}
+                    {data && online ? power.toFixed(2) : '—'}
                 </span>
                 <span className="text-xs text-gray-400 font-medium">kW</span>
             </div>
 
             {/* Secondary metrics grid */}
             <div className="grid grid-cols-2 gap-1.5">
-                <MetricPill icon={Zap} label="Voltage" value={data ? voltage.toFixed(1) : '—'} unit="V" />
-                <MetricPill icon={Activity} label="Current" value={data ? current.toFixed(2) : '—'} unit="A" />
-                <MetricPill icon={Gauge} label="PF" value={data ? (pf !== null ? Number(pf).toFixed(3) : '0.000') : '—'} />
-                <MetricPill icon={Thermometer} label="Apparent" value={data ? Number(apparent).toFixed(2) : '—'} unit="kVA" />
+                <MetricPill icon={Zap} label="Voltage" value={data && online ? voltage.toFixed(1) : '—'} unit="V" />
+                <MetricPill icon={Activity} label="Current" value={data && online ? current.toFixed(2) : '—'} unit="A" />
+                <MetricPill icon={Gauge} label="PF" value={data && online ? (pf !== null ? Number(pf).toFixed(3) : '0.000') : '—'} />
+                <MetricPill icon={Thermometer} label="Apparent" value={data && online ? Number(apparent).toFixed(2) : '—'} unit="kVA" />
             </div>
 
             {/* Last updated */}
             {data?.time && (
                 <span className="text-[9px] text-gray-300 text-right">
-                    Updated {new Date(data.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    {online ? 'Updated ' : 'Last active '}
+                    {new Date(data.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
             )}
         </div>
     );
 };
 
-/** Tooltip for the unified AreaChart */
-const AreaTooltip = ({ active, payload, label, period, viewMode }: any) => {
-    if (!active || !payload?.length) return null;
+interface CustomSvgChartProps {
+    data: any[];
+    lines: {
+        key: string;
+        name: string;
+        color: string;
+        yAxisId: 'left' | 'right';
+        gradient?: boolean;
+    }[];
+    cutoffTime: number;
+    nowTime: number;
+    ticks: number[];
+    period: TimePeriod;
+    peakDemand?: number;
+    bucketMs: number;
+}
+
+const CustomSvgChart = ({
+    data,
+    lines,
+    cutoffTime,
+    nowTime,
+    ticks,
+    period,
+    peakDemand,
+    bucketMs
+}: CustomSvgChartProps) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [width, setWidth] = useState(600);
+    const height = 240;
+    const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+    const margin = { top: 20, right: 40, bottom: 40, left: 40 };
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                setWidth(entry.contentRect.width || 600);
+            }
+        });
+        resizeObserver.observe(containerRef.current);
+        return () => resizeObserver.disconnect();
+    }, []);
+
+    const getSvgX = (ts: number) => {
+        const innerWidth = width - margin.left - margin.right;
+        return margin.left + ((ts - cutoffTime) / (nowTime - cutoffTime)) * innerWidth;
+    };
+
+    const getSvgY = (val: number, min: number, max: number) => {
+        const innerHeight = height - margin.top - margin.bottom;
+        const range = max - min || 1;
+        return height - margin.bottom - ((val - min) / range) * innerHeight;
+    };
+
+    const getAxisRange = (yAxisId: 'left' | 'right') => {
+        const axisLines = lines.filter(l => l.yAxisId === yAxisId);
+        if (axisLines.length === 0) return { min: 0, max: 1 };
+        
+        let min = Infinity;
+        let max = -Infinity;
+        
+        data.forEach(d => {
+            axisLines.forEach(l => {
+                const val = d[l.key];
+                if (val !== undefined && val !== null) {
+                    if (val < min) min = val;
+                    if (val > max) max = val;
+                }
+            });
+        });
+
+        if (min === Infinity) return { min: 0, max: 10 };
+        
+        if (max - min < 0.1) {
+            return { min: Math.max(0, min - 1), max: max + 1 };
+        }
+
+        const isVoltage = axisLines.some(l => l.key.includes("voltage") || l.key.endsWith("_v"));
+        if (isVoltage) {
+            const padding = (max - min) * 0.15;
+            return { min: Math.max(0, min - padding), max: max + padding };
+        }
+
+        return { min: 0, max: max * 1.1 };
+    };
+
+    const rangeLeft = getAxisRange('left');
+    const rangeRight = getAxisRange('right');
+
+    const handleMouseMove = (e: React.MouseEvent<SVGRectElement, MouseEvent>) => {
+        if (data.length === 0) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        
+        const innerWidth = width - margin.left - margin.right;
+        const xPercentage = Math.max(0, Math.min(1, mouseX / innerWidth));
+        const hoverTs = cutoffTime + xPercentage * (nowTime - cutoffTime);
+
+        let closestIdx = 0;
+        let minDiff = Infinity;
+        data.forEach((d, idx) => {
+            const diff = Math.abs(d.ts - hoverTs);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestIdx = idx;
+            }
+        });
+        setHoveredIdx(closestIdx);
+    };
+
+    const handleMouseLeave = () => {
+        setHoveredIdx(null);
+    };
+
+    const drawAreaPath = (line: typeof lines[0], range: { min: number; max: number }) => {
+        const maxGap = bucketMs * 3.5;
+        const paths: { linePath: string; areaPath: string }[] = [];
+        let currentSegmentPoints: { x: number; y: number }[] = [];
+
+        const flushSegment = () => {
+            if (currentSegmentPoints.length < 1) return;
+            
+            let linePath = `M ${currentSegmentPoints[0].x} ${currentSegmentPoints[0].y}`;
+            for (let i = 1; i < currentSegmentPoints.length; i++) {
+                linePath += ` L ${currentSegmentPoints[i].x} ${currentSegmentPoints[i].y}`;
+            }
+            
+            const yBottom = height - margin.bottom;
+            const xStart = currentSegmentPoints[0].x;
+            const xEnd = currentSegmentPoints[currentSegmentPoints.length - 1].x;
+            const areaPath = `${linePath} L ${xEnd} ${yBottom} L ${xStart} ${yBottom} Z`;
+            
+            paths.push({ linePath, areaPath });
+            currentSegmentPoints = [];
+        };
+
+        for (let i = 0; i < data.length; i++) {
+            const d = data[i];
+            const val = d[line.key];
+            
+            if (val === undefined || val === null) {
+                flushSegment();
+                continue;
+            }
+
+            const x = getSvgX(d.ts);
+            const y = getSvgY(val, range.min, range.max);
+
+            if (i > 0 && d.ts - data[i - 1].ts > maxGap) {
+                flushSegment();
+            }
+
+            currentSegmentPoints.push({ x, y });
+        }
+        
+        flushSegment();
+        return paths;
+    };
+
+    const renderYAxisLabels = (range: { min: number; max: number }, xPos: number, textAnchor: 'end' | 'start') => {
+        const steps = 4;
+        const labels = [];
+        for (let i = 0; i <= steps; i++) {
+            const val = range.min + (range.max - range.min) * (i / steps);
+            const y = getSvgY(val, range.min, range.max);
+            labels.push(
+                <text
+                    key={i}
+                    x={xPos}
+                    y={y + 3}
+                    fill="#9ca3af"
+                    fontSize={8}
+                    fontWeight={500}
+                    textAnchor={textAnchor}
+                >
+                    {val.toFixed(range.max > 100 ? 1 : 2)}
+                </text>
+            );
+        }
+        return labels;
+    };
+
+    const hasRightAxis = lines.some(l => l.yAxisId === 'right');
+
     return (
-        <div className="bg-white border border-gray-100 shadow-2xl rounded-xl p-3 z-50 text-[11px] min-w-[160px]">
-            <p className="font-bold text-gray-700 mb-2 border-b border-gray-50 pb-1.5">
-                {formatXTick(label, period)}
-            </p>
-            {payload.map((p: any) => (
-                <div key={p.dataKey} className="flex items-center justify-between gap-3 mb-1 last:mb-0">
-                    <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-                        <span className="text-gray-500">{p.name}</span>
-                    </div>
-                    <span className="font-bold text-gray-900">{typeof p.value === 'number' ? p.value.toFixed(2) : p.value}</span>
+        <div ref={containerRef} className="relative w-full h-full select-none">
+            <svg width={width} height={height} className="overflow-visible">
+                <defs>
+                    {lines.map(line => (
+                        <linearGradient key={line.key} id={`grad_${line.key}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={line.color} stopOpacity={0.15} />
+                            <stop offset="95%" stopColor={line.color} stopOpacity={0} />
+                        </linearGradient>
+                    ))}
+                </defs>
+
+                {/* Grid Lines */}
+                {[0, 0.25, 0.5, 0.75, 1].map((p, idx) => {
+                    const y = margin.top + p * (height - margin.top - margin.bottom);
+                    return (
+                        <line
+                            key={idx}
+                            x1={margin.left}
+                            y1={y}
+                            x2={width - margin.right}
+                            y2={y}
+                            stroke="#f3f4f6"
+                            strokeWidth={1}
+                        />
+                    );
+                })}
+
+                {/* Y Axes Labels */}
+                {renderYAxisLabels(rangeLeft, margin.left - 8, 'end')}
+                {hasRightAxis && renderYAxisLabels(rangeRight, width - margin.right + 8, 'start')}
+
+                {/* X Axis Ticks */}
+                {ticks.map(tick => {
+                    const x = getSvgX(tick);
+                    return (
+                        <g key={tick}>
+                            <line
+                                x1={x}
+                                y1={height - margin.bottom}
+                                x2={x}
+                                y2={height - margin.bottom + 4}
+                                stroke="#d1d5db"
+                                strokeWidth={1}
+                            />
+                            <text
+                                x={x}
+                                y={height - margin.bottom + 14}
+                                fill="#9ca3af"
+                                fontSize={8}
+                                fontWeight={500}
+                                textAnchor="middle"
+                            >
+                                {formatXTick(tick, period)}
+                            </text>
+                        </g>
+                    );
+                })}
+
+                {/* Peak Demand Reference Line */}
+                {peakDemand !== undefined && peakDemand > 0 && (
+                    <>
+                        <line
+                            x1={margin.left}
+                            y1={getSvgY(peakDemand, rangeLeft.min, rangeLeft.max)}
+                            x2={width - margin.right}
+                            y2={getSvgY(peakDemand, rangeLeft.min, rangeLeft.max)}
+                            stroke="#f97316"
+                            strokeWidth={1}
+                            strokeDasharray="4 2"
+                            strokeOpacity={0.7}
+                        />
+                        <text
+                            x={width - margin.right - 4}
+                            y={getSvgY(peakDemand, rangeLeft.min, rangeLeft.max) - 4}
+                            fill="#f97316"
+                            fontSize={8}
+                            fontWeight={700}
+                            textAnchor="end"
+                        >
+                            Peak {peakDemand.toFixed(2)} kW
+                        </text>
+                    </>
+                )}
+
+                {/* Paths and Areas */}
+                {lines.map(line => {
+                    const range = line.yAxisId === 'right' ? rangeRight : rangeLeft;
+                    const segments = drawAreaPath(line, range);
+                    
+                    return (
+                        <g key={line.key}>
+                            {/* Area gradient fills */}
+                            {line.gradient !== false && segments.map((seg, sIdx) => (
+                                <path
+                                    key={`area-${sIdx}`}
+                                    d={seg.areaPath}
+                                    fill={`url(#grad_${line.key})`}
+                                />
+                            ))}
+
+                            {/* Solid unsmoothed (linear) paths */}
+                            {segments.map((seg, sIdx) => (
+                                <path
+                                    key={`line-${sIdx}`}
+                                    d={seg.linePath}
+                                    stroke={line.color}
+                                    strokeWidth={2}
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            ))}
+
+                            {/* Real Data Points circles */}
+                            {data.map((d, dIdx) => {
+                                const val = d[line.key];
+                                if (val === undefined || val === null) return null;
+                                const x = getSvgX(d.ts);
+                                const y = getSvgY(val, range.min, range.max);
+                                
+                                return (
+                                    <circle
+                                        key={`dot-${dIdx}`}
+                                        cx={x}
+                                        cy={y}
+                                        r={2.5}
+                                        fill={line.color}
+                                        stroke="#ffffff"
+                                        strokeWidth={0.75}
+                                    />
+                                );
+                            })}
+                        </g>
+                    );
+                })}
+
+                {/* Hover tracking vertical bar */}
+                {hoveredIdx !== null && data[hoveredIdx] && (
+                    <line
+                        x1={getSvgX(data[hoveredIdx].ts)}
+                        y1={margin.top}
+                        x2={getSvgX(data[hoveredIdx].ts)}
+                        y2={height - margin.bottom}
+                        stroke="#f97316"
+                        strokeWidth={1}
+                        strokeDasharray="4 2"
+                    />
+                )}
+
+                {/* Invisible hover capture rect */}
+                <rect
+                    x={margin.left}
+                    y={margin.top}
+                    width={width - margin.left - margin.right}
+                    height={height - margin.top - margin.bottom}
+                    fill="transparent"
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                    style={{ cursor: 'crosshair' }}
+                />
+            </svg>
+
+            {/* Custom Tooltip */}
+            {hoveredIdx !== null && data[hoveredIdx] && (
+                <div
+                    className="absolute bg-white border border-gray-100 shadow-2xl rounded-xl p-3 z-50 text-[10px] min-w-[150px] pointer-events-none"
+                    style={{
+                        left: `${getSvgX(data[hoveredIdx].ts) + 12}px`,
+                        top: `10px`,
+                        transform: getSvgX(data[hoveredIdx].ts) > width * 0.7 ? 'translateX(-115%)' : 'none'
+                    }}
+                >
+                    <p className="font-bold text-gray-700 mb-1.5 border-b border-gray-50 pb-1">
+                        {formatXTick(data[hoveredIdx].ts, period)}
+                    </p>
+                    {lines.map(line => {
+                        const val = data[hoveredIdx][line.key];
+                        if (val === undefined || val === null) return null;
+                        return (
+                            <div key={line.key} className="flex items-center justify-between gap-3 mb-0.5 last:mb-0">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: line.color }} />
+                                    <span className="text-gray-500">{line.name}</span>
+                                </div>
+                                <span className="font-bold text-gray-900">{val.toFixed(2)}</span>
+                            </div>
+                        );
+                    })}
                 </div>
-            ))}
+            )}
         </div>
     );
 };
@@ -526,240 +898,179 @@ export const BuildingCard = ({
                         ) : (
                             <div className="flex flex-col gap-8">
                                 {(viewMode === 'combined' || viewMode === 'separate') && (
-                                    <div className="h-60 bg-gray-50/30 rounded-xl p-4 border border-gray-100">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Building2 size={14} className="text-orange-500" />
-                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Building Aggregate Overview</p>
+                                    <div className="h-60 bg-gray-50/30 rounded-xl p-4 border border-gray-100 relative">
+                                        <div className="flex items-center justify-between gap-2 mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <Building2 size={14} className="text-orange-500" />
+                                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Building Aggregate Overview</p>
+                                            </div>
+                                            {/* Custom Legend */}
+                                            <div className="flex gap-3 text-[9px] font-bold text-gray-400">
+                                                <div className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span><span>Load (kW)</span></div>
+                                                <div className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span><span>Voltage (V)</span></div>
+                                                <div className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Current (A)</span></div>
+                                            </div>
                                         </div>
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart
+                                        <div className="h-48">
+                                            <CustomSvgChart
                                                 data={chartData}
-                                                margin={{ top: 4, right: 4, left: -18, bottom: 16 }}
-                                            >
-                                                <defs>
-                                                    {/* Gradient fills for building view lines */}
-                                                    <linearGradient id="grad_load" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15} />
-                                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                                    </linearGradient>
-                                                    <linearGradient id="grad_voltage" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15} />
-                                                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                                                    </linearGradient>
-                                                    <linearGradient id="grad_current" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
-                                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                                    </linearGradient>
-                                                    {/* Per-device gradients */}
-                                                    {modules.map((m, i) => (
-                                                        <linearGradient key={m.module_id} id={`grad_${m.module_id}`} x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor={MODULE_COLORS[i % MODULE_COLORS.length]} stopOpacity={0.2} />
-                                                            <stop offset="95%" stopColor={MODULE_COLORS[i % MODULE_COLORS.length]} stopOpacity={0} />
-                                                        </linearGradient>
-                                                    ))}
-                                                </defs>
-
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-
-                                                {/* ── X-axis: numeric timestamps → formatted labels ── */}
-                                                <XAxis
-                                                    dataKey="ts"
-                                                    type="number"
-                                                    scale="time"
-                                                    domain={[cutoffTime, nowTime]}
-                                                    ticks={ticks}
-                                                    tickFormatter={(v) => formatXTick(v, period)}
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fontSize: 9, fill: '#9ca3af' }}
-                                                    label={{
-                                                        value: ['1H', '6H', '12H', '24H'].includes(period) ? 'Time (HH:mm)' : 'Date / Time',
-                                                        position: 'insideBottom',
-                                                        offset: -10,
-                                                        style: { fontSize: 9, fill: '#c4c4c4', fontWeight: 600 }
-                                                    }}
-                                                />
-
-                                                <YAxis
-                                                    yAxisId="left"
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fontSize: 9, fill: '#9ca3af' }}
-                                                    width={40}
-                                                />
-                                                <YAxis
-                                                    yAxisId="right"
-                                                    orientation="right"
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fontSize: 9, fill: '#9ca3af' }}
-                                                    width={40}
-                                                />
-
-                                                <Tooltip
-                                                    content={<AreaTooltip period={period} />}
-                                                    cursor={{ stroke: '#f97316', strokeWidth: 1, strokeDasharray: '4 2' }}
-                                                />
-
-                                                {/* Peak demand reference line */}
-                                                {parseFloat(peakDemand) > 0 && (
-                                                    <ReferenceLine
-                                                        yAxisId="left"
-                                                        y={parseFloat(peakDemand)}
-                                                        stroke="#f97316"
-                                                        strokeDasharray="4 2"
-                                                        strokeOpacity={0.5}
-                                                        label={{
-                                                            value: `Peak ${peakDemand} kW`,
-                                                            position: 'insideTopRight',
-                                                            style: { fontSize: 8, fill: '#f97316', fontWeight: 700 }
-                                                        }}
-                                                    />
-                                                )}
-
-                                                <Legend
-                                                    verticalAlign="top"
-                                                    align="right"
-                                                    iconType="plainline"
-                                                    iconSize={14}
-                                                    wrapperStyle={{ fontSize: 9, paddingBottom: 4 }}
-                                                />
-
-                                                <Area yAxisId="left" type="monotone" dataKey="load" stroke="#ef4444" fill="url(#grad_load)" strokeWidth={2} dot={false} name="Building Load (kW)" isAnimationActive={period !== 'LIVE'} />
-                                                <Area yAxisId="right" type="monotone" dataKey="voltage" stroke="#8b5cf6" fill="url(#grad_voltage)" strokeWidth={1.5} dot={false} name="Avg Voltage (V)" isAnimationActive={period !== 'LIVE'} />
-                                                <Area yAxisId="right" type="monotone" dataKey="current" stroke="#10b981" fill="url(#grad_current)" strokeWidth={1.5} dot={false} name="Avg Current (A)" isAnimationActive={period !== 'LIVE'} />
-                                            </AreaChart>
-                                        </ResponsiveContainer>
+                                                bucketMs={period === 'LIVE' ? 2000 : Math.max(Math.round((nowTime - cutoffTime) / 80), 60_000)}
+                                                cutoffTime={cutoffTime}
+                                                nowTime={nowTime}
+                                                ticks={ticks}
+                                                period={period}
+                                                peakDemand={parseFloat(peakDemand)}
+                                                lines={[
+                                                    { key: 'load', name: 'Building Load', color: '#ef4444', yAxisId: 'left', gradient: true },
+                                                    { key: 'voltage', name: 'Avg Voltage', color: '#8b5cf6', yAxisId: 'right', gradient: false },
+                                                    { key: 'current', name: 'Avg Current', color: '#10b981', yAxisId: 'right', gradient: false }
+                                                ]}
+                                            />
+                                        </div>
                                     </div>
                                 )}
 
-                                {/* Device Breakdown Graph */}
+                                {/* Device Power Breakdown Graph */}
                                 {viewMode === 'separate' && (
-                                    <div className="h-60 bg-white rounded-xl p-4 border border-blue-50 shadow-sm">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Cpu size={14} className="text-blue-500" />
-                                            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Device Power Breakdown (kW)</p>
+                                    <div className="h-60 bg-white rounded-xl p-4 border border-blue-50 shadow-sm relative">
+                                        <div className="flex items-center justify-between gap-2 mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <Cpu size={14} className="text-blue-500" />
+                                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Device Power Breakdown (kW)</p>
+                                            </div>
+                                            {/* Custom clickable legend */}
+                                            <div className="flex flex-wrap gap-2.5 text-[9px] font-bold text-gray-400">
+                                                {modules.map((m, i) => {
+                                                    const isHidden = hiddenDevices.has(m.module_id);
+                                                    const color = MODULE_COLORS[i % MODULE_COLORS.length];
+                                                    return (
+                                                        <button
+                                                            key={m.module_id}
+                                                            onClick={() => toggleDevice(m.module_id)}
+                                                            className={`flex items-center gap-1 hover:text-gray-600 transition-all ${isHidden ? 'opacity-30 line-through' : ''}`}
+                                                        >
+                                                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
+                                                            <span>{m.module_name}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -18, bottom: 16 }}>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                                <XAxis dataKey="ts" type="number" scale="time" domain={[cutoffTime, nowTime]} ticks={ticks} tickFormatter={(v) => formatXTick(v, period)} axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
-                                                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} width={40} />
-                                                <Tooltip content={<AreaTooltip period={period} />} />
-                                                <Legend onClick={handleLegendClick} verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4, cursor: 'pointer' }} />
-                                                {modules.map((m, i) => (
-                                                    <Area
-                                                        key={m.module_id}
-                                                        yAxisId="left"
-                                                        type="monotone"
-                                                        dataKey={m.module_id}
-                                                        hide={hiddenDevices.has(m.module_id)}
-                                                        stroke={MODULE_COLORS[i % MODULE_COLORS.length]}
-                                                        fill={`url(#grad_${m.module_id})`}
-                                                        strokeWidth={2}
-                                                        dot={false}
-                                                        name={m.module_name}
-                                                        isAnimationActive={period !== 'LIVE'}
-                                                    />
-                                                ))}
-                                            </AreaChart>
-                                        </ResponsiveContainer>
+                                        <div className="h-48">
+                                            <CustomSvgChart
+                                                data={chartData}
+                                                bucketMs={period === 'LIVE' ? 2000 : Math.max(Math.round((nowTime - cutoffTime) / 80), 60_000)}
+                                                cutoffTime={cutoffTime}
+                                                nowTime={nowTime}
+                                                ticks={ticks}
+                                                period={period}
+                                                lines={modules
+                                                    .filter(m => !hiddenDevices.has(m.module_id))
+                                                    .map((m, i) => ({
+                                                        key: m.module_id,
+                                                        name: m.module_name,
+                                                        color: MODULE_COLORS[i % MODULE_COLORS.length],
+                                                        yAxisId: 'left' as 'left' | 'right',
+                                                        gradient: true
+                                                    }))}
+                                            />
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* Voltage Graph */}
                                 {viewMode === 'separate' && (
-                                    <div className="h-60 bg-white rounded-xl p-4 border border-purple-50 shadow-sm">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Zap size={14} className="text-purple-500" />
-                                            <p className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Voltage Trend (V)</p>
+                                    <div className="h-60 bg-white rounded-xl p-4 border border-purple-50 shadow-sm relative">
+                                        <div className="flex items-center justify-between gap-2 mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <Zap size={14} className="text-purple-500" />
+                                                <p className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Voltage Trend (V)</p>
+                                            </div>
+                                            {/* Custom clickable legend */}
+                                            <div className="flex flex-wrap gap-2.5 text-[9px] font-bold text-gray-400">
+                                                {modules.map((m, i) => {
+                                                    const isHidden = hiddenDevices.has(m.module_id);
+                                                    const color = MODULE_COLORS[i % MODULE_COLORS.length];
+                                                    return (
+                                                        <button
+                                                            key={m.module_id}
+                                                            onClick={() => toggleDevice(m.module_id)}
+                                                            className={`flex items-center gap-1 hover:text-gray-600 transition-all ${isHidden ? 'opacity-30 line-through' : ''}`}
+                                                        >
+                                                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
+                                                            <span>{m.module_name}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -18, bottom: 16 }}>
-                                                <defs>
-                                                    <linearGradient id="grad_voltage" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15} />
-                                                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                                                    </linearGradient>
-                                                    {modules.map((m, i) => (
-                                                        <linearGradient key={`${m.module_id}_v`} id={`grad_${m.module_id}_v`} x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor={MODULE_COLORS[i % MODULE_COLORS.length]} stopOpacity={0.1} />
-                                                            <stop offset="95%" stopColor={MODULE_COLORS[i % MODULE_COLORS.length]} stopOpacity={0} />
-                                                        </linearGradient>
-                                                    ))}
-                                                </defs>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                                <XAxis dataKey="ts" type="number" scale="time" domain={[cutoffTime, nowTime]} ticks={ticks} tickFormatter={(v) => formatXTick(v, period)} axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
-                                                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} width={40} domain={['auto', 'auto']} />
-                                                <Tooltip content={<AreaTooltip period={period} />} />
-                                                <Legend onClick={handleLegendClick} verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4, cursor: 'pointer' }} />
-                                                <Area yAxisId="left" type="monotone" dataKey="voltage" stroke="#8b5cf6" fill="url(#grad_voltage)" strokeWidth={2} dot={false} name="Avg Voltage" isAnimationActive={period !== 'LIVE'} />
-                                                {modules.map((m, i) => (
-                                                    <Area
-                                                        key={`${m.module_id}_v`}
-                                                        yAxisId="left"
-                                                        type="monotone"
-                                                        dataKey={`${m.module_id}_v`}
-                                                        hide={hiddenDevices.has(m.module_id)}
-                                                        stroke={MODULE_COLORS[i % MODULE_COLORS.length]}
-                                                        fill={`url(#grad_${m.module_id}_v)`}
-                                                        strokeWidth={2}
-                                                        fillOpacity={1}
-                                                        dot={false}
-                                                        name={`${m.module_name} V`}
-                                                        isAnimationActive={period !== 'LIVE'}
-                                                    />
-                                                ))}
-                                            </AreaChart>
-                                        </ResponsiveContainer>
+                                        <div className="h-48">
+                                            <CustomSvgChart
+                                                data={chartData}
+                                                bucketMs={period === 'LIVE' ? 2000 : Math.max(Math.round((nowTime - cutoffTime) / 80), 60_000)}
+                                                cutoffTime={cutoffTime}
+                                                nowTime={nowTime}
+                                                ticks={ticks}
+                                                period={period}
+                                                lines={modules
+                                                    .filter(m => !hiddenDevices.has(m.module_id))
+                                                    .map((m, i) => ({
+                                                        key: `${m.module_id}_v`,
+                                                        name: `${m.module_name} V`,
+                                                        color: MODULE_COLORS[i % MODULE_COLORS.length],
+                                                        yAxisId: 'left' as 'left' | 'right',
+                                                        gradient: false
+                                                    }))}
+                                            />
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* Current Graph */}
                                 {viewMode === 'separate' && (
-                                    <div className="h-60 bg-white rounded-xl p-4 border border-emerald-50 shadow-sm">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Activity size={14} className="text-emerald-500" />
-                                            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Current Trend (A)</p>
+                                    <div className="h-60 bg-white rounded-xl p-4 border border-emerald-50 shadow-sm relative">
+                                        <div className="flex items-center justify-between gap-2 mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <Activity size={14} className="text-emerald-500" />
+                                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Current Trend (A)</p>
+                                            </div>
+                                            {/* Custom clickable legend */}
+                                            <div className="flex flex-wrap gap-2.5 text-[9px] font-bold text-gray-400">
+                                                {modules.map((m, i) => {
+                                                    const isHidden = hiddenDevices.has(m.module_id);
+                                                    const color = MODULE_COLORS[i % MODULE_COLORS.length];
+                                                    return (
+                                                        <button
+                                                            key={m.module_id}
+                                                            onClick={() => toggleDevice(m.module_id)}
+                                                            className={`flex items-center gap-1 hover:text-gray-600 transition-all ${isHidden ? 'opacity-30 line-through' : ''}`}
+                                                        >
+                                                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
+                                                            <span>{m.module_name}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -18, bottom: 16 }}>
-                                                <defs>
-                                                    <linearGradient id="grad_current" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
-                                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                                    </linearGradient>
-                                                    {modules.map((m, i) => (
-                                                        <linearGradient key={`${m.module_id}_c`} id={`grad_${m.module_id}_c`} x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor={MODULE_COLORS[i % MODULE_COLORS.length]} stopOpacity={0.1} />
-                                                            <stop offset="95%" stopColor={MODULE_COLORS[i % MODULE_COLORS.length]} stopOpacity={0} />
-                                                        </linearGradient>
-                                                    ))}
-                                                </defs>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                                <XAxis dataKey="ts" type="number" scale="time" domain={[cutoffTime, nowTime]} ticks={ticks} tickFormatter={(v) => formatXTick(v, period)} axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} />
-                                                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#9ca3af' }} width={40} />
-                                                <Tooltip content={<AreaTooltip period={period} />} />
-                                                <Legend onClick={handleLegendClick} verticalAlign="top" align="right" iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 9, paddingBottom: 4, cursor: 'pointer' }} />
-                                                <Area yAxisId="left" type="monotone" dataKey="current" stroke="#10b981" fill="url(#grad_current)" strokeWidth={2} dot={false} name="Avg Current" isAnimationActive={period !== 'LIVE'} />
-                                                {modules.map((m, i) => (
-                                                    <Area
-                                                        key={`${m.module_id}_c`}
-                                                        yAxisId="left"
-                                                        type="monotone"
-                                                        dataKey={`${m.module_id}_c`}
-                                                        hide={hiddenDevices.has(m.module_id)}
-                                                        stroke={MODULE_COLORS[i % MODULE_COLORS.length]}
-                                                        fill={`url(#grad_${m.module_id}_c)`}
-                                                        strokeWidth={2}
-                                                        fillOpacity={1}
-                                                        dot={false}
-                                                        name={`${m.module_name} A`}
-                                                        isAnimationActive={period !== 'LIVE'}
-                                                    />
-                                                ))}
-                                            </AreaChart>
-                                        </ResponsiveContainer>
+                                        <div className="h-48">
+                                            <CustomSvgChart
+                                                data={chartData}
+                                                bucketMs={period === 'LIVE' ? 2000 : Math.max(Math.round((nowTime - cutoffTime) / 80), 60_000)}
+                                                cutoffTime={cutoffTime}
+                                                nowTime={nowTime}
+                                                ticks={ticks}
+                                                period={period}
+                                                lines={modules
+                                                    .filter(m => !hiddenDevices.has(m.module_id))
+                                                    .map((m, i) => ({
+                                                        key: `${m.module_id}_c`,
+                                                        name: `${m.module_name} A`,
+                                                        color: MODULE_COLORS[i % MODULE_COLORS.length],
+                                                        yAxisId: 'left' as 'left' | 'right',
+                                                        gradient: false
+                                                    }))}
+                                            />
+                                        </div>
                                     </div>
                                 )}
                             </div>

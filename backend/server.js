@@ -14,14 +14,38 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 const server = http.createServer(app);
 
-// Clean FRONTEND_URL to strip any trailing slash, ensuring compatibility with browser Origin headers.
-const rawFrontendUrl = process.env.FRONTEND_URL || '*';
-const allowedOrigin = process.env.NODE_ENV === 'development' 
-  ? '*' 
-  : rawFrontendUrl.replace(/\/$/, '');
+// Dynamic origin validation helper to handle development, raw Cloud Run endpoints, and custom domains.
+const isOriginAllowed = (origin) => {
+  if (!origin) return true; // Allow non-browser requests (e.g. ESP32, curl)
+  const cleanOrigin = origin.replace(/\/$/, '');
+  
+  // Allow localhost & 127.0.0.1 on any port for local development
+  if (cleanOrigin.startsWith('http://localhost:') || cleanOrigin.startsWith('http://127.0.0.1:')) {
+    return true;
+  }
+  // Allow exact matches on configured FRONTEND_URL
+  if (process.env.FRONTEND_URL && cleanOrigin === process.env.FRONTEND_URL.replace(/\/$/, '')) {
+    return true;
+  }
+  // Allow any *.run.app domain (Google Cloud Run default endpoints)
+  if (cleanOrigin.endsWith('.run.app')) {
+    return true;
+  }
+  // Allow any keyblocks.org subdomain
+  if (cleanOrigin.endsWith('keyblocks.org')) {
+    return true;
+  }
+  return false;
+};
 
 const corsOptions = {
-  origin: allowedOrigin,
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin) || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
   optionsSuccessStatus: 200
 };
 
@@ -34,13 +58,14 @@ const corsOptions = {
  * frontend clients (e.g. dashboards) using web sockets as the transport protocol.
  */
 const io = new Server(server, {
-  // CORS (Cross-Origin Resource Sharing) Configuration:
-  // In development (NODE_ENV === 'development'), we allow any origin ('*') to connect.
-  // This allows developer local machines, LAN-connected clients, and different dev ports
-  // (e.g. Next.js running on localhost:3000) to connect without CORS browser violations.
-  // In production, we restrict connections to our designated FRONTEND_URL.
   cors: {
-    origin: allowedOrigin,
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin) || process.env.NODE_ENV === 'development') {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     methods: ["GET", "POST"]
   }
 });

@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useAuth } from "./AuthContext";
 import { useBuilding } from "./DeviceBuildingContext";
-import { fetchUserDevicesData, fetchMongoDemoDataAction } from "@/utils/mongoDB/deviceActions";
 import { io } from "socket.io-client";
 
 export interface DeviceData {
@@ -24,12 +23,22 @@ export interface DeviceDataContextType {
     error: string | null;
     refreshDevices: () => Promise<void>;
     mongoDemoData: any[];
+    clockSkew: number;
 }
 
 export const DeviceDataContext = createContext<DeviceDataContextType | undefined>(undefined);
 
-// Using environment variable or fallback for the backend WebSocket URL
+// Using environment variable or fallback for the backend URL
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+const getBackendUrl = () => {
+    // Fallback to the active deployed Cloud Run backend URL if NEXT_PUBLIC_BACKEND_URL
+    // is missing or points to the unresolved keyblocks domain placeholder.
+    if (!BACKEND_URL || BACKEND_URL.includes("esmb.keyblocks.org") || BACKEND_URL.includes("emsb.keyblocks.org")) {
+        return "https://ems-backend-475776935743.asia-southeast1.run.app";
+    }
+    return BACKEND_URL;
+};
 
 export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
     const { user, loading: authLoading } = useAuth();
@@ -39,15 +48,33 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
     const [loadingDevices, setLoadingDevices] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [mongoDemoData, setMongoDemoData] = useState<any[]>([]);
+    const [clockSkew, setClockSkew] = useState(0);
 
     const fetchMongoDemoData = useCallback(async () => {
+        if (!user) return;
         try {
-            const data = await fetchMongoDemoDataAction();
+            const token = await user.getIdToken();
+            const apiBaseUrl = getBackendUrl();
+            const res = await fetch(`${apiBaseUrl}/history?limit=100`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            if (!res.ok) {
+                throw new Error(`Failed to fetch mongo demo data: ${res.statusText}`);
+            }
+
+            const serverDate = res.headers.get("Date");
+            if (serverDate) {
+                setClockSkew(Date.now() - new Date(serverDate).getTime());
+            }
+
+            const data = await res.json();
             setMongoDemoData(data || []);
         } catch (e) {
             console.error("Failed to fetch mongo demo data:", e);
         }
-    }, []);
+    }, [user]);
 
     const fetchDevices = useCallback(async () => {
         if (!user?.uid) {
@@ -59,7 +86,7 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
 
         const moduleIds = modules.map(m => m.module_id);
 
-        // If there are no modules registered, skip fetching from MongoDB
+        // If there are no modules registered, skip fetching from backend
         if (moduleIds.length === 0) {
             setDevices([]);
             setLoadingDevices(false);
@@ -70,15 +97,35 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
         setError(null);
 
         try {
-            // Using the Next.js Server Action to safely query MongoDB using module IDs
-            let data = await fetchUserDevicesData(moduleIds);
+            const token = await user.getIdToken();
+            const apiBaseUrl = getBackendUrl();
+            const res = await fetch(`${apiBaseUrl}/history?limit=1000`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`Failed to fetch history: ${res.statusText}`);
+            }
+
+            const serverDate = res.headers.get("Date");
+            if (serverDate) {
+                setClockSkew(Date.now() - new Date(serverDate).getTime());
+            }
+
+            const historyData = await res.json();
+
+            // Filter the returned JSON to only contain items matching user's moduleIds
+            let data = (historyData || []).filter((item: any) => 
+                moduleIds.includes(item.device_id)
+            );
             
             // Prototype Fallback: If hardware device_id doesn't match registered module_id, 
             // map the raw demo data to the first registered module so the UI populates.
             if ((!data || data.length === 0) && moduleIds.length > 0) {
-                const fallbackData = await fetchMongoDemoDataAction();
-                if (fallbackData && fallbackData.length > 0) {
-                    data = fallbackData.map((d: any) => ({ ...d, device_id: moduleIds[0] }));
+                if (historyData && historyData.length > 0) {
+                    data = historyData.map((d: any) => ({ ...d, device_id: moduleIds[0] }));
                 }
             }
 
@@ -105,27 +152,13 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
         let socket: ReturnType<typeof io> | null = null;
 
         if (user) {
-            // 1. Fetch initial historical database records from MongoDB.
+            // 1. Fetch initial historical database records from backend.
             // This populates the charts and tables on page load.
             fetchDevices();
             fetchMongoDemoData();
 
             // 2. Determine WebSocket server URL dynamically:
-            // - If the website is loaded locally or on a local area network (LAN) for development/testing, connect to the local IP/port 8080.
-            // - If it is running on a public production domain (e.g. keyblocks.org, Vercel, Netlify, custom domains), connect to NEXT_PUBLIC_BACKEND_URL.
-            const isLocal = typeof window !== "undefined" && (
-                window.location.hostname === "localhost" ||
-                window.location.hostname === "127.0.0.1" ||
-                window.location.hostname.startsWith("192.168.") ||
-                window.location.hostname.startsWith("10.") ||
-                window.location.hostname.startsWith("172.16.") ||
-                window.location.hostname.startsWith("172.31.") ||
-                window.location.hostname.endsWith(".local")
-            );
-
-            const socketUrl = isLocal
-                ? `http://${window.location.hostname}:8080`
-                : (BACKEND_URL || "http://localhost:8080");
+            const socketUrl = getBackendUrl();
 
             // 3. Instantiate the Socket.io client connection.
             // This opens a persistent TCP-based WebSocket connection to the backend.
@@ -191,10 +224,10 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
                 socket.disconnect();
             }
         };
-    }, [user, authLoading, buildingLoading, modules, fetchDevices]);
+    }, [user, authLoading, buildingLoading, modules, fetchDevices, fetchMongoDemoData]);
 
     return (
-        <DeviceDataContext.Provider value={{ devices, loadingDevices, error, refreshDevices: fetchDevices, mongoDemoData }}>
+        <DeviceDataContext.Provider value={{ devices, loadingDevices, error, refreshDevices: fetchDevices, mongoDemoData, clockSkew }}>
             {children}
         </DeviceDataContext.Provider>
     );
