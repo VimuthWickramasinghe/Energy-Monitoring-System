@@ -10,9 +10,9 @@ import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
-  favicon: 'img/favicon.ico',
+  title: 'EMS Documentation',
+  tagline: 'Precision in Power: User Guides, System Architecture & Developer Resources',
+  favicon: 'img/logo.svg',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -20,15 +20,15 @@ const config = {
   },
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  url: 'https://vimuthwickramasinghe.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'VimuthWickramasinghe', // Usually your GitHub org/user name.
+  projectName: 'Energy-Monitoring-System', // Usually your repo name.
 
   onBrokenLinks: 'throw',
 
@@ -47,30 +47,26 @@ const config = {
       ({
         docs: {
           sidebarPath: './sidebars.js',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System/tree/main/dev-docs/',
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-          // Useful options to enforce blogging best practices
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
-        },
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
       }),
+    ],
+  ],
+
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'user-manual',
+        path: 'user-manual',
+        routeBasePath: 'user-manual',
+        sidebarPath: './sidebarsUserManual.js',
+      },
     ],
   ],
 
@@ -83,21 +79,29 @@ const config = {
         respectPrefersColorScheme: true,
       },
       navbar: {
-        title: 'My Site',
+        title: 'EMS Docs',
         logo: {
-          alt: 'My Site Logo',
+          alt: 'EMS Logo',
           src: 'img/logo.svg',
         },
         items: [
           {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
+            to: 'user-manual/overview',
+            label: 'User Manual',
             position: 'left',
-            label: 'Tutorial',
           },
-          {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/facebook/docusaurus',
+            to: 'docs/technical-spec/architecture',
+            label: 'Technical Spec',
+            position: 'left',
+          },
+          {
+            to: 'docs/developer-guide/setup',
+            label: 'Developer Guide',
+            position: 'left',
+          },
+          {
+            href: 'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System',
             label: 'GitHub',
             position: 'right',
           },
@@ -107,46 +111,37 @@ const config = {
         style: 'dark',
         links: [
           {
-            title: 'Docs',
+            title: 'Documentation',
             items: [
               {
-                label: 'Tutorial',
-                to: '/docs/intro',
+                label: 'User Manual',
+                to: '/user-manual/overview',
+              },
+              {
+                label: 'Technical Spec',
+                to: '/docs/technical-spec/architecture',
+              },
+              {
+                label: 'Developer Guide',
+                to: '/docs/developer-guide/setup',
               },
             ],
           },
           {
-            title: 'Community',
+            title: 'System Links',
             items: [
               {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+                label: 'EMS Webapp',
+                href: 'http://localhost:3000',
               },
               {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
-              },
-              {
-                label: 'X',
-                href: 'https://x.com/docusaurus',
-              },
-            ],
-          },
-          {
-            title: 'More',
-            items: [
-              {
-                label: 'Blog',
-                to: '/blog',
-              },
-              {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                label: 'GitHub Repository',
+                href: 'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System',
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} EMS Inc. Precision In Power. Built with Docusaurus.`,
       },
       prism: {
         theme: prismThemes.github,

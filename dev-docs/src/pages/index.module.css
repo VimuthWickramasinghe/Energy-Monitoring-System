@@ -1,23 +1,74 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
 .heroBanner {
-  padding: 4rem 0;
+  padding: 6rem 0;
   text-align: center;
   position: relative;
   overflow: hidden;
+  background: radial-gradient(circle at 70% 20%, rgba(234, 88, 12, 0.08) 0%, transparent 45%),
+              linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+:global([data-theme='dark']) .heroBanner {
+  background: radial-gradient(circle at 70% 20%, rgba(255, 140, 33, 0.12) 0%, transparent 45%),
+              linear-gradient(180deg, #111113 0%, #0b0b0c 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.heroTitle {
+  font-size: 3.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  color: #18181b;
+}
+
+:global([data-theme='dark']) .heroTitle {
+  color: #ffffff;
+  background: linear-gradient(135deg, #ffffff 40%, #ffbe80 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: #4b5563;
+  max-width: 650px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.6;
+}
+
+:global([data-theme='dark']) .heroSubtitle {
+  color: #a1a1aa;
 }
 
 .buttons {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 1rem;
 }
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 4rem 1.5rem;
+  }
+  .heroTitle {
+    font-size: 2.75rem;
+  }
+  .heroSubtitle {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+  .buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  .buttons :global(.button) {
+    width: 100%;
+  }
+}
+
