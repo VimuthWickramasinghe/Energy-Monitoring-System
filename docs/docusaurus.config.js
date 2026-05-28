@@ -98,7 +98,7 @@ const config = {
             position: 'left',
           },
           {
-            to: 'technical-documentation/architecture',
+            to: 'docs/architecture',
             label: 'Technical Documentation',
             position: 'left',
           },
@@ -126,7 +126,7 @@ const config = {
               },
               {
                 label: 'Technical Documentation',
-                to: '/technical-documentation/architecture',
+                to: '/docs/architecture',
               },
               {
                 label: 'Developer Guide',
