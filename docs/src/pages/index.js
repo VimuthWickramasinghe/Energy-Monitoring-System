@@ -19,18 +19,23 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--primary button--lg"
+            href="https://ems.keyblocks.org">
+            EMS Webapp
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
             to="/user-manual/overview">
-            User Manual 📖
+            User Manual
           </Link>
           <Link
             className="button button--secondary button--lg"
             to="/docs/architecture">
-            Technical Documentation 🛠️
+            Technical Documentation
           </Link>
           <Link
             className="button button--secondary button--lg"
             to="/developer-guide/setup">
-            Developer Guide 🛠️
+            Developer Guide
           </Link>
         </div>
       </div>

@@ -6,6 +6,15 @@
   background: radial-gradient(circle at 70% 20%, rgba(234, 88, 12, 0.08) 0%, transparent 45%),
               linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background-size: 200% 200%;
+  animation: gradientMove 30s ease-in-out infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 :global([data-theme='dark']) .heroBanner {
@@ -21,6 +30,7 @@
   line-height: 1.1;
   margin-bottom: 1.5rem;
   color: #18181b;
+  transition: transform 0.5s ease-in-out;
 }
 
 :global([data-theme='dark']) .heroTitle {
@@ -71,4 +81,3 @@
     width: 100%;
   }
 }
-

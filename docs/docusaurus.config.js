@@ -112,6 +112,11 @@ const config = {
             position: 'left',
           },
           {
+            href: 'https://ems.keyblocks.org',
+            label: 'EMS Webapp',
+            position: 'right',
+          },
+          {
             href: 'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System',
             label: 'GitHub',
             position: 'right',
@@ -128,6 +133,7 @@ const config = {
                 label: 'User Manual',
                 to: '/user-manual/overview',
               },
+              ,
               {
                 label: 'Technical Documentation',
                 to: '/docs/architecture',
@@ -143,7 +149,7 @@ const config = {
             items: [
               {
                 label: 'EMS Webapp',
-                href: 'http://localhost:3000',
+                href: 'https://ems.keyblocks.org',
               },
               {
                 label: 'GitHub Repository',
