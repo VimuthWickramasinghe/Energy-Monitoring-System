@@ -20,15 +20,32 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
+/**
+ * ============================================================================
+ * WEBSOCKET / SOCKET.IO SETUP
+ * ============================================================================
+ * We initialize a Socket.io Server instance on top of the HTTP server.
+ * This enables bidirectional, real-time communication between the backend and
+ * frontend clients (e.g. dashboards) using web sockets as the transport protocol.
+ */
 const io = new Server(server, {
+  // CORS (Cross-Origin Resource Sharing) Configuration:
+  // In development (NODE_ENV === 'development'), we allow any origin ('*') to connect.
+  // This allows developer local machines, LAN-connected clients, and different dev ports
+  // (e.g. Next.js running on localhost:3000) to connect without CORS browser violations.
+  // In production, we restrict connections to our designated FRONTEND_URL.
   cors: {
     origin: process.env.NODE_ENV === 'development' ? '*' : (process.env.FRONTEND_URL || '*'),
     methods: ["GET", "POST"]
   }
 });
 
+// Listener for client connection events.
+// Each time a frontend client connects (e.g. dashboard tab), a new socket session is initialized.
 io.on('connection', (socket) => {
   console.log(`[Socket.io] Client connected: ${socket.id}`);
+  
+  // Clean up and log when a client closes the connection (e.g. closes the browser tab).
   socket.on('disconnect', () => {
     console.log(`[Socket.io] Client disconnected: ${socket.id}`);
   });
@@ -176,13 +193,30 @@ async function handleSendData(req, res) {
       return res.status(400).json({ error: 'No valid sensor fields in body' });
     }
 
+    // Save the telemetry readings to MongoDB.
+    // Sensor is a Mongoose Model pointing to the finalVolData collection.
     const data = new Sensor(docObj);
     const saved = await data.save();
     console.log('Saved document id:', saved._id.toString());
     
-    // Broadcast the new data to all connected WebSocket clients
+    // ========================================================================
+    // WEBSOCKET BROADCAST LOGIC
+    // ========================================================================
+    // Immediately after saving the data packet to MongoDB, we broadcast it
+    // to all currently connected frontend web browsers.
+    //
+    // - Event Name: 'deviceData'
+    // - Payload: The saved Mongoose document (contains fields like device_id,
+    //   voltage, current, real_power, apparent_power, power_factor, and the
+    //   server-generated database timestamp 'time').
+    //
+    // By using 'io.emit', we push this update over the open WebSocket TCP
+    // connection to all clients. This implements the Observer / Pub-Sub pattern:
+    // the frontend clients do not have to poll the database or make repetitive HTTP requests.
+    // They just listen for 'deviceData' updates and update their local state reactively.
     io.emit('deviceData', saved);
     
+    // Respond back to the hardware device to confirm receipt and successful database storage.
     res.status(201).json({ message: 'Data saved', id: saved._id, data: docObj });
   } catch (err) {
     console.error('Error saving data:', err);

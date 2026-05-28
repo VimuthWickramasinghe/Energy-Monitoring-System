@@ -92,55 +92,94 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [user, modules]);
 
+    // ========================================================================
+    // REAL-TIME WEBSOCKET LIFECYCLE & EVENT BINDING
+    // ========================================================================
+    // We establish a persistent Socket.io connection when the user authenticates,
+    // and clean it up when they sign out or when their registered modules change.
     useEffect(() => {
+        // If authentication or buildings/modules database lists are still loading,
+        // wait until they resolve to ensure we have the correct user and module IDs context.
         if (authLoading || buildingLoading) return;
 
         let socket: ReturnType<typeof io> | null = null;
 
         if (user) {
-            // 1. Fetch initial historical data
+            // 1. Fetch initial historical database records from MongoDB.
+            // This populates the charts and tables on page load.
             fetchDevices();
             fetchMongoDemoData();
 
-            const socketUrl = typeof window !== "undefined" && !window.location.hostname.endsWith("keyblocks.org")
+            // 2. Determine WebSocket server URL dynamically:
+            // - If the website is loaded locally or on a local area network (LAN) for development/testing, connect to the local IP/port 8080.
+            // - If it is running on a public production domain (e.g. keyblocks.org, Vercel, Netlify, custom domains), connect to NEXT_PUBLIC_BACKEND_URL.
+            const isLocal = typeof window !== "undefined" && (
+                window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1" ||
+                window.location.hostname.startsWith("192.168.") ||
+                window.location.hostname.startsWith("10.") ||
+                window.location.hostname.startsWith("172.16.") ||
+                window.location.hostname.startsWith("172.31.") ||
+                window.location.hostname.endsWith(".local")
+            );
+
+            const socketUrl = isLocal
                 ? `http://${window.location.hostname}:8080`
                 : (BACKEND_URL || "http://localhost:8080");
 
+            // 3. Instantiate the Socket.io client connection.
+            // This opens a persistent TCP-based WebSocket connection to the backend.
             socket = io(socketUrl);
 
+            // Log connection state for debugging
             socket.on("connect", () => {
                 console.log("Connected to backend WebSocket for live data");
             });
 
+            // 4. Register event listener for 'deviceData' broadcasts from the backend.
+            // This is triggered whenever a physical device publishes telemetry to the backend.
             socket.on("deviceData", (newData: DeviceData) => {
                 console.log("Live data received via WebSocket:", newData);
                 
-                // Update general demo data state
+                // Update general historical demo data list
                 setMongoDemoData((prev) => [newData, ...prev].slice(0, 100));
                 
-                // Only append to devices array if the module belongs to the user
+                // Only process and react to the telemetry packet if it belongs to one of the user's modules
                 const moduleIds = modules.map(m => m.module_id);
                 if (moduleIds.includes(newData.device_id) || moduleIds.length > 0) {
-                     // Prototype Fallback: map ID if needed so UI updates
+                    // PROTOTYPE FALLBACK:
+                    // If the hardware device transmits a test ID (e.g. ems-esm-test) that isn't explicitly
+                    // registered in Supabase under this user, map it to the user's first module so the user
+                    // can see live readings on their cards.
                     const mappedData = moduleIds.includes(newData.device_id) 
                         ? newData 
                         : { ...newData, device_id: moduleIds[0] };
 
-                    setDevices((prevDevices) => [mappedData, ...prevDevices].slice(0, 100)); // Keep array size manageable
+                    // Prepend the new telemetry reading to the state array.
+                    // Since the array is stateful, this instantly updates the UI in all consuming pages (like analytics)
+                    // without any page reloads or API polling. We slice it to keep the last 100 readings.
+                    setDevices((prevDevices) => [mappedData, ...prevDevices].slice(0, 100));
                 }
             });
 
+            // Log disconnection for debugging
             socket.on("disconnect", () => {
                 console.log("Disconnected from backend WebSocket");
             });
 
         } else {
+            // Clear state if the user signs out
             setDevices([]);
             setLoadingDevices(false);
             setError(null);
         }
 
-        // Cleanup function
+        // ====================================================================
+        // CLEANUP FUNCTION
+        // ====================================================================
+        // This runs when the component unmounts, or when user or modules change.
+        // It disconnects the WebSocket client to prevent socket leaks, duplicate
+        // subscription bindings, and high memory usage.
         return () => {
             if (socket) {
                 socket.disconnect();

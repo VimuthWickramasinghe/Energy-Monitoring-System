@@ -251,20 +251,36 @@ export const BuildingCard = ({
     const user = params?.user as string;
 
     // ── Derived chart + KPI data ─────────────────────────────────────────────
+    // This useMemo hook recalculates the chart datasets and KPI totals whenever
+    // the timespan changes, or when new live device data arrives via the WebSockets
+    // context ('allDeviceData'). Because the WebSocket context updates 'allDeviceData'
+    // reactively on every broadcast, this calculation is automatically triggered,
+    // providing real-time data updates without any browser polling.
     const { chartData, ticks, totalLoad, dailyEnergy, avgVoltage, peakDemand, latestMap, cutoffTime, nowTime } = useMemo(() => {
         const cutoff = getCutoff(period);
         const cutoffTime = cutoff.getTime();
         const nowTime = Date.now();
         const moduleIds = modules.map(m => m.module_id);
 
-        // Latest snapshot per device → used for KPI totals
+        // ====================================================================
+        // LATEST TELEMETRY SNAPSHOT MAP
+        // ====================================================================
+        // We compile a Map containing the most recent telemetry packet for each
+        // device_id. This is critical for displaying the current "Active Load",
+        // voltage, and health status in the real-time device card grid.
         const latestMap = new Map<string, any>();
         allDeviceData.forEach(d => {
             const ex = latestMap.get(d.device_id);
+            // If we don't have a record for this device yet, or if this record is newer
+            // than the existing one, update the map.
             if (!ex || new Date(d.time) > new Date(ex.time)) latestMap.set(d.device_id, d);
         });
 
-        // Aggregate current load / voltage across building
+        // ====================================================================
+        // AGGREGATED METRICS CALCULATION
+        // ====================================================================
+        // Sum active load (kW) and average voltage dynamically across all modules
+        // belonging to this building using the latest snapshot map.
         let loadSum = 0, voltSum = 0, voltCount = 0;
         modules.forEach(m => {
             const snap = latestMap.get(m.module_id);
