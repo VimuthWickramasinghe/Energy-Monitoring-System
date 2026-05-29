@@ -41,7 +41,7 @@ import { client as supabaseClient } from "@/utils/supabase/client";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const TIME_PERIODS = ['LIVE', '30M', '1H', '6H', '12H', '24H', '3D', '7D', '1M', '1Y'] as const;
+const TIME_PERIODS = ['LIVE', '30M', '1H', '6H', '12H', '24H', '3D', '7D', '1M', '1Y', 'CUSTOM'] as const;
 type TimePeriod = typeof TIME_PERIODS[number];
 
 /** How many X-axis ticks to aim for (Recharts will round to nearest data point). */
@@ -55,8 +55,8 @@ const MODULE_COLORS = ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899'];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getCutoff(period: TimePeriod, referenceTime: number): Date {
-    const now = new Date(referenceTime);
+function getCutoff(period: TimePeriod, referenceTime: number, customStart?: string): Date {
+    const now = customStart ? new Date(customStart) : new Date(referenceTime);
     switch (period) {
         case 'LIVE': return new Date(now.getTime() - 3 * 60_000); // Scrolling 3-minute window
         case '30M': return new Date(now.getTime() - 30 * 60_000);
@@ -68,6 +68,7 @@ function getCutoff(period: TimePeriod, referenceTime: number): Date {
         case '7D': return new Date(now.getTime() - 7 * 86_400_000);
         case '1M': { const d = new Date(now); d.setMonth(d.getMonth() - 1); return d; }
         case '1Y': { const d = new Date(now); d.setFullYear(d.getFullYear() - 1); return d; }
+        case 'CUSTOM': return now;
     }
 }
 
@@ -643,6 +644,8 @@ export const BuildingCard = ({
 }) => {
     const [period, setPeriod] = useState<TimePeriod>('24H');
     const [viewMode, setViewMode] = useState<'combined' | 'separate'>('separate');
+    const [customStart, setCustomStart] = useState<string>('');
+    const [customEnd, setCustomEnd] = useState<string>('');
     const [hiddenDevices, setHiddenDevices] = useState<Set<string>>(new Set());
     const params = useParams();
     const user = params?.user as string;
@@ -652,6 +655,7 @@ export const BuildingCard = ({
 
     // Update current time dynamically: every 2 seconds for LIVE mode, 30 seconds for historical modes
     useEffect(() => {
+        if (period === 'CUSTOM') return;
         const ms = period === 'LIVE' ? 2000 : 30000;
         const interval = setInterval(() => {
             setCurrentTime(Date.now());
@@ -701,7 +705,7 @@ export const BuildingCard = ({
 
         // Filter & sort historical data
         const filtered = allDeviceData
-            .filter(d => moduleIds.includes(d.device_id) && d.time && new Date(d.time) >= cutoff)
+            .filter(d => moduleIds.includes(d.device_id) && d.time && new Date(d.time) >= cutoff && new Date(d.time).getTime() <= nowTime)
             .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
         // Bucket by rounded timestamp
@@ -780,7 +784,7 @@ export const BuildingCard = ({
             cutoffTime,
             nowTime
         };
-    }, [modules, allDeviceData, period, currentTime]);
+    }, [modules, allDeviceData, period, currentTime, customStart, customEnd]);
 
     const toggleDevice = (deviceId: string) => {
         setHiddenDevices(prev => {
@@ -884,6 +888,23 @@ export const BuildingCard = ({
                                         </button>
                                     ))}
                                 </div>
+                                {period === 'CUSTOM' && (
+                                    <div className="flex gap-2 items-center bg-gray-50 p-1 rounded-lg border border-gray-200">
+                                        <input
+                                            type="datetime-local"
+                                            className="text-[10px] text-black font-bold bg-transparent outline-none"
+                                            value={customStart}
+                                            onChange={(e) => setCustomStart(e.target.value)}
+                                        />
+                                        <span className="text-[10px] text-gray-400">to</span>
+                                        <input
+                                            type="datetime-local"
+                                            className="text-[10px] text-black font-bold bg-transparent outline-none"
+                                            value={customEnd}
+                                            onChange={(e) => setCustomEnd(e.target.value)}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
