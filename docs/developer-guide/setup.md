@@ -30,6 +30,9 @@ Ensure you have the following tools installed:
 - **Arduino IDE** or **PlatformIO** (for firmware development)
 - **MongoDB** (locally or an Atlas cluster URI)
 - **Supabase Account** (for Auth and PostgreSQL)
+-  *Mosquito client*
+-  *Websockets* Socket.io
+-  *Google Cloud*
 
 ---
 
@@ -45,7 +48,7 @@ Ensure you have the following tools installed:
    ```
 3. Create a `.env.local` file inside `frontend/ems-webapp/` and populate it with your Firebase/Supabase configuration credentials:
    ```env
-   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+   PUBLIC_FIREBASE_API_KEY=your_api_key
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
    ```
