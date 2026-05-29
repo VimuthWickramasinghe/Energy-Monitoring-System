@@ -10,6 +10,7 @@ const cors = require('cors');
 const { spawn } = require('child_process');
 const admin = require('firebase-admin');
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const mqtt = require('mqtt');
 
 const app = express();
 const server = http.createServer(app);
@@ -151,6 +152,7 @@ const authenticateFirebaseToken = async (req, res, next) => {
     res.status(403).json({ error: 'Unauthorized' });
   }
 };
+// mqtt handeling code 
 
 // simple request logger for debugging
 app.use((req, res, next) => {
@@ -194,14 +196,8 @@ app.post('/send', async (req, res) => {
 });
 
 // Shared logic for /send and /test
-async function handleSendData(req, res) {
+async function processDeviceData(payload) {
   try {
-    // Basic API Key protection for hardware devices
-    const apiKey = req.headers['x-api-key'];
-    if (!apiKey || apiKey !== process.env.HARDWARE_API_KEY) {
-      return res.status(401).json({ error: 'Unauthorized: Invalid or missing API Key' });
-    }
-
     const {
       device_id,
       voltage,
@@ -209,7 +205,7 @@ async function handleSendData(req, res) {
       apparent_power,
       real_power,
       power_factor,
-    } = req.body;
+    } = payload;
 
     const docObj = { device_id };
     if (typeof voltage !== 'undefined' && !isNaN(voltage)) docObj.voltage = Number(voltage);
@@ -219,35 +215,60 @@ async function handleSendData(req, res) {
     if (typeof power_factor !== 'undefined' && !isNaN(power_factor)) docObj.power_factor = Number(power_factor);
 
     if (Object.keys(docObj).length <= 1) {
-      console.log('No valid fields in incoming body:', req.body);
-      return res.status(400).json({ error: 'No valid sensor fields in body' });
+      console.log('No valid fields in incoming payload:', payload);
+      return null;
     }
 
-    // Save the telemetry readings to MongoDB.
-    // Sensor is a Mongoose Model pointing to the finalVolData collection.
     const data = new Sensor(docObj);
     const saved = await data.save();
-    console.log('Saved document id:', saved._id.toString());
-
-    // ========================================================================
-    // WEBSOCKET BROADCAST LOGIC
-    // ========================================================================
-    // Immediately after saving the data packet to MongoDB, we broadcast it
-    // to all currently connected frontend web browsers.
-    //
-    // - Event Name: 'deviceData'
-    // - Payload: The saved Mongoose document (contains fields like device_id,
-    //   voltage, current, real_power, apparent_power, power_factor, and the
-    //   server-generated database timestamp 'time').
-    //
-    // By using 'io.emit', we push this update over the open WebSocket TCP
-    // connection to all clients. This implements the Observer / Pub-Sub pattern:
-    // the frontend clients do not have to poll the database or make repetitive HTTP requests.
-    // They just listen for 'deviceData' updates and update their local state reactively.
     io.emit('deviceData', saved);
+    return saved;
+  } catch (err) {
+    console.error('Error processing device data:', err);
+    return null;
+  }
+}
 
-    // Respond back to the hardware device to confirm receipt and successful database storage.
-    res.status(201).json({ message: 'Data saved', id: saved._id, data: docObj });
+// MQTT Connection Setup
+const mqttBrokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://34.142.217.143:1883';
+const mqttOptions = {
+  username: process.env.MQTT_USERNAME || 'vimuthwic3',
+  password: process.env.MQTT_PASSWORD || 'vimpra25'
+};
+const mqttClient = mqtt.connect(mqttBrokerUrl, mqttOptions);
+
+mqttClient.on('connect', () => {
+  console.log(`Connected to MQTT Broker: ${mqttBrokerUrl}`);
+  mqttClient.subscribe('ems/devices/+/data', (err) => {
+    if (!err) {
+      console.log('Subscribed to ems/devices/+/data');
+    }
+  });
+});
+
+mqttClient.on('message', async (topic, message) => {
+  console.log(`Received MQTT message on topic ${topic}`);
+  try {
+    const payload = JSON.parse(message.toString());
+    await processDeviceData(payload);
+  } catch (e) {
+    console.error('Failed to parse MQTT payload', e);
+  }
+});
+
+async function handleSendData(req, res) {
+  try {
+    const apiKey = req.headers['x-api-key'];
+    if (!apiKey || apiKey !== process.env.HARDWARE_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid or missing API Key' });
+    }
+
+    const saved = await processDeviceData(req.body);
+    if (saved) {
+      res.status(201).json({ message: 'Data saved', id: saved._id });
+    } else {
+      res.status(400).json({ error: 'No valid sensor fields in body' });
+    }
   } catch (err) {
     console.error('Error saving data:', err);
     res.status(500).json({ error: err.message });

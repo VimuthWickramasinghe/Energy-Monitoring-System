@@ -1,0 +1,5 @@
+send a request
+mosquitto_pub -h 34.142.217.143 -t "test/topic" -m "Remote Hello" -u vimuthwic3 -P vimpra25
+
+monitor requests
+mosquitto_sub -h 34.142.217.143 -t "#" -v -u vimuthwic3 -P vimpra25

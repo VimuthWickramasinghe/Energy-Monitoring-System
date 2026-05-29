@@ -7,3 +7,14 @@ services:
       - "3000:3000"
     container_name: ems-frontend
     restart: unless-stopped
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: ems-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    restart: unless-stopped

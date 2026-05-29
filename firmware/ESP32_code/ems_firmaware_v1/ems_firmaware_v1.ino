@@ -1,11 +1,23 @@
-#include <WiFi.h>          // Core library for ESP32 WiFi connectivity and station/AP modes
-#include <HTTPClient.h>    // Provides methods to send HTTP requests (GET, POST) to a web server
-#include <ArduinoJson.h>   // Used for serializing and deserializing JSON data for API communication
-#include <BLEDevice.h>     // Main BLE library to initialize the ESP32 as a Bluetooth device
-#include <BLEServer.h>     // Used to create and manage the BLE Server (GATT server)
-#include <BLEUtils.h>      // Helper utilities for BLE UUIDs and data formatting
-#include <BLE2902.h>       // Enables Client Characteristic Configuration Descriptor (CCCD) for notifications
-#include <Preferences.h>   // Provides access to Non-Volatile Storage (NVS) to persist WiFi credentials
+#include <WiFi.h>        // Core library for ESP32 WiFi connectivity and station/AP modes
+#include <HTTPClient.h>  // Provides methods to send HTTP requests (GET, POST) to a web server
+#include <ArduinoJson.h> // Used for serializing and deserializing JSON data for API communication
+#include <BLEDevice.h>   // Main BLE library to initialize the ESP32 as a Bluetooth device
+#include <BLEServer.h>   // Used to create and manage the BLE Server (GATT server)
+#include <BLEUtils.h>    // Helper utilities for BLE UUIDs and data formatting
+#include <BLE2902.h>     // Enables Client Characteristic Configuration Descriptor (CCCD) for notifications
+#include <Preferences.h> // Provides access to Non-Volatile Storage (NVS) to persist WiFi credentials
+#include <PubSubClient.h> // MQTT Client Library
+
+// mqtt setup variables
+const char *mqtt_broker = "34.142.217.143";
+const int mqtt_port = 1883;
+const char *mqtt_topic = "ems/device/DEVICE_MAC_OR_ID/data";
+const char *mqtt_user = "vimuthwic3";
+const char *mqtt_pass = "vimpra25";
+#define USE_MQTT true;
+
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
 
 // put function declarations here:
 // Replace with your network credentials
@@ -36,7 +48,7 @@ const char* api_key = "ems-key-123";
 // --- Power Calculation Parameters ---
 const double referenceVoltage = 3.3;
 const int adcMax = 4095;
-const double mVperAmp = 1000 / 30.0; 
+const double mVperAmp = 1000 / 30.0;
 const int bufferSize = 200;
 const int sampleDelayUs = 500;
 double voltageCalibration = 1.0; // Default, can be updated
@@ -72,50 +84,75 @@ BLECharacteristic *pStatusCharacteristic = nullptr;
 
 class ProvisioningCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
-        String rxValue = String(pCharacteristic->getValue().c_str());
-        rxValue.trim(); // Remove any accidental whitespace or newlines
-        
-        BLEUUID uuid = pCharacteristic->getUUID();
+    String rxValue = String(pCharacteristic->getValue().c_str());
+    rxValue.trim(); // Remove any accidental whitespace or newlines
+
+    BLEUUID uuid = pCharacteristic->getUUID();
         if (rxValue.length() > 0) {
             if (uuid.equals(BLEUUID(SSID_CHAR_UUID))) {
-                provisioned_ssid = rxValue;
-                Serial.print("Received SSID: '");
-                Serial.print(provisioned_ssid);
-                Serial.print("' (Length: ");
-                Serial.print(provisioned_ssid.length());
-                Serial.println(")");
+        provisioned_ssid = rxValue;
+        Serial.print("Received SSID: '");
+        Serial.print(provisioned_ssid);
+        Serial.print("' (Length: ");
+        Serial.print(provisioned_ssid.length());
+        Serial.println(")");
             } else if (uuid.equals(BLEUUID(PASS_CHAR_UUID))) {
-                provisioned_password = rxValue;
-                Serial.print("Received Password: '");
-                Serial.print(provisioned_password);
-                Serial.print("' (Length: ");
-                Serial.print(provisioned_password.length());
-                Serial.println(")");
+        provisioned_password = rxValue;
+        Serial.print("Received Password: '");
+        Serial.print(provisioned_password);
+        Serial.print("' (Length: ");
+        Serial.print(provisioned_password.length());
+        Serial.println(")");
             } else if (uuid.equals(BLEUUID(REG_CHAR_UUID))) {
                 if (rxValue == "REGISTERED") {
-                    isRegistered = true;
-                    Serial.println("Device registered via App. Shutting down BLE...");
-                    delay(2000);
-                    BLEDevice::deinit(false);
-                }
-            }
-            
-            if (provisioned_ssid.length() > 0 && provisioned_password.length() > 0) {
-                shouldConnectWiFi = true;
-                Serial.println("Credentials received. Attempting WiFi connection...");
-            }
+          isRegistered = true;
+          Serial.println("Device registered via App. Shutting down BLE...");
+          delay(2000);
+          BLEDevice::deinit(false);
         }
+      }
+
+            if (provisioned_ssid.length() > 0 && provisioned_password.length() > 0) {
+        shouldConnectWiFi = true;
+        Serial.println("Credentials received. Attempting WiFi connection...");
+      }
     }
+  }
 };
 
-void setup() {
+void reconnect_mqtt()
+{
+  while (!mqttClient.connected())
+  {
+    Serial.print("Attempting MQTT connection...");
+    // Create a random client ID to avoid collisions
+    String clientId = "EMS-ESP32-";
+    clientId += String(random(0xffff), HEX);
+
+    // Attempt to connect
+    if (mqttClient.connect(clientId.c_str(), mqtt_user, mqtt_pass))
+    {
+      Serial.println("connected");
+    }
+    else
+    {
+      Serial.print("failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" try again in 5 seconds");
+      delay(5000);
+    }
+  }
+}
+
+void setup()
+{
   // put your setup code here, to run once:
   Serial.begin(115200);
   delay(1000);
-  
+
   pinMode(RED_LED_PIN, OUTPUT);
   pinMode(BOOT_BUTTON_PIN, INPUT_PULLUP);
-  
+
   // Generate dynamic device identity mapping matching your front-end name filters
   uint64_t chipId = ESP.getEfuseMac();
   device_id = "ems-esp-" + String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
@@ -128,7 +165,7 @@ void setup() {
 
   Serial.println("--- EMS Device Initialization ---");
   Serial.printf("Device ID: %s\n", device_id.c_str());
-  
+
   loadCredentials();
 
   // Check if calibration exists, if not, force calibration
@@ -140,7 +177,10 @@ void setup() {
   if (provisioned_ssid.length() > 0 && WiFi.status() != WL_CONNECTED) {
     connectToWiFi();
   }
-
+  if (USE_MQTT)
+  {
+    mqttClient.setServer(mqtt_broker, mqtt_port);
+  }
   // Only start BLE if we didn't successfully connect to WiFi
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("Starting BLE Provisioning Server...");
@@ -186,7 +226,7 @@ void loop() {
       preferences.remove("ssid");
       preferences.remove("pass");
       preferences.end();
-      
+
       WiFi.disconnect(true);
       provisioned_ssid = "";
       provisioned_password = "";
@@ -207,7 +247,7 @@ void loop() {
     if (millis() - lastMsg > 10000) {
       sampleSynchronized();
       calculatePower();
-      
+
       Serial.println("\n--- Power Readings ---");
       Serial.printf("Voltage: %.2f V\n", voltageRMS);
       Serial.printf("Current: %.3f A\n", currentRMS);
@@ -220,7 +260,7 @@ void loop() {
     }
   } else {
     if (provisioned_ssid.length() > 0) {
-        shouldConnectWiFi = true;
+      shouldConnectWiFi = true;
     }
     // Waiting for provisioning: Slow blink (every 1 second)
     static unsigned long lastBlink = 0;
@@ -232,27 +272,27 @@ void loop() {
 }
 
 void setupBLE() {
-  BLEDevice::init(device_id.c_str()); 
+  BLEDevice::init(device_id.c_str());
   BLEServer *pServer = BLEDevice::createServer();
-  
+
   BLEService *pService = pServer->createService(PROVISIONING_SERVICE_UUID);
-  
+
   BLECharacteristic *pSsidCharacteristic = pService->createCharacteristic(
-                                         SSID_CHAR_UUID,
+      SSID_CHAR_UUID,
                                          BLECharacteristic::PROPERTY_WRITE
                                        );
-                                       
+
   BLECharacteristic *pPassCharacteristic = pService->createCharacteristic(
-                                         PASS_CHAR_UUID,
+      PASS_CHAR_UUID,
                                          BLECharacteristic::PROPERTY_WRITE
                                        );
-                                       
+
   pStatusCharacteristic = pService->createCharacteristic(
-                                         STATUS_CHAR_UUID,
+      STATUS_CHAR_UUID,
                                          BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY
                                        );
   BLECharacteristic *pRegCharacteristic = pService->createCharacteristic(
-                                         REG_CHAR_UUID,
+      REG_CHAR_UUID,
                                          BLECharacteristic::PROPERTY_WRITE
                                        );
 
@@ -264,7 +304,7 @@ void setupBLE() {
   pRegCharacteristic->setCallbacks(pCallbacks);
 
   pService->start();
-  
+
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(PROVISIONING_SERVICE_UUID);
   pAdvertising->setScanResponse(true);
@@ -295,7 +335,7 @@ void connectToWiFi() {
     if (attempts > 30) { // Timeout after 15 seconds
       Serial.println("\nFailed to connect to WiFi. Please check credentials.");
       provisioned_ssid = ""; // Reset to allow retry
-      
+
       if (pStatusCharacteristic != nullptr) {
         pStatusCharacteristic->setValue("FAILED");
         pStatusCharacteristic->notify();
@@ -307,10 +347,10 @@ void connectToWiFi() {
   Serial.println("\nWiFi connected!");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-  
+
   // Keep LED solid ON when successfully connected
   digitalWrite(RED_LED_PIN, HIGH);
-  
+
   // Save to NVS now that we know it works
   saveCredentials(provisioned_ssid, provisioned_password);
 
@@ -325,13 +365,13 @@ void loadCredentials() {
   preferences.begin("wifi-gate", true);
   provisioned_ssid = preferences.getString("ssid", "");
   provisioned_password = preferences.getString("pass", "");
-  
+
   // Load calibration data
   voltageCalibration = preferences.getDouble("vCal", 1.0);
   voltageOffset = preferences.getDouble("vOff", 0.0);
   currentOffset = preferences.getDouble("cOff", 0.0);
   preferences.end();
-  
+
   if(provisioned_ssid.length() > 0) Serial.println("Loaded stored credentials.");
   if(voltageOffset != 0) Serial.println("Loaded stored calibration data.");
 }
@@ -356,7 +396,7 @@ void calculatePower() {
   double vSum = 0, vSumSq = 0;
   double cSum = 0, cSumSq = 0;
   double powerSum = 0;
-  
+
   // Calculate averages (DC offset)
   for (int i = 0; i < bufferSize; i++) {
     vSum += voltageBuffer[i];
@@ -364,72 +404,65 @@ void calculatePower() {
   }
   double vAvg = vSum / bufferSize;
   double cAvg = cSum / bufferSize;
-  
+
   // Calculate RMS and real power
   for (int i = 0; i < bufferSize; i++) {
     double vDiff = voltageBuffer[i] - vAvg;
     double cDiff = currentBuffer[i] - cAvg;
-    
+
     vSumSq += vDiff * vDiff;
     cSumSq += cDiff * cDiff;
-    
+
     // Convert to actual values
     double vInstant = (vDiff * referenceVoltage / adcMax) * voltageCalibration;
     double cInstant = (cDiff * referenceVoltage / adcMax) / (mVperAmp / 1000);
     powerSum += vInstant * cInstant;
   }
-  
+
   // Calculate RMS values
   double vRMS_raw = sqrt(vSumSq / bufferSize);
   double cRMS_raw = sqrt(cSumSq / bufferSize);
-  
+
   voltageRMS = (vRMS_raw * referenceVoltage / adcMax) * voltageCalibration;
   currentRMS = (cRMS_raw * referenceVoltage / adcMax) / (mVperAmp / 1000);
-  
+
   // Apply noise threshold
   if (currentRMS < currentNoiseThreshold) {
     currentRMS = 0;
   }
-  
+
   // Calculate powers
   realPower = powerSum / bufferSize;
-  
+
   // Ensure real power isn't negative due to noise
   if (fabs(realPower) < 0.5) {
     realPower = 0;
   }
-  
+
   apparentPower = voltageRMS * currentRMS;
-  
+
   // Calculate power factor
   powerFactor = 0;
-  
+
   if (apparentPower > 0.01) {
     powerFactor = realPower / apparentPower;
   }
-  
+
   // Limit PF
   if (powerFactor > 1.0)
     powerFactor = 1.0;
-  
+
   if (powerFactor < -1.0)
     powerFactor = -1.0;
-  
+
   // Phase angle
   phaseAngle = acos(powerFactor) * 180.0 / PI;
 }
 
-void sendSensorData() {
-  HTTPClient http;
-
-  if (!http.begin(server_url)) return;
-
-  http.addHeader("Content-Type", "application/json");
-  http.addHeader("x-api-key", api_key);
-
+void sendSensorData()
+{
   // Create a JSON document
   JsonDocument doc;
-
   doc["device_id"] = device_id;
   doc["voltage"] = voltageRMS;
   doc["current"] = currentRMS;
@@ -440,15 +473,44 @@ void sendSensorData() {
   String jsonPayload;
   serializeJson(doc, jsonPayload);
 
+  bool mqttSuccess = false;
+
+  // --- Try MQTT if enabled ---
+  if (USE_MQTT) {
+    if (!mqttClient.connected()) {
+      reconnect_mqtt();
+    }
+    mqttClient.loop();
+    if (mqttClient.publish(mqtt_topic, jsonPayload.c_str())) {
+      Serial.println("[MQTT] Payload published successfully.");
+      mqttSuccess = true;
+    } else {
+      Serial.println("[MQTT] Failed to publish payload. Falling back to HTTP.");
+    }
+  }
+
+  // --- Send via HTTP if MQTT is disabled or failed ---
+  if (!mqttSuccess) {
+  HTTPClient http;
+
+  if (!http.begin(server_url))
+    return;
+
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("x-api-key", api_key);
+
   Serial.println("\nSending payload:");
   Serial.println(jsonPayload);
 
   int httpResponseCode = http.POST(jsonPayload);
 
-  if (httpResponseCode > 0) {
+  if (httpResponseCode > 0)
+  {
     Serial.printf("HTTP Response code: %d\n", httpResponseCode);
     Serial.printf("Response from server: %s\n", http.getString().c_str());
-  } else {
+  }
+  else
+  {
     Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpResponseCode).c_str());
   }
 
@@ -458,21 +520,21 @@ void sendSensorData() {
 // Calibrate sensors
 void calibrateSensors() {
   Serial.println("\n=== CALIBRATION START ===");
-  
+
   // Calibrate current sensor (zero current)
   Serial.println("Step 1: Current Sensor Calibration");
   Serial.println("Make sure NO LOAD is connected to ACS712!");
   delay(3000);
-  
+
   long currentSum = 0;
   for (int i = 0; i < 1000; i++) {
     currentSum += analogRead(CURR_SENSOR_PIN);
     delay(1);
   }
   currentOffset = currentSum / 1000.0;
-  Serial.printf("Current sensor offset: %.2f ADC (%.3f V)\n", 
+  Serial.printf("Current sensor offset: %.2f ADC (%.3f V)\n",
                 currentOffset, (currentOffset * referenceVoltage / adcMax));
-  
+
   // Calibrate voltage sensor (find zero crossing offset)
   Serial.println("\nStep 2: Voltage Sensor Zero Calibration");
   long voltageSum = 0;
@@ -481,14 +543,14 @@ void calibrateSensors() {
     delay(1);
   }
   voltageOffset = voltageSum / 1000.0;
-  Serial.printf("Voltage sensor zero offset: %.2f ADC (%.3f V)\n", 
+  Serial.printf("Voltage sensor zero offset: %.2f ADC (%.3f V)\n",
                 voltageOffset, (voltageOffset * referenceVoltage / adcMax));
-  
+
   // Voltage gain calibration
   Serial.println("\nStep 3: Voltage Gain Calibration");
   Serial.println("You have 60 seconds to connect a multimeter and measure the actual AC voltage");
   Serial.println("Apply known AC voltage (e.g., 220V or 110V) to ZMPT101B");
-  
+
   // Countdown for user to connect multimeter and measure
   for (int countdown = 60; countdown > 0; countdown--) {
     if (countdown % 10 == 0 || countdown <= 5) {
@@ -496,7 +558,7 @@ void calibrateSensors() {
     }
     delay(1000);
   }
-  
+
   double vSumSq = 0;
   for (int i = 0; i < 1000; i++) {
     int rawADC = analogRead(VOLT_SENSOR_PIN);
@@ -506,11 +568,11 @@ void calibrateSensors() {
   }
   double measuredVRMS_raw = sqrt(vSumSq / 1000);
   double measuredVRMS = (measuredVRMS_raw * referenceVoltage / adcMax);
-  
+
   Serial.printf("Measured voltage (raw): %.2f V\n", measuredVRMS);
   Serial.println("\nNow enter the ACTUAL voltage you measured with the multimeter:");
   Serial.print("Enter ACTUAL RMS voltage (e.g., 230): ");
-  
+
   unsigned long inputTimeout = millis() + 30000;  // 30 second timeout for input
   while (!Serial.available()) {
     if (millis() > inputTimeout) {
@@ -521,7 +583,7 @@ void calibrateSensors() {
     }
     delay(100);
   }
-  
+
   double actualVoltage = Serial.parseFloat();
   if (actualVoltage > 0) {
     voltageCalibration = actualVoltage / measuredVRMS;
@@ -537,23 +599,23 @@ void calibrateSensors() {
   preferences.putDouble("vOff", voltageOffset);
   preferences.putDouble("cOff", currentOffset);
   preferences.end();
-  
+
   Serial.println("=== CALIBRATION COMPLETE ===\n");
 }
 
 // Debug: raw ADC readings
 void debugReadings() {
   Serial.println("\n=== RAW ADC DEBUG ===");
-  
+
   // Read raw values
   int vRaw = analogRead(VOLT_SENSOR_PIN);
   int cRaw = analogRead(CURR_SENSOR_PIN);
-  
-  Serial.printf("Voltage Pin (GPIO%d): ADC = %d (%.3f V)\n", 
+
+  Serial.printf("Voltage Pin (GPIO%d): ADC = %d (%.3f V)\n",
                 VOLT_SENSOR_PIN, vRaw, vRaw * referenceVoltage / adcMax);
-  Serial.printf("Current Pin (GPIO%d): ADC = %d (%.3f V)\n", 
+  Serial.printf("Current Pin (GPIO%d): ADC = %d (%.3f V)\n",
                 CURR_SENSOR_PIN, cRaw, cRaw * referenceVoltage / adcMax);
-  
+
   // Check for stuck ADC
   if (vRaw == 0 || vRaw == 4095) {
     Serial.println("WARNING: Voltage ADC seems stuck! Check wiring.");
@@ -561,11 +623,11 @@ void debugReadings() {
   if (cRaw == 0 || cRaw == 4095) {
     Serial.println("WARNING: Current ADC seems stuck! Check wiring.");
   }
-  
+
   // Check offset calibration
   Serial.printf("\nCurrent Offset: %.2f ADC\n", currentOffset);
   Serial.printf("Voltage Offset: %.2f ADC\n", voltageOffset);
-  
+
   // Quick RMS test
   double vSumSq = 0;
   for (int i = 0; i < 100; i++) {
