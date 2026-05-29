@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, AreaChart, Area, LineChart, Line, Legend,
@@ -14,13 +15,17 @@ import Header from "@/components/Header";
 import { useBuilding, Building, Module } from "@/lib/DeviceBuildingContext";
 import { useDeviceData } from "@/lib/DeviceDataContext";
 import { useProfile } from "@/lib/ProfileContext";
+import { AuthContext } from "@/lib/AuthContext";
 import { BuildingCard } from "@/components/analytics/BuildingCard";
 import { KPICard } from "@/components/analytics/KPICard";
 
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
+    const router = useRouter();
+    const params = useParams();
     const { buildings, modules, fetchBuildings, fetchModules, loading: buildingLoading } = useBuilding();
+    const { user } = React.useContext(AuthContext) as { user: any };
     const { profile } = useProfile();
     const { devices: allDeviceData, mongoDemoData, refreshDevices } = useDeviceData();
 
@@ -98,7 +103,13 @@ export default function AnalyticsPage() {
             {/* ── Page Header ── */}
             <Header title="Analytics & Insights" subtitle={subtitle}>
                 <div className="flex flex-wrap items-center gap-3">
-                    {/* Header Action Items Commented Out */}
+                    <button 
+                        className="flex items-center gap-2 px-4 py-2 bg-black border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-orange-500 transition-colors shadow-sm"
+                        onClick={() => router.push(`/${user?.email}/analytics/export`)}
+                    >
+                        <Download size={16} color="white" />
+                        <span className="text-white">Export Report</span>
+                    </button>
                 </div>
             </Header>
 
