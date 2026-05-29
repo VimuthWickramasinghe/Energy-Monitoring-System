@@ -24,6 +24,7 @@ graph TD
     subgraph Backend & Communications
         ESP32 -->|WiFi / MQTT or WebSockets| BE[Node.js / Express Backend]
         BE -->|WebSocket Streams| FE[Next.js Webapp]
+        MQTT Broker -->| Depends on the device Configuration| BE[Mosquito]
     end
 
     subgraph Persistence Layer
@@ -37,19 +38,26 @@ graph TD
 ## ⚡ Hardware Components
 
 ### 1. ESP32 Microcontroller
+
 - Responsible for sampling raw analog signals from the sensors.
 - Performs root-mean-square (RMS) computations locally.
 - Sends processed telemetry data over local WiFi.
 
 ### 2. SCT-013 Current Sensor
+
 - Non-invasive split-core current transformer.
 - Measures alternating current (up to 100A).
 - Interfaced via an analog burden resistor circuit to translate current ratios into ADC-readable voltage.
 
 ### 3. ZMPT101B Voltage Sensor
+
 - Active single-phase AC voltage transformer module.
 - Safely steps down high-voltage AC mains to low-voltage AC.
 - Incorporates a trim potentiometer for calibrating the output amplitude.
+
+### 4. Power Line Communication (PLC) Module
+
+-
 
 ---
 
@@ -58,17 +66,20 @@ graph TD
 The EMS uses a hybrid database setup to optimize for both transactional consistency and high-frequency sensor streams:
 
 ### Supabase / PostgreSQL (Transactional & Auth)
+
 Stores user accounts, system configuration, alert thresholds, and aggregated historical summaries (daily/monthly totals).
 
 ### MongoDB (Time-Series Metrics)
+
 Stores raw, high-frequency telemetry samples:
+
 ```json
 {
-  "sensorId": "ESP32-NODE-01",
-  "timestamp": "2026-05-28T11:48:00Z",
-  "voltageRMS": 230.4,
-  "currentRMS": 4.12,
-  "activePower": 949.2,
-  "powerFactor": 0.95
+  "device_id": "ems-esp-dcb1f6641d44",
+  "voltage": 232.2,
+  "current": 1.466,
+  "apparent_power": 737,
+  "real_power": 523,
+  "power_factor": 0.98
 }
 ```
