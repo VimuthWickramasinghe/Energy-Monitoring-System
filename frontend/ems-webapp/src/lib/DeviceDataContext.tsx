@@ -29,10 +29,10 @@ export interface DeviceDataContextType {
 export const DeviceDataContext = createContext<DeviceDataContextType | undefined>(undefined);
 
 // Using environment variable or fallback for the backend URL
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BACKEND_URL = process.env.BACKEND_URL;
 
 const getBackendUrl = () => {
-    // Fallback to the active deployed Cloud Run backend URL if NEXT_PUBLIC_BACKEND_URL
+    // Fallback to the active deployed Cloud Run backend URL if BACKEND_URL
     // is missing or points to the unresolved keyblocks domain placeholder.
     if (!BACKEND_URL || BACKEND_URL.includes("esmb.keyblocks.org") || BACKEND_URL.includes("emsb.keyblocks.org")) {
         return "https://ems-backend-475776935743.asia-southeast1.run.app";
@@ -117,10 +117,10 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
             const historyData = await res.json();
 
             // Filter the returned JSON to only contain items matching user's moduleIds
-            let data = (historyData || []).filter((item: any) => 
+            let data = (historyData || []).filter((item: any) =>
                 moduleIds.includes(item.device_id)
             );
-            
+
             // Prototype Fallback: If hardware device_id doesn't match registered module_id, 
             // map the raw demo data to the first registered module so the UI populates.
             if ((!data || data.length === 0) && moduleIds.length > 0) {
@@ -179,10 +179,10 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
             // This is triggered whenever a physical device publishes telemetry to the backend.
             socket.on("deviceData", (newData: DeviceData) => {
                 console.log("Live data received via WebSocket:", newData);
-                
+
                 // Update general historical demo data list (keep up to 1000 items)
                 setMongoDemoData((prev) => [newData, ...prev].slice(0, 1000));
-                
+
                 // Only process and react to the telemetry packet if it belongs to one of the user's modules
                 const moduleIds = modules.map(m => m.module_id);
                 if (moduleIds.includes(newData.device_id) || moduleIds.length > 0) {
@@ -190,8 +190,8 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
                     // If the hardware device transmits a test ID (e.g. ems-esm-test) that isn't explicitly
                     // registered in Supabase under this user, map it to the user's first module so the user
                     // can see live readings on their cards.
-                    const mappedData = moduleIds.includes(newData.device_id) 
-                        ? newData 
+                    const mappedData = moduleIds.includes(newData.device_id)
+                        ? newData
                         : { ...newData, device_id: moduleIds[0] };
 
                     // Prepend the new telemetry reading to the state array.
