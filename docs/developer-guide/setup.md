@@ -47,11 +47,7 @@ Ensure you have the following tools installed:
    npm install
    ```
 3. Create a `.env.local` file inside `frontend/ems-webapp/` and populate it with your Firebase/Supabase configuration credentials:
-   ```env
-   PUBLIC_FIREBASE_API_KEY=your_api_key
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-   ```
+
 4. Start the development server:
    ```bash
    npm run dev

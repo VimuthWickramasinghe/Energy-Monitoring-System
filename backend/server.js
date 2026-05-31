@@ -19,7 +19,7 @@ const server = http.createServer(app);
 const isOriginAllowed = (origin) => {
   if (!origin) return true; // Allow non-browser requests (e.g. ESP32, curl)
   const cleanOrigin = origin.replace(/\/$/, '');
-  
+
   // Allow localhost & 127.0.0.1 on any port for local development
   if (cleanOrigin.startsWith('http://localhost:') || cleanOrigin.startsWith('http://127.0.0.1:')) {
     return true;
@@ -119,7 +119,7 @@ try {
 
 
 // MongoDB connection (dotenv)
-const mongoUri = process.env.MONGODB_URI;
+const mongoUri = process.env.MONGO_URI;
 mongoose.set('strictQuery', false);
 
 // Schema (kept because you requested to store one dataset)
@@ -420,7 +420,7 @@ function startMockDataGenerator() {
 }
 
 // Connect and optionally insert ONE sample dataset if collection empty
-const uri = process.env.MONGODB_URI
+const uri = process.env.MONGO_URI
 async function run() {
   try {
     // Use Mongoose to connect with recommended options for Cloud hosting
