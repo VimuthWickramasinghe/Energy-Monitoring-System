@@ -17,7 +17,12 @@ RUN npm install --only=production
 # Copy local code to the container image.
 COPY . .
 
+# Set environment variables
+ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=energy-management-system-fd6fb
+
+# Expose the port the app runs on
+EXPOSE 8080
+
 # Run the web service on container startup.
 # Cloud Run automatically sets the PORT environment variable to 8080 (or respects your config).
 CMD [ "npm", "start" ]
-

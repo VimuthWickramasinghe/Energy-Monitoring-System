@@ -11,7 +11,7 @@
 // mqtt setup variables
 const char *mqtt_broker = "34.142.217.143";
 const int mqtt_port = 1883;
-const char *mqtt_topic = "ems/device/DEVICE_MAC_OR_ID/data";
+String mqtt_topic = "";
 const char *mqtt_user = "vimuthwic3";
 const char *mqtt_pass = "vimpra25";
 
@@ -158,6 +158,7 @@ void setup()
   uint64_t chipId = ESP.getEfuseMac();
   device_id = "ems-esp-" + String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
   device_id.toLowerCase();
+  mqtt_topic = "ems/devices/" + device_id + "/data";
 
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
@@ -482,7 +483,7 @@ void sendSensorData()
       reconnect_mqtt();
     }
     mqttClient.loop();
-    if (mqttClient.publish(mqtt_topic, jsonPayload.c_str())) {
+    if (mqttClient.publish(mqtt_topic.c_str(), jsonPayload.c_str())) {
       Serial.println("[MQTT] Payload published successfully.");
       mqttSuccess = true;
     } else {
