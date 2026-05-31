@@ -14,7 +14,7 @@ const int mqtt_port = 1883;
 const char *mqtt_topic = "ems/device/DEVICE_MAC_OR_ID/data";
 const char *mqtt_user = "vimuthwic3";
 const char *mqtt_pass = "vimpra25";
-#define USE_MQTT true;
+
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -23,7 +23,8 @@ PubSubClient mqttClient(espClient);
 // Replace with your network credentials
 String provisioned_ssid = "";
 String provisioned_password = "";
-bool isRegistered = false;
+bool USE_MQTT = true;
+bool isRegistered = true;
 bool shouldConnectWiFi = false;
 String device_id = ""; // Dynamically generated using MAC Address
 
@@ -515,6 +516,7 @@ void sendSensorData()
   }
 
   http.end();
+}
 }
 
 // Calibrate sensors
