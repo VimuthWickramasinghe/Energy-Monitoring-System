@@ -281,10 +281,10 @@ const CustomSvgChart = ({
 }: CustomSvgChartProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(600);
-    const height = 240;
+    const height = 200;
     const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-    const margin = { top: 20, right: 40, bottom: 40, left: 40 };
+    const margin = { top: 20, right: 40, bottom: 50, left: 40 };
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -311,10 +311,10 @@ const CustomSvgChart = ({
     const getAxisRange = (yAxisId: 'left' | 'right') => {
         const axisLines = lines.filter(l => l.yAxisId === yAxisId);
         if (axisLines.length === 0) return { min: 0, max: 1 };
-        
+
         let min = Infinity;
         let max = -Infinity;
-        
+
         data.forEach(d => {
             axisLines.forEach(l => {
                 const val = d[l.key];
@@ -326,7 +326,7 @@ const CustomSvgChart = ({
         });
 
         if (min === Infinity) return { min: 0, max: 10 };
-        
+
         if (max - min < 0.1) {
             return { min: Math.max(0, min - 1), max: max + 1 };
         }
@@ -347,7 +347,7 @@ const CustomSvgChart = ({
         if (data.length === 0) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
-        
+
         const innerWidth = width - margin.left - margin.right;
         const xPercentage = Math.max(0, Math.min(1, mouseX / innerWidth));
         const hoverTs = cutoffTime + xPercentage * (nowTime - cutoffTime);
@@ -375,17 +375,17 @@ const CustomSvgChart = ({
 
         const flushSegment = () => {
             if (currentSegmentPoints.length < 1) return;
-            
+
             let linePath = `M ${currentSegmentPoints[0].x} ${currentSegmentPoints[0].y}`;
             for (let i = 1; i < currentSegmentPoints.length; i++) {
                 linePath += ` L ${currentSegmentPoints[i].x} ${currentSegmentPoints[i].y}`;
             }
-            
+
             const yBottom = height - margin.bottom;
             const xStart = currentSegmentPoints[0].x;
             const xEnd = currentSegmentPoints[currentSegmentPoints.length - 1].x;
             const areaPath = `${linePath} L ${xEnd} ${yBottom} L ${xStart} ${yBottom} Z`;
-            
+
             paths.push({ linePath, areaPath });
             currentSegmentPoints = [];
         };
@@ -393,7 +393,7 @@ const CustomSvgChart = ({
         for (let i = 0; i < data.length; i++) {
             const d = data[i];
             const val = d[line.key];
-            
+
             if (val === undefined || val === null) {
                 flushSegment();
                 continue;
@@ -408,7 +408,7 @@ const CustomSvgChart = ({
 
             currentSegmentPoints.push({ x, y });
         }
-        
+
         flushSegment();
         return paths;
     };
@@ -527,7 +527,7 @@ const CustomSvgChart = ({
                 {lines.map(line => {
                     const range = line.yAxisId === 'right' ? rangeRight : rangeLeft;
                     const segments = drawAreaPath(line, range);
-                    
+
                     return (
                         <g key={line.key}>
                             {/* Area gradient fills */}
@@ -558,7 +558,7 @@ const CustomSvgChart = ({
                                 if (val === undefined || val === null) return null;
                                 const x = getSvgX(d.ts);
                                 const y = getSvgY(val, range.min, range.max);
-                                
+
                                 return (
                                     <circle
                                         key={`dot-${dIdx}`}
@@ -642,7 +642,8 @@ export const BuildingCard = ({
     modules: Module[];
     allDeviceData: any[];
 }) => {
-    const [period, setPeriod] = useState<TimePeriod>('24H');
+    const { clockSkew } = useDeviceData();
+    const [period, setPeriod] = useState<TimePeriod>('12H');
     const [viewMode, setViewMode] = useState<'combined' | 'separate'>('separate');
     const [customStart, setCustomStart] = useState<string>('');
     const [customEnd, setCustomEnd] = useState<string>('');
@@ -650,18 +651,18 @@ export const BuildingCard = ({
     const params = useParams();
     const user = params?.user as string;
 
-    // State to track current time for shifting graph boundaries periodically
-    const [currentTime, setCurrentTime] = useState(Date.now());
+    // State to track current time for shifting graph boundaries periodically (adjusted for server clock skew)
+    const [currentTime, setCurrentTime] = useState(Date.now() - (clockSkew || 0));
 
     // Update current time dynamically: every 2 seconds for LIVE mode, 30 seconds for historical modes
     useEffect(() => {
         if (period === 'CUSTOM') return;
         const ms = period === 'LIVE' ? 2000 : 30000;
         const interval = setInterval(() => {
-            setCurrentTime(Date.now());
+            setCurrentTime(Date.now() - (clockSkew || 0));
         }, ms);
         return () => clearInterval(interval);
-    }, [period]);
+    }, [period, clockSkew]);
 
     // ── Derived chart + KPI data ─────────────────────────────────────────────
     // This useMemo hook recalculates the chart datasets and KPI totals whenever
@@ -932,7 +933,7 @@ export const BuildingCard = ({
                                                 <div className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Current (A)</span></div>
                                             </div>
                                         </div>
-                                        <div className="h-48">
+                                        <div className="h-44">
                                             <CustomSvgChart
                                                 data={chartData}
                                                 bucketMs={period === 'LIVE' ? 2000 : Math.max(Math.round((nowTime - cutoffTime) / 80), 60_000)}
@@ -977,7 +978,7 @@ export const BuildingCard = ({
                                                 })}
                                             </div>
                                         </div>
-                                        <div className="h-48">
+                                        <div className="h-44">
                                             <CustomSvgChart
                                                 data={chartData}
                                                 bucketMs={period === 'LIVE' ? 2000 : Math.max(Math.round((nowTime - cutoffTime) / 80), 60_000)}
@@ -1025,7 +1026,7 @@ export const BuildingCard = ({
                                                 })}
                                             </div>
                                         </div>
-                                        <div className="h-48">
+                                        <div className="h-44">
                                             <CustomSvgChart
                                                 data={chartData}
                                                 bucketMs={period === 'LIVE' ? 2000 : Math.max(Math.round((nowTime - cutoffTime) / 80), 60_000)}
@@ -1073,7 +1074,7 @@ export const BuildingCard = ({
                                                 })}
                                             </div>
                                         </div>
-                                        <div className="h-48">
+                                        <div className="h-44">
                                             <CustomSvgChart
                                                 data={chartData}
                                                 bucketMs={period === 'LIVE' ? 2000 : Math.max(Math.round((nowTime - cutoffTime) / 80), 60_000)}
