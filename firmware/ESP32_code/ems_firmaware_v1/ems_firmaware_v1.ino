@@ -8,6 +8,10 @@
 #include <Preferences.h> // Provides access to Non-Volatile Storage (NVS) to persist WiFi credentials
 #include <PubSubClient.h> // MQTT Client Library
 
+// Feature Flags
+#define USE_HALL_EFFECT_SENSOR false // Set to true for ACS712, false for SCT-013 Clamp
+
+
 // mqtt setup variables
 const char *mqtt_broker = "34.142.217.143";
 const int mqtt_port = 1883;
@@ -44,12 +48,18 @@ const char* api_key = "ems-key-123";
 #define RED_LED_PIN 2
 #define BOOT_BUTTON_PIN 0  // Standard Boot button on most ESP32s
 #define VOLT_SENSOR_PIN 34 // Analog input for ZMPT101B
-#define CURR_SENSOR_PIN 35 // Analog input for SCT-013
+#if USE_HALL_EFFECT_SENSOR
+  #define CURR_SENSOR_PIN 33 // Hall Effect Sensor Pin
+  const float hall_sensitivity = 0.185; // 185 mV/A for 5A module
+#else
+  #define CURR_SENSOR_PIN 35 // Analog input for SCT-013
+#endif
 
 // --- Power Calculation Parameters ---
 const double referenceVoltage = 3.3;
 const int adcMax = 4095;
 const double mVperAmp = 1000 / 30.0;
+const float voltageDividerRatio = (18.8 / 6.8); // For Hall Effect scaling
 const int bufferSize = 200;
 const int sampleDelayUs = 500;
 double voltageCalibration = 1.0; // Default, can be updated
@@ -149,7 +159,7 @@ void setup()
 {
   // put your setup code here, to run once:
   Serial.begin(115200);
-  delay(1000);
+  delay(2000); // Increased delay to allow stable power-up
 
   pinMode(RED_LED_PIN, OUTPUT);
   pinMode(BOOT_BUTTON_PIN, INPUT_PULLUP);
@@ -162,8 +172,10 @@ void setup()
 
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
-  pinMode(VOLT_SENSOR_PIN, INPUT);
-  pinMode(CURR_SENSOR_PIN, INPUT);
+  
+  // GPIO 34-39 are input only and don't have internal pullups/pulldowns
+  pinMode(VOLT_SENSOR_PIN, ANALOG);
+  pinMode(CURR_SENSOR_PIN, ANALOG);
 
   Serial.println("--- EMS Device Initialization ---");
   Serial.printf("Device ID: %s\n", device_id.c_str());
@@ -417,7 +429,13 @@ void calculatePower() {
 
     // Convert to actual values
     double vInstant = (vDiff * referenceVoltage / adcMax) * voltageCalibration;
-    double cInstant = (cDiff * referenceVoltage / adcMax) / (mVperAmp / 1000);
+    double cInstant;
+    #if USE_HALL_EFFECT_SENSOR
+      float sensorVoltage = ((double)currentBuffer[i] / adcMax) * referenceVoltage * voltageDividerRatio;
+      cInstant = (sensorVoltage - 2.5) / hall_sensitivity;
+    #else
+      cInstant = (cDiff * referenceVoltage / adcMax) / (mVperAmp / 1000);
+    #endif
     powerSum += vInstant * cInstant;
   }
 
@@ -426,7 +444,13 @@ void calculatePower() {
   double cRMS_raw = sqrt(cSumSq / bufferSize);
 
   voltageRMS = (vRMS_raw * referenceVoltage / adcMax) * voltageCalibration;
-  currentRMS = (cRMS_raw * referenceVoltage / adcMax) / (mVperAmp / 1000);
+  
+  #if USE_HALL_EFFECT_SENSOR
+    // For Hall effect, we use the instantaneous calculation logic for RMS
+    currentRMS = sqrt(cSumSq / bufferSize) * (referenceVoltage / adcMax) * voltageDividerRatio / hall_sensitivity;
+  #else
+    currentRMS = (cRMS_raw * referenceVoltage / adcMax) / (mVperAmp / 1000);
+  #endif
 
   // Apply noise threshold
   if (currentRMS < currentNoiseThreshold) {
