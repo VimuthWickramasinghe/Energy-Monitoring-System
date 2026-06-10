@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Use official Node.js LTS image
 FROM node:20-alpine
 
@@ -51,4 +50,3 @@ EXPOSE 8080
 # Run the web service on container startup.
 # Cloud Run automatically sets the PORT environment variable to 8080 (or respects your config).
 CMD [ "npm", "start" ]
->>>>>>> 37bc6866610ea1961182f86f1c388e18a6d33d4c

@@ -1,9 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
-<<<<<<< HEAD
 // Make sure .env.local is actually being copied in your Dockerfile, e.g.:
 // COPY .env.local /app/.env.local  (if WORKDIR is /app/backend, adjust accordingly)
-37bc6866610ea1961182f86f1c388e18a6d33d4c
 
 const express = require('express');
 const http = require('http');
@@ -86,8 +84,8 @@ io.on('connection', (socket) => {
   });
 });
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(supabaseUrl, supabaseKey);
 
