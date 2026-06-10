@@ -1,9 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
-<<<<<<< HEAD
 // Make sure .env.local is actually being copied in your Dockerfile, e.g.:
 // COPY .env.local /app/.env.local  (if WORKDIR is /app/backend, adjust accordingly)
-37bc6866610ea1961182f86f1c388e18a6d33d4c
 
 const express = require('express');
 const http = require('http');
@@ -105,13 +103,17 @@ try {
   });
 } catch (error) {
   console.warn("serviceAccountKey.json not found, falling back to env vars...");
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-    })
-  });
+  if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+      })
+    });
+  } else {
+    console.warn("Firebase env vars not found. Firebase will not be initialized. Add FIREBASE_PRIVATE_KEY, FIREBASE_CLIENT_EMAIL, and NEXT_PUBLIC_FIREBASE_PROJECT_ID to .env.local");
+  }
 }
 
 
@@ -418,8 +420,12 @@ function startMockDataGenerator() {
 }
 
 // Connect and optionally insert ONE sample dataset if collection empty
-const uri = process.env.MONGO_URI
+const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
 async function run() {
+  if (!uri) {
+    console.warn("MongoDB URI not found. Set MONGODB_URI in .env.local");
+    return;
+  }
   try {
     // Use Mongoose to connect with recommended options for Cloud hosting
     await mongoose.connect(uri, {
