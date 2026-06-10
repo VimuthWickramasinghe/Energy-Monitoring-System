@@ -1,29 +1,97 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
+<<<<<<< HEAD
 // Make sure .env.local is actually being copied in your Dockerfile, e.g.:
 // COPY .env.local /app/.env.local  (if WORKDIR is /app/backend, adjust accordingly)
-
+37bc6866610ea1961182f86f1c388e18a6d33d4c
 
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const mongoose = require('mongoose'); // Kept for Schema/Model functionality
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { spawn } = require('child_process');
 const admin = require('firebase-admin');
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const mqtt = require('mqtt');
 
 const app = express();
+const server = http.createServer(app);
+
+// Dynamic origin validation helper to handle development, raw Cloud Run endpoints, and custom domains.
+const isOriginAllowed = (origin) => {
+  if (!origin) return true; // Allow non-browser requests (e.g. ESP32, curl)
+  const cleanOrigin = origin.replace(/\/$/, '');
+
+  // Allow localhost & 127.0.0.1 on any port for local development
+  if (cleanOrigin.startsWith('http://localhost:') || cleanOrigin.startsWith('http://127.0.0.1:')) {
+    return true;
+  }
+  // Allow exact matches on configured FRONTEND_URL
+  if (process.env.FRONTEND_URL && cleanOrigin === process.env.FRONTEND_URL.replace(/\/$/, '')) {
+    return true;
+  }
+  // Allow any *.run.app domain (Google Cloud Run default endpoints)
+  if (cleanOrigin.endsWith('.run.app')) {
+    return true;
+  }
+  // Allow any keyblocks.org subdomain
+  if (cleanOrigin.endsWith('keyblocks.org')) {
+    return true;
+  }
+  return false;
+};
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin) || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
+  optionsSuccessStatus: 200
+};
+
+/**
+ * ============================================================================
+ * WEBSOCKET / SOCKET.IO SETUP
+ * ============================================================================
+ * We initialize a Socket.io Server instance on top of the HTTP server.
+ * This enables bidirectional, real-time communication between the backend and
+ * frontend clients (e.g. dashboards) using web sockets as the transport protocol.
+ */
+const io = new Server(server, {
+  cors: {
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin) || process.env.NODE_ENV === 'development') {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
+    methods: ["GET", "POST"]
+  }
+});
+
+// Listener for client connection events.
+// Each time a frontend client connects (e.g. dashboard tab), a new socket session is initialized.
+io.on('connection', (socket) => {
+  console.log(`[Socket.io] Client connected: ${socket.id}`);
+
+  // Clean up and log when a client closes the connection (e.g. closes the browser tab).
+  socket.on('disconnect', () => {
+    console.log(`[Socket.io] Client disconnected: ${socket.id}`);
+  });
+});
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const corsOptions = {
-  // Use '*' to allow all local network devices during development
-  origin: process.env.FRONTEND_URL || '*',
-  optionsSuccessStatus: 200
-};
+
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
@@ -46,8 +114,10 @@ try {
   });
 }
 
+
+
 // MongoDB connection (dotenv)
-const mongoUri = process.env.MONGODB_URI;
+const mongoUri = process.env.MONGO_URI;
 mongoose.set('strictQuery', false);
 
 // Schema (kept because you requested to store one dataset)
@@ -55,7 +125,9 @@ const SensorSchema = new mongoose.Schema({
   device_id: { type: String, required: true },
   voltage: Number,
   current: Number,
-  power: Number,
+  apparent_power: Number,
+  real_power: Number,
+  power_factor: Number,
   time: { type: Date, default: Date.now }
 });
 
@@ -78,6 +150,7 @@ const authenticateFirebaseToken = async (req, res, next) => {
     res.status(403).json({ error: 'Unauthorized' });
   }
 };
+// mqtt handeling code 
 
 // simple request logger for debugging
 app.use((req, res, next) => {
@@ -110,41 +183,95 @@ app.get('/current', authenticateFirebaseToken, async (req, res) => {
   }
 });
 
+// API endpoint to test data reception (same logic as /send)
+app.post('/test', async (req, res) => {
+  return handleSendData(req, res);
+});
+
 // API endpoint to receive data from ESP
 app.post('/send', async (req, res) => {
+  return handleSendData(req, res);
+});
+
+// Shared logic for /send and /test
+async function processDeviceData(payload) {
   try {
-    // Basic API Key protection for hardware devices
+    const {
+      device_id,
+      voltage,
+      current,
+      apparent_power,
+      real_power,
+      power_factor,
+    } = payload;
+
+    const docObj = { device_id };
+    if (typeof voltage !== 'undefined' && !isNaN(voltage)) docObj.voltage = Number(voltage);
+    if (typeof current !== 'undefined' && !isNaN(current)) docObj.current = Number(current);
+    if (typeof apparent_power !== 'undefined' && !isNaN(apparent_power)) docObj.apparent_power = Number(apparent_power);
+    if (typeof real_power !== 'undefined' && !isNaN(real_power)) docObj.real_power = Number(real_power);
+    if (typeof power_factor !== 'undefined' && !isNaN(power_factor)) docObj.power_factor = Number(power_factor);
+
+    if (Object.keys(docObj).length <= 1) {
+      console.log('No valid fields in incoming payload:', payload);
+      return null;
+    }
+
+    const data = new Sensor(docObj);
+    const saved = await data.save();
+    io.emit('deviceData', saved);
+    return saved;
+  } catch (err) {
+    console.error('Error processing device data:', err);
+    return null;
+  }
+}
+
+// MQTT Connection Setup
+const mqttBrokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://34.142.217.143:1883';
+const mqttOptions = {
+  username: process.env.MQTT_USERNAME || 'vimuthwic3',
+  password: process.env.MQTT_PASSWORD || 'vimpra25'
+};
+const mqttClient = mqtt.connect(mqttBrokerUrl, mqttOptions);
+
+mqttClient.on('connect', () => {
+  console.log(`Connected to MQTT Broker: ${mqttBrokerUrl}`);
+  mqttClient.subscribe('ems/devices/+/data', (err) => {
+    if (!err) {
+      console.log('Subscribed to ems/devices/+/data');
+    }
+  });
+});
+
+mqttClient.on('message', async (topic, message) => {
+  console.log(`Received MQTT message on topic ${topic}`);
+  try {
+    const payload = JSON.parse(message.toString());
+    await processDeviceData(payload);
+  } catch (e) {
+    console.error('Failed to parse MQTT payload', e);
+  }
+});
+
+async function handleSendData(req, res) {
+  try {
     const apiKey = req.headers['x-api-key'];
     if (!apiKey || apiKey !== process.env.HARDWARE_API_KEY) {
       return res.status(401).json({ error: 'Unauthorized: Invalid or missing API Key' });
     }
 
-    const {
-      device_id,
-      voltage,
-      current,
-      power,
-    } = req.body;
-
-    const docObj = { device_id };
-    if (typeof voltage !== 'undefined' && !isNaN(voltage)) docObj.voltage = Number(voltage);
-    if (typeof current !== 'undefined' && !isNaN(current)) docObj.current = Number(current);
-    if (typeof power !== 'undefined' && !isNaN(power)) docObj.power = Number(power);
-    
-    if (Object.keys(docObj).length === 0) {
-      console.log('No valid fields in incoming body:', req.body);
-      return res.status(400).json({ error: 'No valid sensor fields in body' });
+    const saved = await processDeviceData(req.body);
+    if (saved) {
+      res.status(201).json({ message: 'Data saved', id: saved._id });
+    } else {
+      res.status(400).json({ error: 'No valid sensor fields in body' });
     }
-
-    const data = new Sensor(docObj);
-    const saved = await data.save();
-    console.log('Saved document id:', saved._id.toString());
-    res.status(201).json({ message: 'Data saved', id: saved._id, data: docObj });
   } catch (err) {
     console.error('Error saving data:', err);
     res.status(500).json({ error: err.message });
   }
-});
+}
 
 // API endpoint to register a new device (Supabase Metadata)
 app.post('/register-device', authenticateFirebaseToken, async (req, res) => {
@@ -158,13 +285,13 @@ app.post('/register-device', authenticateFirebaseToken, async (req, res) => {
     // Save metadata to Supabase
     const { data, error } = await supabase
       .from('MODULE')
-      .upsert({ 
-        device_id, 
-        name, 
-        building_id, 
+      .upsert({
+        device_id,
+        name,
+        building_id,
         phase,
         user_id: req.user.uid,
-        updated_at: new Date() 
+        updated_at: new Date()
       });
 
     if (error) throw error;
@@ -258,27 +385,48 @@ app.get('/predict', authenticateFirebaseToken, (req, res) => {
   });
 });
 
+// Background mock data generator for testing
+function startMockDataGenerator() {
+  console.log("[Mock Generator] Starting background telemetry generator for 'ems-esm-test'...");
+  setInterval(async () => {
+    try {
+      const voltage = parseFloat((220 + Math.random() * 20).toFixed(1)); // 220V - 240V
+      const current = parseFloat((0.5 + Math.random() * 5).toFixed(2)); // 0.5A - 5.5A
+      const real_power = parseFloat(((voltage * current * 0.92) / 1000).toFixed(3)); // kW
+      const apparent_power = parseFloat(((voltage * current) / 1000).toFixed(3)); // kVA
+      const power_factor = 0.92;
+
+      const mockEntry = new Sensor({
+        device_id: "ems-esm-test",
+        voltage,
+        current,
+        real_power,
+        apparent_power,
+        power_factor,
+        time: new Date()
+      });
+
+      const saved = await mockEntry.save();
+      console.log(`[Mock Generator] Saved telemetry for 'ems-esm-test' - ID: ${saved._id}`);
+
+      // Broadcast live update over Socket.io
+      io.emit('deviceData', saved);
+    } catch (err) {
+      console.error("[Mock Generator] Failed to generate mock telemetry:", err);
+    }
+  }, 10000); // every 10 seconds
+}
+
 // Connect and optionally insert ONE sample dataset if collection empty
-const uri = process.env.MONGODB_URI || "mongodb+srv://vimuth:<db_password>@ems-device-data-cluster.b4ircf5.mongodb.net/?appName=EMS-Device-data-Cluster";
-
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
-
+const uri = process.env.MONGO_URI
 async function run() {
   try {
-    // Connect the client to the server (optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-
-    // Maintain mongoose connection for the Schema/Models used in endpoints
-    await mongoose.connect(uri);
+    // Use Mongoose to connect with recommended options for Cloud hosting
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("Successfully connected to MongoDB via Mongoose!");
 
     const count = await Sensor.countDocuments().catch(() => 0);
     if (!count) {
@@ -292,9 +440,9 @@ async function run() {
 }
 run().catch(console.dir);
 
-const port = process.env.BACKEND_PORT || 8080;
+const port = process.env.PORT || process.env.BACKEND_PORT || 8080;
 // listen on all interfaces so other devices can reach this server
-app.listen(port, '0.0.0.0', () => {
+server.listen(port, '0.0.0.0', () => {
   const networkInterfaces = require('os').networkInterfaces();
   const localIp = Object.values(networkInterfaces).flat().find(i => i.family === 'IPv4' && !i.internal)?.address;
   console.log(`Server listening on port ${port} (Local IP: ${localIp || 'localhost'})`);

@@ -88,13 +88,13 @@ export default function SettingsPage() {
     };
 
     return (
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-gray-50 pb-20 md:pb-0">
             <Header
                 title="Account Settings"
                 subtitle="Manage your profile and system preferences"
             />
 
-            <div className="p-8 max-w-5xl mx-auto space-y-8">
+            <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8">
 
                 {/* Section 1: Profile Details */}
                 <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">

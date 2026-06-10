@@ -497,7 +497,7 @@ export default function DevicesPage() {
     };
 
     return (
-        <main className="flex-1 flex flex-col overflow-hidden bg-white">
+        <main className="flex-1 flex flex-col overflow-hidden bg-white pb-20 md:pb-0">
             <Header
                 title="Modular Units"
                 subtitle="Manage and monitor your hardware modules"

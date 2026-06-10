@@ -1,0 +1,185 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap");
+
+:root {
+  --ifm-font-family-base:
+    "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  --ifm-font-family-monospace:
+    SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  
+  /* Bright, simple orange brand colors */
+  --ifm-color-primary: #ff6b00;
+  --ifm-color-primary-dark: #e66000;
+  --ifm-color-primary-darker: #cc5500;
+  --ifm-color-primary-darkest: #b34a00;
+  --ifm-color-primary-light: #ff8533;
+  --ifm-color-primary-lighter: #ff9f66;
+  --ifm-color-primary-lightest: #ffb999;
+  
+  --ifm-code-font-size: 90%;
+  --docusaurus-highlighted-code-line-bg: rgba(249, 115, 22, 0.1);
+  --ifm-background-color: #fcfcfd;
+  
+  /* Selection styling */
+  --ifm-selection-background-color: rgba(249, 115, 22, 0.2);
+}
+
+/* For readability concerns, choose a lighter palette in dark mode. */
+[data-theme="dark"] {
+  /* Vibrant orange for dark background */
+  --ifm-color-primary: #ff8c00;
+  --ifm-color-primary-dark: #ff7b00;
+  --ifm-color-primary-darker: #ff6a00;
+  --ifm-color-primary-darkest: #e65f00;
+  --ifm-color-primary-light: #ffa333;
+  --ifm-color-primary-lighter: #ffba66;
+  --ifm-color-primary-lightest: #ffd199;
+  
+  --docusaurus-highlighted-code-line-bg: rgba(255, 140, 33, 0.15);
+  
+  /* Rich charcoal dark theme */
+  --ifm-background-color: #0b0b0c;
+  --ifm-background-surface-color: #141416;
+  
+  --ifm-selection-background-color: rgba(255, 140, 33, 0.3);
+}
+
+/* Glassmorphism navbar styling */
+.navbar {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  transition: border-color 0.3s ease;
+}
+
+[data-theme="dark"] .navbar {
+  background-color: rgba(11, 11, 12, 0.7) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.navbar__inner {
+  background-color: transparent;
+  height: 100%;
+}
+
+/* Glassmorphism mobile sidebar drawer */
+.navbar-sidebar {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] .navbar-sidebar {
+  background-color: rgba(11, 11, 12, 0.92) !important;
+}
+
+/* Rounded, elegant inputs and buttons */
+.button {
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button--primary {
+  background-color: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+}
+
+.button--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217, 83, 30, 0.25);
+}
+
+[data-theme="dark"] .button--primary:hover {
+  box-shadow: 0 4px 12px rgba(255, 161, 71, 0.25);
+}
+
+.button--secondary {
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--ifm-font-color-base);
+}
+
+.button--secondary:hover {
+  transform: translateY(-1px);
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="dark"] .button--secondary {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--ifm-font-color-base);
+}
+
+[data-theme="dark"] .button--secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Selection and scrollbar styles */
+::selection {
+  background-color: var(--ifm-selection-background-color);
+  color: inherit;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 5px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 83, 30, 0.5);
+}
+
+/* Code block customization */
+.codeBlockContainer_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Container-styles-module,
+div[class*="codeBlockContainer_"] {
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] div[class*="codeBlockContainer_"] {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Sidebar styling overrides */
+.theme-doc-sidebar-menu {
+  font-weight: 500;
+}
+
+.menu__link {
+  border-radius: 8px !important;
+  margin: 2px 0;
+  transition: all 0.2s ease;
+}
+
+.menu__link--active {
+  background-color: rgba(219, 83, 30, 0.08) !important;
+}
+
+[data-theme="dark"] .menu__link--active {
+  background-color: rgba(255, 161, 71, 0.12) !important;
+}

@@ -27,7 +27,7 @@ function NotificationButton() {
     });
 
     return (
-        <div className="flex items-center gap-4 order-last">
+        <div className="flex items-center gap-2 sm:gap-4 order-last">
             <div className="hidden md:flex items-center gap-4 px-4 py-1.5 bg-gray-50 rounded-xl border border-gray-100">
                 <div className="flex items-center gap-2 text-gray-600">
                     <Calendar size={14} className="text-orange-500" />
@@ -52,7 +52,7 @@ function NotificationButton() {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden">
                     <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <h3 className="font-bold text-gray-900">Notifications</h3>
                         <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600">
@@ -101,21 +101,30 @@ export default function Header({
     const initials = user?.name?.charAt(0) || user?.email?.charAt(0) || "U";
 
     return (
-        <header className="bg-blue-50/80 backdrop-blur-md border-b border-gray-200 px-8 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header className="bg-blue-50/80 backdrop-blur-md border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between sticky top-0 z-30 flex-wrap gap-2 sm:gap-4">
             <div className="flex items-center gap-8">
                 <div className="header-titles flex flex-col">
                     <div className="flex items-center gap-2">
-                        <h1 className="text-lg font-bold text-gray-900 tracking-tight">{title}</h1>
+                        <h1 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">{title}</h1>
                     </div>
-                    <p className="text-xs text-gray-500 font-medium">{subtitle}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500 font-medium truncate max-w-[200px] sm:max-w-none">{subtitle}</p>
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
-                {children}
+            <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+                <div className="hidden sm:flex items-center gap-2">
+                    {children}
+                </div>
                 <NotificationButton />
-                <div className="h-6 w-px bg-gray-200 mx-1" aria-hidden="true"></div>
+                <div className="hidden sm:block h-6 w-px bg-gray-200 mx-1" aria-hidden="true"></div>
             </div>
+            
+            {/* Mobile children wrapper */}
+            {children && (
+                <div className="flex sm:hidden w-full items-center justify-end mt-2">
+                    {children}
+                </div>
+            )}
         </header>
     );
 }

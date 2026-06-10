@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import {
-    Plus, Wifi, Cpu, SignalHigh, Search, Filter, Activity, Edit2, RefreshCw, Bluetooth, X, Loader2, AlertCircle
+    Plus, Wifi, Cpu, SignalHigh, Search, Filter, Activity, Edit2, RefreshCw, Bluetooth, X, Loader2, AlertCircle, Trash2
 } from "lucide-react";
 import Header from "@/components/Header";
 import Link from "next/link";
 import { useBuilding, module_state, Module } from "@/lib/DeviceBuildingContext";
+import { useAuth } from "@/lib/AuthContext";
 
 
 interface DeviceCardProps {
@@ -15,6 +16,7 @@ interface DeviceCardProps {
 
 
 export const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
+    const { user } = useAuth();
     let statusClasses = 'bg-gray-400 text-white';
     let borderClasses = 'border-gray-100 bg-gray-50/50';
     const state = device.state;
@@ -65,12 +67,12 @@ export const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                <button
-                    disabled={state === module_state.Offline}
-                    className={`text-sm font-semibold transition-colors ${state === module_state.Offline ? 'text-gray-400 cursor-not-allowed' : 'text-orange-600 hover:text-orange-700'}`}
+                <Link
+                    href={`/${user?.email}/analytics/${device.building_id}`}
+                    className={`text-sm font-semibold transition-colors ${state === module_state.Offline ? 'text-gray-400 cursor-not-allowed pointer-events-none' : 'text-orange-600 hover:text-orange-700'}`}
                 >
                     View Details
-                </button>
+                </Link>
                 <div className="flex gap-2">
                     <Link
                         href={`devices/${device.module_id}`}
@@ -84,8 +86,7 @@ export const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                         title="Delete Module"
                     >
-                        <Edit2 size={18} className="hidden" /> {/* Placeholder for Trash icon if needed */}
-                        <Activity size={18} />
+                        <Trash2 size={18} />
                     </button>
                 </div>
             </div>
