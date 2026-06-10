@@ -12,7 +12,7 @@ interface StatItem {
 }
 
 const DEFAULT_STATS: StatItem[] = [
-  { label: "Current Usage", value: "2.4 kW", icon: Zap, color: "text-orange-600", bg: "bg-orange-100/50", trend: "+2.5%", trendUp: true },
+  { label: "Current Usage", value: "2.4 W", icon: Zap, color: "text-orange-600", bg: "bg-orange-100/50", trend: "+2.5%", trendUp: true },
   { label: "Daily Cost", value: "$12.40", icon: TrendingUp, color: "text-green-600", bg: "bg-green-100/50", trend: "-0.8%", trendUp: false },
   { label: "Active Devices", value: "12", icon: Battery, color: "text-blue-600", bg: "bg-blue-100/50", trend: "Stable", trendUp: true },
   { label: "System Health", value: "98%", icon: Activity, color: "text-purple-600", bg: "bg-purple-100/50", trend: "Optimal", trendUp: true },
@@ -26,8 +26,8 @@ export function Card({ stats = DEFAULT_STATS }: CardProps) {
   return (
     <div className="flex flex-wrap gap-3 justify-start">
       {stats.map((stat, i) => (
-        <div 
-          key={i} 
+        <div
+          key={i}
           className={`p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 w-full md:w-44 ${stat.bg.replace('bg-', 'bg-opacity-10 bg-')}`}
         >
           <div className="flex items-center gap-2 mb-2">
@@ -35,9 +35,8 @@ export function Card({ stats = DEFAULT_STATS }: CardProps) {
               <stat.icon size={16} />
             </div>
             {stat.trend && (
-              <span className={`ml-auto flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                stat.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
-              }`}>
+              <span className={`ml-auto flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${stat.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
+                }`}>
                 {stat.trendUp ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
                 {stat.trend}
               </span>

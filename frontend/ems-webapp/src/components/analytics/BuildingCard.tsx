@@ -17,7 +17,7 @@
  *             Supabase query (or you can swap for a websocket subscription).
  *
  * 4. KPI ROW: "Daily Energy" now sums the trapezoid-rule integration of power
- *             over time (kWh ≈ ∫P dt). "Peak Demand" is the actual max kW seen
+ *             over time (Wh ≈ ∫P dt). "Peak Demand" is the actual max W seen
  *             in the selected window. No more "--" placeholders.
  *
  * 5. EVCE SECTION: Moved inline into the real-time device grid; no longer a
@@ -95,7 +95,7 @@ function generateTicks(minTs: number, maxTs: number, count: number): number[] {
 }
 
 /**
- * Trapezoidal integration of power (kW) over time (ms) → energy (kWh).
+ * Trapezoidal integration of power (W) over time (ms) → energy (Wh).
  * Points must be sorted chronologically.
  */
 function trapezoidalEnergy(points: { ts: number; power: number }[]): number {
@@ -230,15 +230,16 @@ const DeviceRealtimeCard = ({
                 <span className="text-xl font-black text-gray-900" style={{ color }}>
                     {data && online ? power.toFixed(2) : '—'}
                 </span>
-                <span className="text-xs text-gray-400 font-medium">kW</span>
+                <span className="text-xs text-gray-400 font-medium">W</span>
             </div>
 
             {/* Secondary metrics grid */}
             <div className="grid grid-cols-2 gap-1.5">
                 <MetricPill icon={Zap} label="Voltage" value={data && online ? voltage.toFixed(1) : '—'} unit="V" />
                 <MetricPill icon={Activity} label="Current" value={data && online ? current.toFixed(2) : '—'} unit="A" />
-                <MetricPill icon={Gauge} label="PF" value={data && online ? (pf !== null ? Number(pf).toFixed(3) : '0.000') : '—'} />
-                <MetricPill icon={Thermometer} label="Apparent" value={data && online ? Number(apparent).toFixed(2) : '—'} unit="kVA" />
+                <MetricPill icon={Gauge} label="Power Factor" value={data && online ? (pf !== null ? Number(pf).toFixed(3) : '0.000') : '—'} />
+                <MetricPill icon={Zap} label="Apparent Power" value={data && online ? Number(apparent).toFixed(2) : '—'} unit="VA" />
+                <MetricPill icon={Zap} label="Real Power" value={data && online ? Number(power).toFixed(2) : '—'} unit="W" />
             </div>
 
             {/* Last updated */}
@@ -518,7 +519,7 @@ const CustomSvgChart = ({
                             fontWeight={700}
                             textAnchor="end"
                         >
-                            Peak {peakDemand.toFixed(2)} kW
+                            Peak {peakDemand.toFixed(2)} W
                         </text>
                     </>
                 )}
@@ -693,7 +694,7 @@ export const BuildingCard = ({
         // ====================================================================
         // AGGREGATED METRICS CALCULATION
         // ====================================================================
-        // Sum active load (kW) and average voltage dynamically across all modules
+        // Sum active load (W) and average voltage dynamically across all modules
         // belonging to this building using the latest snapshot map.
         let loadSum = 0, voltSum = 0, voltCount = 0;
         modules.forEach(m => {
@@ -834,10 +835,10 @@ export const BuildingCard = ({
                 <>
                     {/* ── KPI Row ── */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 px-5 py-4">
-                        <KpiTile label="Total Load" value={totalLoad} unit="kW" color="text-orange-500" subtext="right now" />
-                        <KpiTile label="Energy Used" value={dailyEnergy} unit="kWh" color="text-blue-500" subtext={`last ${period}`} />
+                        <KpiTile label="Total Load" value={totalLoad} unit="W" color="text-orange-500" subtext="right now" />
+                        <KpiTile label="Energy Used" value={dailyEnergy} unit="Wh" color="text-blue-500" subtext={`last ${period}`} />
                         <KpiTile label="Avg. Voltage" value={avgVoltage} unit="V" color="text-purple-500" subtext="across devices" />
-                        <KpiTile label="Peak Demand" value={peakDemand} unit="kW" color="text-rose-500" subtext={`last ${period}`} />
+                        <KpiTile label="Peak Demand" value={peakDemand} unit="W" color="text-rose-500" subtext={`last ${period}`} />
                     </div>
 
                     {/* ── Real-time Device Grid ── */}
@@ -928,7 +929,7 @@ export const BuildingCard = ({
                                             </div>
                                             {/* Custom Legend */}
                                             <div className="flex gap-3 text-[9px] font-bold text-gray-400">
-                                                <div className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span><span>Load (kW)</span></div>
+                                                <div className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span><span>Load (W)</span></div>
                                                 <div className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span><span>Voltage (V)</span></div>
                                                 <div className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Current (A)</span></div>
                                             </div>
@@ -958,7 +959,7 @@ export const BuildingCard = ({
                                         <div className="flex items-center justify-between gap-2 mb-3">
                                             <div className="flex items-center gap-2">
                                                 <Cpu size={14} className="text-blue-500" />
-                                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Device Power Breakdown (kW)</p>
+                                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Device Power Breakdown (W)</p>
                                             </div>
                                             {/* Custom clickable legend */}
                                             <div className="flex flex-wrap gap-2.5 text-[9px] font-bold text-gray-400">

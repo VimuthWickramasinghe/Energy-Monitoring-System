@@ -81,16 +81,16 @@ export default function AnalyticsPage() {
 
             <div className="flex-1 overflow-y-auto p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto space-y-6">
-                    
+
                     {/* Global KPI Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <KPICard
-                            title="Total Load" value={`${totalGlobalLoad} kW`}
+                            title="Total Load" value={`${totalGlobalLoad} W`}
                             sub={<span className="flex items-center gap-1 text-green-600"><TrendingUp size={11} /> 12% vs last hour</span>}
                             icon={Zap} iconColor="text-orange-500"
                         />
                         <KPICard
-                            title="Daily Energy" value="850 kWh"
+                            title="Daily Energy" value="850 Wh"
                             sub="Projected: 1.2MWh"
                             icon={Calendar} iconColor="text-blue-500"
                         />
@@ -100,7 +100,7 @@ export default function AnalyticsPage() {
                             icon={Activity} iconColor="text-purple-500"
                         />
                         <KPICard
-                            title="Peak Demand" value="28.5 kW"
+                            title="Peak Demand" value="28.5 W"
                             sub="Occurred at 12:45 PM"
                             icon={AlertTriangle} iconColor="text-orange-600"
                         />
@@ -142,11 +142,11 @@ export default function AnalyticsPage() {
                         </div>
                         <div className="bg-gray-900 rounded-xl p-4 overflow-auto max-h-60">
                             <pre className="text-[10px] text-green-400 font-mono">
-                                {JSON.stringify({ 
-                                    activeTab, 
-                                    buildingCount: buildings.length, 
+                                {JSON.stringify({
+                                    activeTab,
+                                    buildingCount: buildings.length,
                                     moduleCount: modules.length,
-                                    dataPoints: allDeviceData.length 
+                                    dataPoints: allDeviceData.length
                                 }, null, 2)}
                             </pre>
                         </div>

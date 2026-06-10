@@ -52,7 +52,7 @@ export const DeviceCard = ({ device, onDelete }: DeviceCardProps) => {
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="p-3 bg-gray-50 rounded-xl">
                     <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Active Load</p>
-                    <p className="text-sm font-bold text-gray-900 text-center">-- kW</p>
+                    <p className="text-sm font-bold text-gray-900 text-center">-- W</p>
                 </div>
                 <div className="p-3 bg-gray-50 rounded-xl">
                     <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 text-center">Protocol</p>

@@ -97,7 +97,7 @@ const UsageByCategory = () => {
                 </Pie>
                 <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
                   <tspan x="50%" dy="-15" className="fill-orange-500 text-2xl sm:text-3xl font-bold">⚡</tspan>
-                  <tspan x="50%" dy="30" className="fill-gray-900 text-xl sm:text-2xl font-bold">2.4 kW</tspan>
+                  <tspan x="50%" dy="30" className="fill-gray-900 text-xl sm:text-2xl font-bold">2.4 W</tspan>
                   <tspan x="50%" dy="25" className="fill-gray-400 text-[10px] font-bold tracking-[2px]">
                     CURRENT USAGE
                   </tspan>
@@ -129,7 +129,7 @@ const UsageByCategory = () => {
               </div>
               <div className="text-right whitespace-nowrap">
                 <span className="text-lg sm:text-xl font-bold" style={{ color: COLORS[index] }}>{item.value}%</span>
-                <span className="text-gray-400 text-xs ml-1 hidden sm:inline-block">({getKwh(item.value)} kWh)</span>
+                <span className="text-gray-400 text-xs ml-1 hidden sm:inline-block">({getKwh(item.value)} Wh)</span>
               </div>
             </div>
           ))}
@@ -192,15 +192,15 @@ export default function DashboardPage() {
                           <Label value="Time Period" offset={-5} position="insideBottom" style={{ fontSize: '10px', fill: '#6b7280', fontWeight: 600 }} />
                         </XAxis>
                         <YAxis axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 10, fill: '#000000', fontWeight: 500 }}>
-                          <Label value="Usage (kWh)" angle={-90} position="insideLeft" style={{ fontSize: '10px', fill: '#6b7280', fontWeight: 600 }} />
+                          <Label value="Usage (Wh)" angle={-90} position="insideLeft" style={{ fontSize: '10px', fill: '#6b7280', fontWeight: 600 }} />
                         </YAxis>
                         <Tooltip
-                      contentStyle={{ 
-                        borderRadius: '12px', 
-                        border: 'none', 
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' 
-                      }}
-                      labelStyle={{ color: '#000000', fontWeight: 'bold' }}
+                          contentStyle={{
+                            borderRadius: '12px',
+                            border: 'none',
+                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                          }}
+                          labelStyle={{ color: '#000000', fontWeight: 'bold' }}
                         />
                         <Area
                           type="monotone"
