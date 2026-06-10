@@ -49,12 +49,16 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             router.push('/login');
         }
 
-        // If logged in and trying to access home/login/signup, redirect to dashboard
-        if (user && (pathname === '/login' || pathname === '/signup')) {
-            router.push(`/${user.email}/dashboard`);
-        }
-        if (user && pathname !== '/' && !pathname.startsWith(`/${user.email}`)) {
-            router.push(`/${user.email}/dashboard`);
+        if (user) {
+            const userIdentifier = user.email || user.uid;
+            const targetDashboard = `/${userIdentifier}/dashboard`;
+
+            // If logged in and trying to access home/login/signup, redirect to dashboard
+            if (pathname === '/' || pathname === '/login' || pathname === '/signup') {
+                router.push(targetDashboard);
+            } else if (!pathname.startsWith(`/${userIdentifier}`)) {
+                router.push(targetDashboard);
+            }
         }
     }, [user, loading, pathname, router]);
 
@@ -85,7 +89,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
             setUser(userCredential.user);
-            router.push(`/${userCredential.user.uid}/dashboard`);
+            router.push(`/${userCredential.user.email}/dashboard`);
             return userCredential;
         } catch (error) {
             console.error("Signup error:", error);
