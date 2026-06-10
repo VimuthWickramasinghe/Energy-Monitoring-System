@@ -190,6 +190,35 @@ app.post('/test', async (req, res) => {
   return handleSendData(req, res);
 });
 
+// API endpoint to trigger a test email via alertService
+app.post('/testemail', async (req, res) => {
+  try {
+    const alertService = require('./alertService');
+    const { 
+      alertType = 'ENERGY_OVERUSE', 
+      message = 'This is a test alert email triggered via /testemail endpoint.', 
+      email = null // If null, falls back to ALERT_EMAIL_RECIPIENT env var
+    } = req.body || {};
+    
+    // Call the alert service directly to send a test email
+    const success = await alertService.sendEnergyAlert(
+      alertType, 
+      message, 
+      { real_power: 99.9, voltage: 230, current: 5, device_id: 'test_device' }, 
+      email
+    );
+    
+    if (success) {
+      res.status(200).json({ success: true, message: 'Test email sent successfully!' });
+    } else {
+      res.status(500).json({ success: false, error: 'Failed to send test email. Check server logs and ensure EMAIL_USER, EMAIL_PASS, and ALERT_EMAIL_RECIPIENT are set in .env' });
+    }
+  } catch (err) {
+    console.error('Error in /testemail:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // API endpoint to receive data from ESP
 app.post('/send', async (req, res) => {
   return handleSendData(req, res);
