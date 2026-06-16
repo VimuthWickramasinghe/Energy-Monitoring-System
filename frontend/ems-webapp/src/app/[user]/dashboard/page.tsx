@@ -1,25 +1,25 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  Label,
-  TooltipProps
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+    ResponsiveContainer, AreaChart, Area, LineChart, Line, Legend,
+    PieChart, Pie, Cell, Label, TooltipProps
 } from "recharts";
-
+import {
+    Download, Building2, Zap, Activity, TrendingUp,
+    AlertTriangle, Calendar, ChevronDown, Bell, ArrowRight,
+    WifiOff, Cpu
+} from "lucide-react";
+import Header from "@/components/Header";
+import { useBuilding, Building, Module } from "@/lib/DeviceBuildingContext";
+import { useDeviceData } from "@/lib/DeviceDataContext";
+import { useProfile } from "@/lib/ProfileContext";
+import { AuthContext } from "@/lib/AuthContext";
+import { BuildingCard } from "@/components/analytics/BuildingCard";
+import { KPICard } from "@/components/analytics/KPICard";
 import { Card } from "@/components/dashboard/Card";
 import NewNav from "@/components/dashboard/NewNav";
-import Header from "@/components/Header";
 
 // Mock Data for the charts
 const consumptionDataMap: Record<string, any[]> = {
@@ -139,15 +139,43 @@ const UsageByCategory = () => {
   );
 };
 
-export default function DashboardPage() {
-  const [timeRange, setTimeRange] = useState("24h");
+export default function AnalyticsPage() {
+    const router = useRouter();
+    const params = useParams();
+    const { buildings, modules, fetchBuildings, fetchModules, loading: buildingLoading } = useBuilding();
+    const { user } = React.useContext(AuthContext) as { user: any };
+    const { profile } = useProfile();
+    const { devices: allDeviceData, mongoDemoData, refreshDevices } = useDeviceData();
+
+    const [activeTab, setActiveTab] = useState<'overview' | string>('overview');
+    const [timeRange, setTimeRange] = useState("24h");
+
+    /**
+     * Step 1: Fetch Building and Module metadata from Supabase
+     */
+    useEffect(() => {
+        if (profile?.user_id) {
+            fetchBuildings();
+            fetchModules();
+        }
+    }, [profile?.user_id, fetchBuildings, fetchModules]);
+
+    /**
+     * Step 2: Once modules are loaded, trigger the DeviceDataContext 
+     * to fetch the actual time-series data from MongoDB for those specific module IDs.
+     */
+  useEffect(() => {
+        if (!buildingLoading) {
+            refreshDevices();
+        }
+    }, [buildingLoading, refreshDevices]);
 
   const currentData = consumptionDataMap[timeRange] || consumptionDataMap["24h"];
 
   return (
     <main className="flex-1 flex flex-row overflow-hidden pb-16 md:pb-0">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Dashboard" subtitle="Real-time energy monitoring overview" />
+        <Header title="Dashboard" subtitle={`Monitoring ${modules.length} modules across ${buildings.length} buildings`} />
 
         <div className="flex-1 overflow-y-auto bg-gray-50">
           <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8">
@@ -162,6 +190,24 @@ export default function DashboardPage() {
                 {/* Stats Grid */}
                 <div className="flex flex-wrap lg:justify-end">
                   <Card />
+                </div>
+
+                {/* ── Tab Navigation ── */}
+                <div className="flex gap-1 bg-white border border-gray-100 rounded-xl p-1 shadow-sm w-full max-w-full overflow-x-auto">
+                    <div className="flex min-w-max">
+                        {[{ id: 'overview', label: 'Overview' }, ...buildings.map(b => ({ id: b.building_id, label: b.building_name }))].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-4 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
+                                    ? 'border border-orange-400 text-orange-600 bg-orange-50'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Main Consumption Chart */}
@@ -217,6 +263,18 @@ export default function DashboardPage() {
 
                 {/* Device Distribution */}
                 <UsageByCategory />
+
+                {/* ── Building Cards ── */}
+                <div className={`grid gap-4 sm:gap-5 ${(activeTab === 'overview' ? buildings : buildings.filter(b => b.building_id === activeTab)).length === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-1 lg:grid-cols-2'}`}>
+                    {(activeTab === 'overview' ? buildings : buildings.filter(b => b.building_id === activeTab)).map(building => (
+                        <BuildingCard
+                            key={building.building_id}
+                            building={building}
+                            modules={modules.filter(m => m.building_id === building.building_id)}
+                            allDeviceData={allDeviceData}
+                        />
+                    ))}
+                </div>
               </div>
             </div>
           </div>
