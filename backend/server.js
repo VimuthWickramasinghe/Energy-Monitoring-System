@@ -261,9 +261,8 @@ async function processDeviceData(payload) {
 // MQTT Connection Setup
 const mqttBrokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://34.142.217.143:1883';
 const mqttOptions = {
-  username: process.env.MQTT_USERNAME || 'vimuthwic3',
-  password: process.env.MQTT_PASSWORD || 'vimpra25'
-};
+  username: process.env.MQTT_USERNAME,
+  password: process.env.MQTT_PASSWORD };
 const mqttClient = mqtt.connect(mqttBrokerUrl, mqttOptions);
 
 mqttClient.on('connect', () => {

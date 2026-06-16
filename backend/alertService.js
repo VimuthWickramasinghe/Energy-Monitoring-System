@@ -15,6 +15,11 @@ const nodemailer = require('nodemailer');
 
 // Initialize Nodemailer transporter
 const initializeMailer = () => {
+  if (!nodemailer) {
+    console.error('[Alert Service] Cannot initialize mailer: nodemailer module is missing.');
+    return null;
+  }
+
   return nodemailer.createTransport({
     service: 'gmail', // or your email service
     auth: {
@@ -58,6 +63,11 @@ async function sendEnergyAlert(alertType, message, sensorData = {}, recipientEma
     }
 
     const mailer = getMailer();
+    
+    if (!mailer) {
+      console.warn('[Alert Service] Mailer not initialized. Skipping email.');
+      return false;
+    }
     
     // Build email subject based on alert type
     const alertTypeNames = {
@@ -166,8 +176,8 @@ function formatSensorDataHTML(sensorData) {
   const units = {
     voltage: 'V',
     current: 'A',
-    real_power: 'kW',
-    apparent_power: 'kVA',
+    real_power: 'W',
+    apparent_power: 'VA',
     power_factor: '(0-1)',
     device_id: ''
   };
