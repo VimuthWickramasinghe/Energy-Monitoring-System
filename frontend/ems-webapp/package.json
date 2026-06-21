@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@matter/nodejs-ble": "^0.16.11",
+    "@next/third-parties": "^16.2.9",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.1",
     "autoprefixer": "^10.5.0",
