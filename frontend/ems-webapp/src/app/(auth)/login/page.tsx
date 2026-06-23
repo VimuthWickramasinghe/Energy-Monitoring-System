@@ -1,13 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import { useState } from "react";
 
 export default function LoginPage() {
+    const { login, loginWithGoogle, loading } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { login, loginWithGoogle, loading } = useAuth();
+
+    const handleEmailLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await login(email, password);
+        } catch (error) {
+            console.error("Email login failed:", error);
+        }
+    };
 
     const handleGoogleLogin = async () => {
         try {
@@ -25,14 +34,77 @@ export default function LoginPage() {
                         EMS
                     </Link>
                     <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-                        Welcome back
+                        Sign in to EMS
                     </h2>
                     <p className="mt-2 text-sm text-gray-500">
-                        Please enter your details to sign in
+                        Account access for the Energy Management System at ems.keyblocks.org
                     </p>
                 </div>
 
                 <div className="mt-8 space-y-6">
+                    <form onSubmit={handleEmailLogin} className="space-y-6">
+                        <div>
+                            <label
+                                htmlFor="email"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                Email address
+                            </label>
+                            <div className="mt-1">
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    autoComplete="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="password"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                Password
+                            </label>
+                            <div className="mt-1">
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    autoComplete="current-password"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+                            >
+                                Sign in
+                            </button>
+                        </div>
+                    </form>
+
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-300" />
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                        </div>
+                    </div>
+
                     <button
                         onClick={handleGoogleLogin}
                         disabled={loading}
@@ -59,46 +131,6 @@ export default function LoginPage() {
                         Continue with Google
                     </button>
 
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-200"></div>
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white text-gray-500">Or continue with email</span>
-                        </div>
-                    </div>
-
-                    <form className="space-y-4" onSubmit={(e) => {
-                        e.preventDefault();
-                        login(email, password);
-                    }}>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
-                            <input
-                                type="email"
-                                disabled={loading}
-                                className="w-full px-4 py-3 rounded-lg border text-black border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                                placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                            <input
-                                type="password"
-                                disabled={loading}
-                                className="w-full px-4 py-3 rounded-lg border text-black border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                                placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Sign in
-                        </button>
-                    </form>
-
                     <div className="text-center">
                         <p className="text-sm text-gray-500">
                             Don't have an account?{" "}
@@ -106,6 +138,11 @@ export default function LoginPage() {
                                 Sign up
                             </Link>
                         </p>
+                    </div>
+
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-500">
+                        Only sign in on <span className="font-medium text-gray-700">https://ems.keyblocks.org</span>.
+                        EMS uses Firebase Authentication. Passwords are sent securely and are never stored on our servers.
                     </div>
                 </div>
             </div>
