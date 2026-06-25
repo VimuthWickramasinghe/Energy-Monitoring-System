@@ -8,10 +8,11 @@
 #include <Preferences.h> // Provides access to Non-Volatile Storage (NVS) to persist WiFi credentials
 #include <PubSubClient.h> // MQTT Client Library
 
-// --- Board Type Configuration ---
+// --- Board Configuration ---
 // Uncomment one of the following lines to define your ESP32 board type
-#define BOARD_ESP32_DEV_MODULE // For ESP32 DevKitC, WROOM/WROVER modules (e.g., ESP32-WROOM-32)
-// #define BOARD_ESP32_C3_SUPER_MINI // For ESP32-C3 Super Mini or similar C3 boards (e.g., ESP32-C3-MINI-1)
+// #define BOARD_ESP32_DEV_MODULE // For ESP32 DevKitC, WROOM/WROVER modules (e.g., ESP32-WROOM-32)
+#define BOARD_ESP32_C3_SUPER_MINI // For ESP32-C3 Super Mini or similar C3 boards (e.g., ESP32-C3-MINI-1)
+
 // Feature Flags
 #define USE_HALL_EFFECT_SENSOR true // Set to true for ACS712, false for SCT-013 Clamp
 
