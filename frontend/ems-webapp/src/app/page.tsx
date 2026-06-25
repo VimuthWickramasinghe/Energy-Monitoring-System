@@ -1,5 +1,28 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "EMS - Smart Energy Management System",
+  description: "The official homepage for the EMS, an advanced energy management system that visualizes consumption patterns and optimizes your home or building performance with precision and intelligence.",
+  openGraph: {
+    title: "EMS - Smart Energy Management System",
+    description: "Monitor, analyze, and optimize your energy consumption.",
+    images: [
+      {
+        url: "/hero_image.png",
+        width: 1200,
+        height: 630,
+        alt: "EMS energy monitoring dashboard and solar building",
+      },
+    ],
+  },
+  twitter: {
+    title: "EMS - Smart Energy Management System",
+    description: "Monitor, analyze, and optimize your energy consumption.",
+    images: ["/hero_image.png"],
+  },
+};
 
 export default function Home() {
   return (
