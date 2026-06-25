@@ -22,6 +22,7 @@ export interface DeviceDataContextType {
     loadingDevices: boolean;
     error: string | null;
     refreshDevices: () => Promise<void>;
+    deleteAllData: () => Promise<any>;
     mongoDemoData: any[];
     clockSkew: number;
 }
@@ -139,6 +140,30 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [user, modules]);
 
+    const deleteAllData = useCallback(async () => {
+        if (!user) {
+            throw new Error("You must be logged in to perform this action.");
+        }
+
+        const token = await user.getIdToken();
+        const response = await fetch('/api/mongo/delete', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            setDevices([]);
+            setMongoDemoData([]);
+            return result.data;
+        } else {
+            throw new Error(result.error || "Failed to delete data.");
+        }
+    }, [user]);
+
     // ========================================================================
     // REAL-TIME WEBSOCKET LIFECYCLE & EVENT BINDING
     // ========================================================================
@@ -227,7 +252,7 @@ export const DeviceDataProvider = ({ children }: { children: ReactNode }) => {
     }, [user, authLoading, buildingLoading, modules, fetchDevices, fetchMongoDemoData]);
 
     return (
-        <DeviceDataContext.Provider value={{ devices, loadingDevices, error, refreshDevices: fetchDevices, mongoDemoData, clockSkew }}>
+        <DeviceDataContext.Provider value={{ devices, loadingDevices, error, refreshDevices: fetchDevices, deleteAllData, mongoDemoData, clockSkew }}>
             {children}
         </DeviceDataContext.Provider>
     );

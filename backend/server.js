@@ -355,6 +355,18 @@ app.get('/history', authenticateFirebaseToken, async (req, res) => {
   }
 });
 
+app.delete('/data/all', authenticateFirebaseToken, async (req, res) => {
+  try {
+    const deleteResult = await Sensor.deleteMany({});
+    console.log(`[Data Deletion] Deleted ${deleteResult.deletedCount} documents from finalVolData.`);
+    io.emit('dataDeleted', { count: deleteResult.deletedCount });
+    res.status(200).json({ success: true, message: `Successfully deleted ${deleteResult.deletedCount} documents.`, deletedCount: deleteResult.deletedCount });
+  } catch (err) {
+    console.error('Error deleting data:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // --- NEW API Endpoint for Prediction ---
 
 // Use environment variable for Python path (Docker) or fallback to local venv

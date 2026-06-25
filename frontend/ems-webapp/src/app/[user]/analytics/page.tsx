@@ -9,7 +9,7 @@ import {
 import {
     Download, Building2, Zap, Activity, TrendingUp,
     AlertTriangle, Calendar, ChevronDown, Bell, ArrowRight,
-    WifiOff, Cpu
+    WifiOff, Cpu, Trash2
 } from "lucide-react";
 import Header from "@/components/Header";
 import { useBuilding, Building, Module } from "@/lib/DeviceBuildingContext";
@@ -27,11 +27,12 @@ export default function AnalyticsPage() {
     const { buildings, modules, fetchBuildings, fetchModules, loading: buildingLoading } = useBuilding();
     const { user } = React.useContext(AuthContext) as { user: any };
     const { profile } = useProfile();
-    const { devices: allDeviceData, mongoDemoData, refreshDevices } = useDeviceData();
+    const { devices: allDeviceData, mongoDemoData, refreshDevices, deleteAllData } = useDeviceData();
 
     const [activeTab, setActiveTab] = useState<'overview' | string>('overview');
     const [globalPeriod, setGlobalPeriod] = useState('24H');
     const [showElectrical, setShowElectrical] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     /**
      * Step 1: Fetch Building and Module metadata from Supabase
@@ -52,6 +53,27 @@ export default function AnalyticsPage() {
             refreshDevices();
         }
     }, [buildingLoading, refreshDevices]);
+
+    const handleDeleteData = async () => {
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete all sensor data from the testing collection? This action cannot be undone."
+        );
+
+        if (!confirmDelete) {
+            return;
+        }
+
+        setIsDeleting(true);
+        try {
+            const result = await deleteAllData();
+            alert(`Successfully deleted ${result.deletedCount} documents.`);
+        } catch (error: any) {
+            console.error("Deletion failed:", error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     const tabs = useMemo(() => [
         { id: 'overview', label: 'Overview' },
@@ -148,9 +170,19 @@ export default function AnalyticsPage() {
 
                     {/* ── MongoDB Raw Data Debug (Testing) ── */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-6">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Cpu size={18} className="text-purple-500" />
-                            <h3 className="font-bold text-gray-900 text-sm sm:text-base">MongoDB Raw Data (Testing)</h3>
+                        <div className="flex items-center justify-between gap-2 mb-4">
+                            <div className="flex items-center gap-2">
+                                <Cpu size={18} className="text-purple-500" />
+                                <h3 className="font-bold text-gray-900 text-sm sm:text-base">MongoDB Raw Data (Testing)</h3>
+                            </div>
+                            <button
+                                onClick={handleDeleteData}
+                                disabled={isDeleting}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 disabled:bg-red-400 transition-colors shadow-sm"
+                            >
+                                <Trash2 size={14} />
+                                {isDeleting ? 'Deleting...' : 'Delete All'}
+                            </button>
                         </div>
                         <div className="bg-gray-900 rounded-xl p-3 sm:p-4 overflow-auto max-h-60">
                             <pre className="text-[10px] text-green-400 font-mono break-all sm:break-normal">

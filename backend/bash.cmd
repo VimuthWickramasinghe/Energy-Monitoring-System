@@ -1,3 +1,5 @@
+npm run build
+
 gcloud run deploy ems-backend ^
   --source . ^
   --region asia-southeast1 ^
