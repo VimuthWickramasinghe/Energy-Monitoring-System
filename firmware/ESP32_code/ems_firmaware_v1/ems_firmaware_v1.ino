@@ -8,8 +8,12 @@
 #include <Preferences.h> // Provides access to Non-Volatile Storage (NVS) to persist WiFi credentials
 #include <PubSubClient.h> // MQTT Client Library
 
+// --- Board Type Configuration ---
+// Uncomment one of the following lines to define your ESP32 board type
+#define BOARD_ESP32_DEV_MODULE // For ESP32 DevKitC, WROOM/WROVER modules (e.g., ESP32-WROOM-32)
+// #define BOARD_ESP32_C3_SUPER_MINI // For ESP32-C3 Super Mini or similar C3 boards (e.g., ESP32-C3-MINI-1)
 // Feature Flags
-#define USE_HALL_EFFECT_SENSOR false // Set to true for ACS712, false for SCT-013 Clamp
+#define USE_HALL_EFFECT_SENSOR true // Set to true for ACS712, false for SCT-013 Clamp
 
 
 // mqtt setup variables
@@ -47,12 +51,29 @@ const char* api_key = "ems-key-123";
 // --- Hardware Pins ---
 #define RED_LED_PIN 2
 #define BOOT_BUTTON_PIN 0  // Standard Boot button on most ESP32s
-#define VOLT_SENSOR_PIN 34 // Analog input for ZMPT101B
+
+#if defined(BOARD_ESP32_DEV_MODULE)
+  #define VOLT_SENSOR_PIN 34 // Analog input for ZMPT101B (ESP32 Dev Module: ADC1_CH6)
+  #if USE_HALL_EFFECT_SENSOR
+    #define CURR_SENSOR_PIN 33 // Hall Effect Sensor Pin (ESP32 Dev Module: ADC1_CH5)
+  #else
+    #define CURR_SENSOR_PIN 35 // Analog input for SCT-013 (ESP32 Dev Module: ADC1_CH7)
+  #endif
+#elif defined(BOARD_ESP32_C3_SUPER_MINI)
+  #define VOLT_SENSOR_PIN 1 // Analog input for ZMPT101B (ESP32-C3: ADC1_CH0)
+  #if USE_HALL_EFFECT_SENSOR
+    #define CURR_SENSOR_PIN 2 // Hall Effect Sensor Pin (ESP32-C3: ADC1_CH1)
+  #else
+    #define CURR_SENSOR_PIN 3 // Analog input for SCT-013 (ESP32-C3: ADC1_CH2)
+  #endif
+#else
+  #error "Please define your ESP32 board type (e.g., BOARD_ESP32_DEV_MODULE or BOARD_ESP32_C3_SUPER_MINI) at the top of the file."
+#endif
+
 #if USE_HALL_EFFECT_SENSOR
-  #define CURR_SENSOR_PIN 33 // Hall Effect Sensor Pin
   const float hall_sensitivity = 0.185; // 185 mV/A for 5A module
 #else
-  #define CURR_SENSOR_PIN 35 // Analog input for SCT-013
+  // const float sct_sensitivity = ... // If SCT-013 specific sensitivity is needed, define here
 #endif
 
 // --- Power Calculation Parameters ---
@@ -173,8 +194,13 @@ void setup()
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
   
-  // GPIO 34-39 are input only and don't have internal pullups/pulldowns
-  pinMode(VOLT_SENSOR_PIN, ANALOG);
+  #if defined(BOARD_ESP32_DEV_MODULE)
+    // On ESP32 Dev Module, GPIO 34-39 are input only and don't have internal pullups/pulldowns.
+  #elif defined(BOARD_ESP32_C3_SUPER_MINI)
+    // On ESP32-C3, most ADC pins are flexible.
+  #endif
+  // Configure selected pins as analog inputs
+  pinMode(VOLT_SENSOR_PIN, ANALOG); 
   pinMode(CURR_SENSOR_PIN, ANALOG);
 
   Serial.println("--- EMS Device Initialization ---");
@@ -268,6 +294,12 @@ void loop() {
       Serial.printf("Real Power: %.2f W\n", realPower);
       Serial.printf("Apparent Power: %.2f VA\n", apparentPower);
       Serial.printf("Power Factor: %.3f\n", powerFactor);
+  // Add current sensor type
+  #if USE_HALL_EFFECT_SENSOR
+    Serial.printf("ACS712 Hall Effect");
+  #else
+      Serial.printf("SCT-013 Clamp");
+  #endif
 
       sendSensorData();
       lastMsg = millis();
@@ -412,16 +444,16 @@ void calculatePower() {
   double powerSum = 0;
 
   // Calculate averages (DC offset)
+  // For voltage, we use the pre-calibrated voltageOffset as the stable DC bias.
+  // For current, we calculate the average of the current buffer to remove its DC offset.
   for (int i = 0; i < bufferSize; i++) {
-    vSum += voltageBuffer[i];
     cSum += currentBuffer[i];
   }
-  double vAvg = vSum / bufferSize;
   double cAvg = cSum / bufferSize;
 
   // Calculate RMS and real power
   for (int i = 0; i < bufferSize; i++) {
-    double vDiff = voltageBuffer[i] - vAvg;
+    double vDiff = voltageBuffer[i] - voltageOffset; // Use calibrated DC offset for voltage
     double cDiff = currentBuffer[i] - cAvg;
 
     vSumSq += vDiff * vDiff;
