@@ -32,7 +32,7 @@ If you have `#define BOARD_ESP32_C3_SUPER_MINI` uncommented in `ems_firmaware_v1
 
 Go to `Tools` and set the following options:
 
-*   **Board:** `ESP32C3 Dev Module`
+*   **Board:** `ESP32C3 Dev Module` or `LOLIN C3 Mini`
 *   **Partition Scheme:** `Huge APP (3MB No OTA/1MB SPIFFS)`
 *   **Flash Frequency:** `80MHz`
 *   **Upload Speed:** `921600`
