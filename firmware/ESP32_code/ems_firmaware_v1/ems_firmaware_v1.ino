@@ -50,10 +50,10 @@ const char* api_key = "ems-key-123";
 #define REG_CHAR_UUID             "beb5483e-36e1-4688-b7f5-ea07361b26ab"
 
 // --- Hardware Pins ---
-#define RED_LED_PIN 2
 #define BOOT_BUTTON_PIN 0  // Standard Boot button on most ESP32s
 
 #if defined(BOARD_ESP32_DEV_MODULE)
+  #define RED_LED_PIN 2 // Onboard LED on  ESP32 boards
   #define VOLT_SENSOR_PIN 34 // Analog input for ZMPT101B (ESP32 Dev Module: ADC1_CH6)
   #if USE_HALL_EFFECT_SENSOR
     #define CURR_SENSOR_PIN 33 // Hall Effect Sensor Pin (ESP32 Dev Module: ADC1_CH5)
@@ -61,6 +61,7 @@ const char* api_key = "ems-key-123";
     #define CURR_SENSOR_PIN 35 // Analog input for SCT-013 (ESP32 Dev Module: ADC1_CH7)
   #endif
 #elif defined(BOARD_ESP32_C3_SUPER_MINI)
+  #define RED_LED_PIN 7 // Onboard LED on most ESP32-C3 Mini boards
   #define VOLT_SENSOR_PIN 1 // Analog input for ZMPT101B (ESP32-C3: ADC1_CH0)
   #if USE_HALL_EFFECT_SENSOR
     #define CURR_SENSOR_PIN 2 // Hall Effect Sensor Pin (ESP32-C3: ADC1_CH1)
@@ -200,9 +201,10 @@ void setup()
   #elif defined(BOARD_ESP32_C3_SUPER_MINI)
     // On ESP32-C3, most ADC pins are flexible.
   #endif
-  // Configure selected pins as analog inputs
-  pinMode(VOLT_SENSOR_PIN, ANALOG); 
-  pinMode(CURR_SENSOR_PIN, ANALOG);
+  // The analogRead function automatically configures the pin,
+  // so pinMode(pin, ANALOG) is not required.
+  // pinMode(VOLT_SENSOR_PIN, ANALOG); 
+  // pinMode(CURR_SENSOR_PIN, ANALOG);
 
   Serial.println("--- EMS Device Initialization ---");
   Serial.printf("Device ID: %s\n", device_id.c_str());
@@ -306,9 +308,9 @@ void loop() {
       lastMsg = millis();
     }
   } else {
-    if (provisioned_ssid.length() > 0) {
-      shouldConnectWiFi = true;
-    }
+    // If WiFi is not connected, just wait for provisioning.
+    // The shouldConnectWiFi flag is set by the BLE callback when credentials are received.
+
     // Waiting for provisioning: Slow blink (every 1 second)
     static unsigned long lastBlink = 0;
     if (millis() - lastBlink > 1000) {
