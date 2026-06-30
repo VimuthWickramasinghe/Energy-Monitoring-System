@@ -234,12 +234,12 @@ const DeviceRealtimeCard = ({
             </div>
 
             {/* Secondary metrics grid */}
-            <div className="grid grid-cols-2 gap-1.5">
-                <MetricPill icon={Zap} label="Voltage" value={data && online ? voltage.toFixed(1) : '—'} unit="V" />
-                <MetricPill icon={Activity} label="Current" value={data && online ? current.toFixed(2) : '—'} unit="A" />
+            <div className="grid  gap-1.5">
+                <MetricPill icon={Zap} label="Voltage" value={data && online ? voltage.toFixed(1) : '—'} unit=" V" />
+                <MetricPill icon={Activity} label="Current" value={data && online ? current.toFixed(2) : '—'} unit=" A" />
                 <MetricPill icon={Gauge} label="Power Factor" value={data && online ? (pf !== null ? Number(pf).toFixed(3) : '0.000') : '—'} />
-                <MetricPill icon={Zap} label="Apparent Power" value={data && online ? Number(apparent).toFixed(2) : '—'} unit="VA" />
-                <MetricPill icon={Zap} label="Real Power" value={data && online ? Number(power).toFixed(2) : '—'} unit="W" />
+                <MetricPill icon={Zap} label="Apparent Power" value={data && online ? Number(apparent).toFixed(2) : '—'} unit=" VA" />
+                <MetricPill icon={Zap} label="Real Power" value={data && online ? Number(power).toFixed(2) : '—'} unit=" W" />
             </div>
 
             {/* Last updated */}
