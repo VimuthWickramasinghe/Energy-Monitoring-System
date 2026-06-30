@@ -29,6 +29,7 @@ The main dashboard provides real-time insights into your electrical consumption:
 Follow these steps to integrate your hardware with the EMS platform:
 
 ### 1. Physical Installation
+
 > [!CAUTION]
 > **Safety First:** Ensure all mains power lines are switched OFF at the circuit breaker before installation.
 
@@ -36,9 +37,10 @@ Follow these steps to integrate your hardware with the EMS platform:
 - Connect the **ZMPT101B Voltage Sensor** to the AC source.
 - Verify all wiring matches the hardware schematic before powering on.
 
-<!-- [IMAGE: Hardware connection diagram or photo] -->
+{/_ [IMAGE: Hardware connection diagram or photo] _/}
 
 ### 2. WiFi Provisioning & Registration
+
 1. **Enter Pairing Mode:** Power on the device. Wait until the status LED blinks blue, indicating it is in WiFi Provisioning mode.
 2. **Enable Bluetooth:** Ensure Bluetooth is enabled on your smartphone or computer.
 3. **Add Module:** In the EMS Webapp, navigate to **Devices** and click **Add Module**.
@@ -46,12 +48,12 @@ Follow these steps to integrate your hardware with the EMS platform:
 5. **Configure:** Select your building and phase number (default to Phase 1 for single-phase setups).
 6. **Finalize:** Once provisioning is successful, click **Register Device** to link it to your profile.
 
-<!-- [GIF: Screen recording of the WiFi provisioning process] -->
-<!-- [VIDEO: Full walkthrough of device registration] -->
+{/_ [GIF: Screen recording of the WiFi provisioning process] _/}
+{/_ [VIDEO: Full walkthrough of device registration] _/}
 
 ### 3. Verify Data
-Once registered, navigate to the **Analytics** page to view your real-time energy stream.
----
+
+## Once registered, navigate to the **Analytics** page to view your real-time energy stream.
 
 ## 🔔 Alert Configuration
 

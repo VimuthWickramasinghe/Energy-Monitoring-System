@@ -3,7 +3,8 @@
 // (when paired with `@ts-check`).
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
-
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { themes as prismThemes } from 'prism-react-renderer';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
@@ -49,6 +50,8 @@ const config = {
           sidebarPath: './sidebars.js',
           editUrl:
             'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System/tree/main/docs/',
+          remarkPlugins: [require('remark-math')],
+          rehypePlugins: [require('rehype-katex')],
         },
         blog: false,
         theme: {
@@ -58,6 +61,16 @@ const config = {
     ],
   ],
 
+  stylesheets: [
+    {
+      href: 'https://cdn.jsdelivr.net/npm/katex@0.13.24/dist/katex.min.css',
+      type: 'text/css',
+      integrity:
+        'sha384-odtC+0UGzzFLQxAU/CF/+cPRT8yhT8v+MUmFrBfvHWIMt5OrkmFF2TxT5V77LdZ',
+      crossorigin: 'anonymous',
+    },
+  ],
+
   plugins: [
     [
       '@docusaurus/plugin-content-docs',
@@ -65,6 +78,9 @@ const config = {
         id: 'user-manual',
         path: 'user-manual',
         routeBasePath: 'user-manual',
+        sidebarPath: './sidebarsUserManual.js',
+        remarkPlugins: [require('remark-math')],
+        rehypePlugins: [require('rehype-katex')],
         editUrl:
           'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System/tree/main/docs/',
       }
@@ -75,6 +91,9 @@ const config = {
         id: 'developer-guide',
         path: 'developer-guide',
         routeBasePath: 'developer-guide',
+        sidebarPath: './sidebarsDeveloperGuide.js',
+        remarkPlugins: [require('remark-math')],
+        rehypePlugins: [require('rehype-katex')],
         editUrl:
           'https://github.com/VimuthWickramasinghe/Energy-Monitoring-System/tree/main/docs/',
       },

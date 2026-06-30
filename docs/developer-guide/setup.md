@@ -14,10 +14,10 @@ Follow this guide to set up the Energy Monitoring System codebase on your local 
 
 The repository is structured into distinct project components:
 
-*   [`/frontend/ems-webapp`](file:///c:/projects/ems/frontend/ems-webapp): Next.js application for user dashboards.
-*   [`/backend`](file:///c:/projects/ems/backend): Node.js / Express API handling WebSocket data and database routing.
-*   [`/firmware`](file:///c:/projects/ems/firmware): C++/Arduino firmware for ESP32 microcontrollers.
-*   [`/dev-docs`](file:///c:/projects/ems/dev-docs): Docusaurus developer documentation site.
+- [`/frontend/ems-webapp`](file:///c:/projects/ems/frontend/ems-webapp): Next.js application for user dashboards.
+- [`/backend`](file:///c:/projects/ems/backend): Node.js / Express API handling WebSocket data and database routing.
+- [`/firmware`](file:///c:/projects/ems/firmware): C++/Arduino firmware for ESP32 microcontrollers.
+- [`/dev-docs`](file:///c:/projects/ems/dev-docs): Docusaurus developer documentation site.
 
 ---
 
@@ -26,13 +26,14 @@ The repository is structured into distinct project components:
 ### Prerequisites
 
 Ensure you have the following tools installed:
+
 - **Node.js** (v18.x or later)
 - **Arduino IDE** or **PlatformIO** (for firmware development)
 - **MongoDB** (locally or an Atlas cluster URI)
 - **Supabase Account** (for Auth and PostgreSQL)
--  *Mosquito client*
--  *Websockets* Socket.io
--  *Google Cloud*
+- _Mosquito client_
+- _Websockets_ Socket.io
+- _Google Cloud_
 
 ---
 
@@ -57,9 +58,9 @@ Ensure you have the following tools installed:
 
 ### 2. Set Up the Documentation Site
 
-1. Navigate to the `dev-docs` directory:
+1. Navigate to the `docs` directory:
    ```bash
-   cd dev-docs
+   cd docs
    ```
 2. Install dependencies:
    ```bash
