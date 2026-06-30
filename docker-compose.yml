@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    ports:
+      - "1883:1883" # MQTT port
+      - "9001:9001" # WebSocket port
+    volumes:
+      - ./frontend/ems-webapp/mosquitto/config:/mosquitto/config
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    command: "mosquitto -c /mosquitto/config/mosquitto.conf"
+    networks:
+      - ems-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ems-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env
+    environment:
+      - PORT=8080
+      - MQTT_BROKER_URL=mqtt://mosquitto:1883
+    depends_on:
+      - mosquitto
+    networks:
+      - ems-network
+
+  frontend:
+    build:
+      context: ./frontend/ems-webapp
+      dockerfile: Dockerfile
+    container_name: ems-frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/ems-webapp/.env.local
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+    depends_on:
+      - backend
+    networks:
+      - ems-network
+
+networks:
+  ems-network:
+    driver: bridge
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:

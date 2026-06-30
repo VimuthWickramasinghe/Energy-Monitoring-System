@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 4
 title: Energy monitoring system
 description: Challenges, Techniques used, Findings.
 ---

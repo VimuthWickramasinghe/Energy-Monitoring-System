@@ -80,7 +80,8 @@ async function processDeviceData(payload) {
     previousSensorData = saved.toObject();
     // *** END ALERT SECTION ***
 
-    io.emit("deviceData", saved);
+    // Emit the new data only to clients subscribed to this specific device's room
+    io.to(saved.device_id).emit("deviceData", saved);
     return saved;
   } catch (err) {
     console.error("Error processing device data:", err);

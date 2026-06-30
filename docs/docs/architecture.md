@@ -13,25 +13,7 @@ The Energy Monitoring System (EMS) is a full-stack IoT platform integrating cust
 ## 🏗️ Architecture Diagram
 
 Below is the high-level system diagram showing data flows from physical current and voltage sensors to the end-user interface.
-
-```mermaid
-graph TD
-    subgraph Hardware Layer
-        V_Sens[ZMPT101B Voltage Sensor] -->|Analog Signal| ESP32[ESP32 Microcontroller]
-        C_Sens[SCT-013 Current Clamp] -->|Analog Signal| ESP32
-    end
-
-    subgraph Backend & Communications
-        ESP32 -->|WiFi / MQTT or WebSockets| BE[Node.js / Express Backend]
-        BE -->|WebSocket Streams| FE[Next.js Webapp]
-        MQTT Broker -->| Depends on the device Configuration| BE[Mosquito]
-    end
-
-    subgraph Persistence Layer
-        BE -->|Store Real-time Logs| Mongo[(MongoDB Time-Series)]
-        BE -->|Sync Core Stats| Supabase[(Supabase / Postgres)]
-    end
-```
+![alt text](../static/assets/system_arc.png)
 
 ---
 
@@ -43,23 +25,25 @@ graph TD
 - Performs root-mean-square (RMS) computations locally.
 - Sends processed telemetry data over local WiFi.
 
-### 2. SCT-013 Current Sensor
+### 2. SCT-013 Current Clamp Sensor 
 
 - Non-invasive split-core current transformer.
 - Measures alternating current (up to 100A).
 - Interfaced via an analog burden resistor circuit to translate current ratios into ADC-readable voltage.
 
-### 3. ZMPT101B Voltage Sensor
+### 3. ACS712 Hall Effect Sensor
+
+- Measures AC/DC current based on the Hall effect.
+- Provides an analog voltage output proportional to the current.
+
+### 4. ZMPT101B Voltage Sensor
 
 - Active single-phase AC voltage transformer module.
 - Safely steps down high-voltage AC mains to low-voltage AC.
 - Incorporates a trim potentiometer for calibrating the output amplitude.
 
 ### 4. Power Line Communication (PLC) Module
-
--
-
----
+- ***
 
 ## 💾 Database Schema
 

@@ -1,4 +1,5 @@
 ---
+sidebar_position: 2
 id: firmware
 title: Firmware Measurement Model
 sidebar_label: Firmware & Measurement Math
@@ -22,14 +23,12 @@ $V_{ref} = 3.3\,\text{V}$ is the ADC reference. $f$ is the line frequency (50 Hz
 
 ---
 
-## 1. Signal chain
+## 1. Signal Chain
 
 Each analog channel follows the same path:
 
 $$
-\text{AC quantity} \;\xrightarrow{\text{sensor}}\; \text{small AC voltage about a DC bias}
-\;\xrightarrow{\text{(divider)}}\; \text{ADC pin } (0\text{–}3.3\,\text{V})
-\;\xrightarrow{\text{SAR ADC}}\; x_n \in [0, 4095]
+\text{AC quantity} \;\overset{\text{sensor}}{\longrightarrow}\; v_{in}(t) \;\overset{\text{shift \& scale}}{\longrightarrow}\; v_{adc}(t) \in [0, 3.3]\,\text{V} \;\overset{\text{12-bit SAR ADC}}{\longrightarrow}\; x_n \in [0, 4095]
 $$
 
 - **Voltage:** the ZMPT101B outputs an attenuated, level-shifted copy of the mains voltage, biased to roughly mid-rail.
@@ -56,13 +55,13 @@ $$
 
 ---
 
-## 2. From ADC counts to volts
+## 2. From ADC Counts to Volts
 
 A raw count maps to the pin voltage by
 
-$$
-u_n = x_n \cdot \frac{V_{ref}}{M}.
-$$
+```math
+u_n = x_n \cdot \frac{V_{ref}}{M}
+```
 
 The ESP32 uses `ADC_11db` attenuation, whose true full-scale is closer to
 $\sim 3.1\,\text{V}$ than the nominal 3.3 V and is mildly non-linear near the
@@ -71,14 +70,14 @@ but the non-linearity itself is not corrected.
 
 ---
 
-## 3. DC offset removal and calibration
+## 3. DC Offset Removal and Calibration
 
 Both channels carry a DC bias that must be removed before computing AC
 quantities. The firmware treats the two channels differently.
 
 ### 3.1 Voltage offset $O_v$ (Step 2 of calibration)
 
-With no special excitation, 1000 reads are averaged. Over $\approx 1\,\text{s}$
+With no special excitation, 1000 reads are averaged. Over $\approx 1$ s
 (50 cycles) the AC component averages to zero, leaving the DC bias in counts:
 
 $$
@@ -107,7 +106,7 @@ biased. Wiring $O_i$ into the current conversion is a recommended fix
 
 ### 3.3 Voltage gain $k_v$ (Step 3 of calibration)
 
-A single-point linear gain. The firmware measures the raw RMS over $\approx 0.5\,\text{s}$,
+A single-point linear gain. The firmware measures the raw RMS over $\approx 0.5$ s,
 
 $$
 V_{measured} = \frac{V_{ref}}{M}\sqrt{\frac{1}{N}\sum_{n}(x_{v,n} - O_v)^2},
@@ -138,32 +137,32 @@ $$
 X_{rms} = \sqrt{\frac{1}{N}\sum_{n=1}^{N} (x_n - \bar{x})^2}\;.
 $$
 
-This is a *true* RMS: it is exact for any periodic waveform sampled adequately,
+This is a _true_ RMS: it is exact for any periodic waveform sampled adequately,
 not just sinusoids.
 
 **Voltage RMS** (fixed stored offset $O_v$, gain $k_v$):
 
-$$
-\boxed{\;V_{rms} = k_v\,\frac{V_{ref}}{M}\sqrt{\frac{1}{N}\sum_{n=1}^{N}\big(x_{v,n} - O_v\big)^2}\;}
-$$
+```math
+V_{rms} = k_v\,\frac{V_{ref}}{M}\sqrt{\frac{1}{N}\sum_{n=1}^{N}\big(x_{v,n} - O_v\big)^2}
+```
 
 **Current RMS, SCT-013** (per-window mean $\bar{x}_i$, scale $S_i$):
 
-$$
-\boxed{\;I_{rms} = \frac{V_{ref}}{M\,S_i}\sqrt{\frac{1}{N}\sum_{n=1}^{N}\big(x_{i,n} - \bar{x}_i\big)^2}\;}
-$$
+```math
+I_{rms} = \frac{V_{ref}}{M\,S_i}\sqrt{\frac{1}{N}\sum_{n=1}^{N}\big(x_{i,n} - \bar{x}_i\big)^2}
+```
 
 **Current RMS, ACS712** (divider ratio $D$, sensitivity $s$):
 
-$$
-\boxed{\;I_{rms} = \frac{V_{ref}\,D}{M\,s}\sqrt{\frac{1}{N}\sum_{n=1}^{N}\big(x_{i,n} - \bar{x}_i\big)^2}\;}
-$$
+```math
+I_{rms} = \frac{V_{ref}\,D}{M\,s}\sqrt{\frac{1}{N}\sum_{n=1}^{N}\big(x_{i,n} - \bar{x}_i\big)^2}
+```
 
 A noise dead-band forces $I_{rms} = 0$ below 50 mA to suppress jitter at idle.
 
 ---
 
-## 5. Active (real) power
+## 5. Active (Real) Power
 
 Real power is the time-average of instantaneous power:
 
@@ -190,7 +189,7 @@ $|P| < 0.5\,\text{W}$.
 
 :::note ACS712 branch inconsistency
 The ACS712 instantaneous current uses a fixed $2.5\,\text{V}$ reference, while
-its RMS uses the dynamic mean $\bar{x}_i$. The AC *gain* is identical in both, so
+its RMS uses the dynamic mean $\bar{x}_i$. The AC _gain_ is identical in both, so
 only the DC reference differs; since $v_n$ is zero-mean, the difference largely
 cancels in $P$. It is still cleaner to use the same mean-removed value in both
 (Section 9).
@@ -210,7 +209,7 @@ Because $P$ comes from instantaneous products and $S$ from true RMS, $PF = P/S$
 is the **true power factor**, already including any distortion component. This
 is correct.
 
-The phase angle, however, is only an *equivalent* angle:
+The phase angle, however, is only an _equivalent_ angle:
 
 $$
 \varphi = \arccos(PF).
@@ -253,9 +252,9 @@ $$
 Because harmonics of different orders are orthogonal over a period, only
 matched orders contribute to real power:
 
-$$
-\boxed{\;P = \sum_{k} V_k I_k \cos(\alpha_k - \beta_k)\;}
-$$
+```math
+P = \sum_{k} V_k I_k \cos(\alpha_k - \beta_k)
+```
 
 and the RMS values aggregate all harmonics:
 
@@ -300,14 +299,14 @@ thresholds, not a real reading.
 
 ## 9. Sampling considerations and error sources
 
-| Effect | Cause | Consequence |
-|---|---|---|
-| **Aliasing** | $f_s \approx 1.5\text{–}2\,\text{kHz}$, no anti-alias filter | Harmonics above $\sim f_s/2$ fold back into the band, corrupting RMS and $P$ for sharp-edged waveforms |
-| **Spectral leakage** | Window is $\approx 6$ cycles, non-integer, not zero-cross locked | Small RMS / $P$ error |
-| **Inter-channel skew** | V and I sampled sequentially, not simultaneously | Phase error $\delta = 360^\circ f \,\Delta t_s$; power error $\frac{\Delta P}{P}\approx \delta\tan\varphi$ (negligible near $PF=1$, ~2–3% at $PF=0.5$ for a 50 µs gap) |
-| **Timing jitter** | `delayMicroseconds` + variable ADC time | Non-uniform $\Delta t$ smears any frequency-dependent result |
-| **ADC non-linearity** | ESP32 SAR ADC, worse near rails | Absolute amplitude error |
-| **Software floating point** | ESP32-C3 has **no FPU**; classic ESP32 has only single-precision | Per-sample `double` math is slow, limiting achievable $f_s$ |
+| Effect                      | Cause                                                            | Consequence                                                                                                                                                            |
+| --------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Aliasing**                | $f_s \approx 1.5\text{–}2\,\text{kHz}$, no anti-alias filter     | Harmonics above $\sim f_s/2$ fold back into the band, corrupting RMS and $P$ for sharp-edged waveforms                                                                 |
+| **Spectral leakage**        | Window is $\approx 6$ cycles, non-integer, not zero-cross locked | Small RMS / $P$ error                                                                                                                                                  |
+| **Inter-channel skew**      | V and I sampled sequentially, not simultaneously                 | Phase error $\delta = 360^\circ f \,\Delta t_s$; power error $\frac{\Delta P}{P}\approx \delta\tan\varphi$ (negligible near $PF=1$, ~2–3% at $PF=0.5$ for a 50 µs gap) |
+| **Timing jitter**           | `delayMicroseconds` + variable ADC time                          | Non-uniform $\Delta t$ smears any frequency-dependent result                                                                                                           |
+| **ADC non-linearity**       | ESP32 SAR ADC, worse near rails                                  | Absolute amplitude error                                                                                                                                               |
+| **Software floating point** | ESP32-C3 has **no FPU**; classic ESP32 has only single-precision | Per-sample `double` math is slow, limiting achievable $f_s$                                                                                                            |
 
 A useful skew estimate: at 50 Hz, one ADC conversion of $\sim 50\,\mu\text{s}$
 between channels is
@@ -320,20 +319,21 @@ $$
 
 ## 10. Accuracy summary
 
-| Quantity | Sinusoidal | Non-sinusoidal | Limiting factors |
-|---|---|---|---|
-| $V_{rms}$, $I_{rms}$ | Accurate | Accurate (if harmonics within Nyquist) | ADC cal, aliasing |
-| $P$ (real power) | Accurate | Accurate (instantaneous product) | Skew, aliasing, offsets |
-| $S$ (apparent) | Accurate | Accurate | RMS accuracy |
-| $PF = P/S$ | Accurate | Accurate (true PF) | $P$ and $S$ accuracy |
-| $\varphi = \arccos(PF)$ | Accurate (unsigned) | **Inaccurate** | Distortion folded in; sign lost |
-| Lead / lag direction | Not available | Not available | $\arccos$ is symmetric |
+| Quantity                | Sinusoidal          | Non-sinusoidal                         | Limiting factors                |
+| ----------------------- | ------------------- | -------------------------------------- | ------------------------------- |
+| $V_{rms}$, $I_{rms}$    | Accurate            | Accurate (if harmonics within Nyquist) | ADC cal, aliasing               |
+| $P$ (real power)        | Accurate            | Accurate (instantaneous product)       | Skew, aliasing, offsets         |
+| $S$ (apparent)          | Accurate            | Accurate                               | RMS accuracy                    |
+| $PF = P/S$              | Accurate            | Accurate (true PF)                     | $P$ and $S$ accuracy            |
+| $\varphi = \arccos(PF)$ | Accurate (unsigned) | **Inaccurate**                         | Distortion folded in; sign lost |
+| Lead / lag direction    | Not available       | Not available                          | $\arccos$ is symmetric          |
 
 ---
 
 ## 11. Recommended improvements
 
 ### 11.1 Use the calibrated current offset
+
 Replace the per-window mean and the fixed $2.5\,\text{V}$ reference with the
 stored $O_i$ for a consistent, drift-aware zero:
 
@@ -344,6 +344,7 @@ $$
 with $G_i$ the (newly calibrated) current gain.
 
 ### 11.2 Add a current gain calibration
+
 Apply a known resistive load $I_{known}$, measure $I_{measured}$, and store
 
 $$
@@ -353,16 +354,19 @@ $$
 This removes the dominant amplitude error from sensitivity/divider tolerance.
 
 ### 11.3 Anti-aliasing filter
+
 A first-order RC low-pass on each analog input with a corner around
 $300\text{–}500\,\text{Hz}$ attenuates content above Nyquist before it can fold
 back.
 
 ### 11.4 Deterministic, timer-driven sampling
+
 Drive the ADC from a hardware timer (or the ESP32 continuous / DMA ADC mode) at
 a fixed, known $f_s$ instead of `delayMicroseconds`. This removes jitter and
 makes the window length exact.
 
 ### 11.5 Simultaneous V/I sampling
+
 Eliminate inter-channel skew by sampling both channels at the same instant
 (sample-and-hold front end, or a simultaneous-sampling ADC). A software-only
 stopgap is to linearly interpolate one channel to the other's timestamp:
@@ -372,10 +376,12 @@ $$
 $$
 
 ### 11.6 Synchronous / whole-cycle windowing
+
 Detect zero crossings (or lock a PLL to the line) and integrate over an integer
 number of cycles to eliminate leakage.
 
 ### 11.7 Signed displacement angle and reactive power
+
 Extract the fundamental of each channel with the **Goertzel** algorithm at
 $f = 50\,\text{Hz}$ to obtain $V_1\angle\alpha_1$ and $I_1\angle\beta_1$, then
 
@@ -393,6 +399,7 @@ $$
 $$
 
 ### 11.8 Report THD
+
 With the harmonic magnitudes from a DFT/Goertzel bank,
 
 $$
@@ -401,6 +408,7 @@ THD_v = \frac{\sqrt{\sum_{k\geq 2} V_k^2}}{V_1}.
 $$
 
 ### 11.9 Energy accumulation
+
 Integrate power over time for kWh:
 
 $$
@@ -408,12 +416,14 @@ E = \int P\,dt \approx \sum_m P_m\,\Delta T_m.
 $$
 
 ### 11.10 Numerical performance
+
 On the FPU-less C3, accumulate integer sums of squares and products in `int64_t`
 inside the loop and convert to `float` once at the end; precompute constant
 scale factors outside the loop. Prefer `float` over `double` everywhere the
 extra precision is not needed.
 
 ### 11.11 Robust offset and ADC calibration
+
 Use a median (not mean) for offset estimation to reject spikes, and apply the
 ESP32 eFuse `Vref` characterization (`esp_adc_cal`) to linearize the ADC.
 
@@ -438,24 +448,24 @@ ESP32 eFuse `Vref` characterization (`esp_adc_cal`) to linearize the ADC.
 
 ## 13. Equation ↔ code reference
 
-| Symbol | Meaning | Code variable |
-|---|---|---|
-| $N$ | samples per window | `bufferSize` |
-| $\Delta t$ | sample interval | `sampleDelayUs` (+ conversion time) |
-| $V_{ref}$ | ADC reference | `referenceVoltage` |
-| $M$ | ADC full scale | `adcMax` |
-| $O_v$ | voltage DC offset | `voltageOffset` |
-| $O_i$ | current DC offset (unused) | `currentOffset` |
-| $k_v$ | voltage gain | `voltageCalibration` |
-| $S_i$ | SCT scale (V/A) | `mVperAmp / 1000` |
-| $D$ | ACS712 divider ratio | `voltageDividerRatio` |
-| $s$ | ACS712 sensitivity | `hall_sensitivity` |
-| $V_{rms}$ | RMS voltage | `voltageRMS` |
-| $I_{rms}$ | RMS current | `currentRMS` |
-| $P$ | active power | `realPower` |
-| $S$ | apparent power | `apparentPower` |
-| $PF$ | power factor | `powerFactor` |
-| $\varphi$ | phase angle | `phaseAngle` |
+| Symbol     | Meaning                    | Code variable                       |
+| ---------- | -------------------------- | ----------------------------------- |
+| $N$        | samples per window         | `bufferSize`                        |
+| $\Delta t$ | sample interval            | `sampleDelayUs` (+ conversion time) |
+| $V_{ref}$  | ADC reference              | `referenceVoltage`                  |
+| $M$        | ADC full scale             | `adcMax`                            |
+| $O_v$      | voltage DC offset          | `voltageOffset`                     |
+| $O_i$      | current DC offset (unused) | `currentOffset`                     |
+| $k_v$      | voltage gain               | `voltageCalibration`                |
+| $S_i$      | SCT scale (V/A)            | `mVperAmp / 1000`                   |
+| $D$        | ACS712 divider ratio       | `voltageDividerRatio`               |
+| $s$        | ACS712 sensitivity         | `hall_sensitivity`                  |
+| $V_{rms}$  | RMS voltage                | `voltageRMS`                        |
+| $I_{rms}$  | RMS current                | `currentRMS`                        |
+| $P$        | active power               | `realPower`                         |
+| $S$        | apparent power             | `apparentPower`                     |
+| $PF$       | power factor               | `powerFactor`                       |
+| $\varphi$  | phase angle                | `phaseAngle`                        |
 
 ---
 
