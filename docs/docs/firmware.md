@@ -349,6 +349,7 @@ Apply a known resistive load $I_{known}$, measure $I_{measured}$, and store
 
 $$
 G_i \mathrel{\*}= \frac{I_{known}}{I_{measured}}.
+G_i \mathrel{\ast}= \frac{I_{known}}{I_{measured}}.
 $$
 
 This removes the dominant amplitude error from sensitivity/divider tolerance.
