@@ -1,15 +1,22 @@
-#include <WiFi.h>        // Core library for ESP32 WiFi connectivity and station/AP modes
-#include <HTTPClient.h>  // Provides methods to send HTTP requests (GET, POST) to a web server
-#include <ArduinoJson.h> // Used for serializing and deserializing JSON data for API communication
-#include <BLEDevice.h>   // Main BLE library to initialize the ESP32 as a Bluetooth device
-#include <BLEServer.h>   // Used to create and manage the BLE Server (GATT server)
-#include <BLEUtils.h>    // Helper utilities for BLE UUIDs and data formatting
-#include <BLE2902.h>     // Enables Client Characteristic Configuration Descriptor (CCCD) for notifications
-#include <Preferences.h> // Provides access to Non-Volatile Storage (NVS) to persist WiFi credentials
-#include <PubSubClient.h> // MQTT Client Library
+#include <WiFi.h>            // Core library for ESP32 WiFi connectivity and station/AP modes
+#include <WiFiClientSecure.h> // FIX: needed for HTTPS fallback POST (server_url is https://)
+#include <HTTPClient.h>      // Provides methods to send HTTP requests (GET, POST) to a web server
+#include <ArduinoJson.h>     // Used for serializing and deserializing JSON data for API communication
+#include <BLEDevice.h>       // Main BLE library to initialize the ESP32 as a Bluetooth device
+#include <BLEServer.h>       // Used to create and manage the BLE Server (GATT server)
+#include <BLEUtils.h>        // Helper utilities for BLE UUIDs and data formatting
+#include <BLE2902.h>         // Enables Client Characteristic Configuration Descriptor (CCCD) for notifications
+#include <Preferences.h>     // Provides access to Non-Volatile Storage (NVS) to persist WiFi credentials
+#include <PubSubClient.h>    // MQTT Client Library
 
-// --- Control Flags ---
-bool useHallEffectSensor = false; // Runtime flag: true for ACS712, false for SCT-013 Clamp
+// ============================================================================
+//  BOARD SELECTION  --  Uncomment exactly ONE line.
+// ============================================================================
+// #define BOARD_ESP32_DEV_MODULE     // ESP32 DevKitC, WROOM/WROVER (e.g. ESP32-WROOM-32)
+#define BOARD_ESP32_C3_SUPER_MINI     // ESP32-C3 Super Mini / C3-MINI-1 boards
+
+// ----- Sensor type -----
+#define USE_HALL_EFFECT_SENSOR true   // true = ACS712 (hall), false = SCT-013 clamp
 
 // mqtt setup variables
 const char *mqtt_broker = "34.142.217.143";
@@ -17,7 +24,6 @@ const int mqtt_port = 1883;
 String mqtt_topic = "";
 const char *mqtt_user = "vimuthwic3";
 const char *mqtt_pass = "vimpra25";
-
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -27,9 +33,9 @@ PubSubClient mqttClient(espClient);
 String provisioned_ssid = "";
 String provisioned_password = "";
 bool USE_MQTT = true;
-bool isRegistered = true;
+bool isRegistered = true;          // NOTE: set false to actually enforce the BLE registration gate
 bool shouldConnectWiFi = false;
-String device_id = ""; // Dynamically generated using MAC Address
+String device_id = "";             // Dynamically generated using MAC Address
 
 // --- Backend Configuration ---
 const char* server_url = "https://emsb.keyblocks.org/test";
@@ -43,18 +49,45 @@ const char* api_key = "ems-key-123";
 #define STATUS_CHAR_UUID          "beb5483e-36e1-4688-b7f5-ea07361b26aa"
 #define REG_CHAR_UUID             "beb5483e-36e1-4688-b7f5-ea07361b26ab"
 
-// --- Hardware Pins ---
-#define RED_LED_PIN 2
-#define BOOT_BUTTON_PIN 0      // Standard Boot button on most ESP32s
-#define VOLT_SENSOR_PIN 34     // Analog input for ZMPT101B
-#define HALL_SENSOR_PIN 33     // Pin for ACS712 Hall Effect Sensor
-#define CLAMP_SENSOR_PIN 35    // Pin for SCT-013 Clamp Sensor
+// ============================================================================
+//  BOARD-SPECIFIC PIN MAP
+// ============================================================================
+#if defined(BOARD_ESP32_DEV_MODULE)
+  #define RED_LED_PIN     2      // Onboard LED on most ESP32 dev boards
+  #define LED_ACTIVE_LOW  false  // dev-module LED is active HIGH
+  #define BOOT_BUTTON_PIN 0      // BOOT button = GPIO0 on classic ESP32
+  #define VOLT_SENSOR_PIN 34     // ZMPT101B  -> ADC1_CH6 (input-only pin)
+  #if USE_HALL_EFFECT_SENSOR
+    #define CURR_SENSOR_PIN 33   // ACS712    -> ADC1_CH5
+  #else
+    #define CURR_SENSOR_PIN 35   // SCT-013   -> ADC1_CH7 (input-only pin)
+  #endif
 
-// Sensor-specific parameters
-const float hall_sensitivity = 0.185; // 185 mV/A for 5A module
+#elif defined(BOARD_ESP32_C3_SUPER_MINI)
+  #define RED_LED_PIN     8      // FIX: onboard LED is GPIO8 on the C3 SuperMini (was 7)
+  #define LED_ACTIVE_LOW  true   // FIX: C3 SuperMini onboard LED is active LOW
+  #define BOOT_BUTTON_PIN 9      // FIX: BOOT button = GPIO9 on the C3 (was global 0)
+  #define VOLT_SENSOR_PIN 1      // ZMPT101B  -> ADC1_CH1
+  #if USE_HALL_EFFECT_SENSOR
+    #define CURR_SENSOR_PIN 0    // FIX: ACS712 -> ADC1_CH0 (was GPIO2, a strapping pin)
+  #else
+    #define CURR_SENSOR_PIN 3    // SCT-013   -> ADC1_CH3
+  #endif
 
-// Global variable to hold the currently active sensor pin
-int activeCurrSensorPin;
+#else
+  #error "Define your board: BOARD_ESP32_DEV_MODULE or BOARD_ESP32_C3_SUPER_MINI"
+#endif
+
+// Polarity-aware LED helper (so 'on' means lit on both boards)
+inline void ledWrite(bool on) {
+  digitalWrite(RED_LED_PIN, (LED_ACTIVE_LOW ? !on : on));
+}
+
+#if USE_HALL_EFFECT_SENSOR
+  const float hall_sensitivity = 0.185; // 185 mV/A for 5A module
+#else
+  // const float sct_sensitivity = ... // If SCT-013 specific sensitivity is needed, define here
+#endif
 
 // --- Power Calculation Parameters ---
 const double referenceVoltage = 3.3;
@@ -90,71 +123,69 @@ void calculatePower();
 void sendSensorData();
 void calibrateSensors();
 void debugReadings();
-void handleSerialCommands();
+bool reconnect_mqtt();
 
 Preferences preferences;
 BLECharacteristic *pStatusCharacteristic = nullptr;
 
 class ProvisioningCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
-    String rxValue = String(pCharacteristic->getValue().c_str());
-    rxValue.trim(); // Remove any accidental whitespace or newlines
+        String rxValue = String(pCharacteristic->getValue().c_str());
+        rxValue.trim();
 
-    BLEUUID uuid = pCharacteristic->getUUID();
-        if (rxValue.length() > 0) {
-            if (uuid.equals(BLEUUID(SSID_CHAR_UUID))) {
-        provisioned_ssid = rxValue;
-        Serial.print("Received SSID: '");
-        Serial.print(provisioned_ssid);
-        Serial.print("' (Length: ");
-        Serial.print(provisioned_ssid.length());
-        Serial.println(")");
-            } else if (uuid.equals(BLEUUID(PASS_CHAR_UUID))) {
-        provisioned_password = rxValue;
-        Serial.print("Received Password: '");
-        Serial.print(provisioned_password);
-        Serial.print("' (Length: ");
-        Serial.print(provisioned_password.length());
-        Serial.println(")");
-            } else if (uuid.equals(BLEUUID(REG_CHAR_UUID))) {
-                if (rxValue == "REGISTERED") {
-          isRegistered = true;
-          Serial.println("Device registered via App. Shutting down BLE...");
-          delay(2000);
-          BLEDevice::deinit(false);
+        if (rxValue.length() == 0) return;
+
+        BLEUUID uuid = pCharacteristic->getUUID();
+
+        if (uuid.equals(BLEUUID(SSID_CHAR_UUID))) {
+            provisioned_ssid = rxValue;
+            // Clear the old password and connection flag to wait for a new password.
+            provisioned_password = "";
+            shouldConnectWiFi = false;
+            Serial.print("Received SSID: '");
+            Serial.print(provisioned_ssid);
+            Serial.println("'");
+        } else if (uuid.equals(BLEUUID(PASS_CHAR_UUID))) {
+            provisioned_password = rxValue;
+            Serial.print("Received Password of length: ");
+            Serial.println(provisioned_password.length());
+        } else if (uuid.equals(BLEUUID(REG_CHAR_UUID))) {
+            if (rxValue == "REGISTERED") {
+                isRegistered = true;
+                Serial.println("Device registration status set to REGISTERED.");
+                // We no longer shut down BLE here. It will be shut down after WiFi connects.
+            }
         }
-      }
 
-            if (provisioned_ssid.length() > 0 && provisioned_password.length() > 0) {
-        shouldConnectWiFi = true;
-        Serial.println("Credentials received. Attempting WiFi connection...");
-      }
+        // Check if we have a complete, fresh set of credentials and haven't tried to connect yet.
+        if (provisioned_ssid.length() > 0 && provisioned_password.length() > 0 && !shouldConnectWiFi) {
+            shouldConnectWiFi = true;
+            Serial.println("SSID and Password received. Triggering WiFi connection attempt.");
+        }
     }
-  }
 };
 
-void reconnect_mqtt()
-{
-  while (!mqttClient.connected())
-  {
+// FIX: bounded retry. Returns true if connected, false after giving up so the
+// HTTP fallback path can run instead of blocking forever.
+bool reconnect_mqtt() {
+  int attempts = 0;
+  while (!mqttClient.connected() && attempts < 3) {
     Serial.print("Attempting MQTT connection...");
-    // Create a random client ID to avoid collisions
     String clientId = "EMS-ESP32-";
     clientId += String(random(0xffff), HEX);
 
-    // Attempt to connect
-    if (mqttClient.connect(clientId.c_str(), mqtt_user, mqtt_pass))
-    {
+    if (mqttClient.connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
       Serial.println("connected");
-    }
-    else
-    {
+      return true;
+    } else {
       Serial.print("failed, rc=");
       Serial.print(mqttClient.state());
-      Serial.println(" try again in 5 seconds");
-      delay(5000);
+      Serial.println(" retrying...");
+      attempts++;
+      delay(2000);
     }
   }
+  return mqttClient.connected();
 }
 
 void setup()
@@ -164,27 +195,15 @@ void setup()
   delay(2000); // Increased delay to allow stable power-up
 
   pinMode(RED_LED_PIN, OUTPUT);
+  ledWrite(false);                       // start with LED off regardless of polarity
   pinMode(BOOT_BUTTON_PIN, INPUT_PULLUP);
 
-  // Generate dynamic device identity mapping matching your front-end name filters
-  uint64_t chipId = ESP.getEfuseMac();
-  device_id = "ems-esp-" + String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
+  device_id = "ems-esp-dcb1f6641d44"; // Hardcoded device ID
   device_id.toLowerCase();
   mqtt_topic = "ems/devices/" + device_id + "/data";
 
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
-  
-  // Set the active sensor pin based on the default flag
-  if (useHallEffectSensor) {
-    activeCurrSensorPin = HALL_SENSOR_PIN;
-  } else {
-    activeCurrSensorPin = CLAMP_SENSOR_PIN;
-  }
-  
-  // GPIO 34-39 are input only and don't have internal pullups/pulldowns
-  pinMode(VOLT_SENSOR_PIN, ANALOG);
-  pinMode(activeCurrSensorPin, ANALOG); // Set mode for the active sensor
 
   Serial.println("--- EMS Device Initialization ---");
   Serial.printf("Device ID: %s\n", device_id.c_str());
@@ -222,8 +241,14 @@ void loop() {
     debugMode = false;  // Run once, remove this line to keep debugging
   }
 
-  // Check for Serial commands for control
-  handleSerialCommands();
+  // Check for Serial commands
+  if (Serial.available() > 0) {
+    String command = Serial.readStringUntil('\n');
+    command.trim();
+    if (command.equalsIgnoreCase("CALIBRATE")) {
+      calibrateSensors();
+    }
+  }
 
   // Check for Button Long Press (3 seconds) to reset provisioning
   if (digitalRead(BOOT_BUTTON_PIN) == LOW) {
@@ -259,7 +284,6 @@ void loop() {
     connectToWiFi();
   }
 
-  // Only proceed with measurements if connected
   if (WiFi.status() == WL_CONNECTED) {
     static unsigned long lastMsg = 0;
     if (millis() - lastMsg > 10000) {
@@ -272,56 +296,25 @@ void loop() {
       Serial.printf("Real Power: %.2f W\n", realPower);
       Serial.printf("Apparent Power: %.2f VA\n", apparentPower);
       Serial.printf("Power Factor: %.3f\n", powerFactor);
+  // Add current sensor type
+  #if USE_HALL_EFFECT_SENSOR
+    Serial.println("ACS712 Hall Effect");
+  #else
+      Serial.println("SCT-013 Clamp");
+  #endif
 
       sendSensorData();
       lastMsg = millis();
     }
-  } else { // Not connected
-    if (provisioned_ssid.length() > 0) {
-      shouldConnectWiFi = true;
-    }
+  } else {
+    // If WiFi is not connected, just wait for provisioning.
+    // The shouldConnectWiFi flag is set by the BLE callback when credentials are received.
+
     // Waiting for provisioning: Slow blink (every 1 second)
     static unsigned long lastBlink = 0;
     if (millis() - lastBlink > 1000) {
       digitalWrite(RED_LED_PIN, !digitalRead(RED_LED_PIN));
       lastBlink = millis();
-    }
-  }
-}
-
-void handleSerialCommands() {
-  if (Serial.available() > 0) {
-    String command = Serial.readStringUntil('\n');
-    command.trim();
-    command.toUpperCase(); // Case-insensitive commands
-
-    if (command == "CALIBRATE") {
-      calibrateSensors();
-    } else if (command == "SET SENSOR HALL") {
-      if (!useHallEffectSensor) {
-        useHallEffectSensor = true;
-        activeCurrSensorPin = HALL_SENSOR_PIN;
-        pinMode(activeCurrSensorPin, ANALOG);
-        Serial.println("Switched to Hall Effect Sensor (ACS712). Recalibration is recommended ('CALIBRATE').");
-        calibrateSensors(); // Force recalibration on sensor switch
-      } else {
-        Serial.println("Hall Effect Sensor is already selected.");
-      }
-    } else if (command == "SET SENSOR CLAMP") {
-      if (useHallEffectSensor) {
-        useHallEffectSensor = false;
-        activeCurrSensorPin = CLAMP_SENSOR_PIN;
-        pinMode(activeCurrSensorPin, ANALOG);
-        Serial.println("Switched to Clamp Sensor (SCT-013). Recalibration is recommended ('CALIBRATE').");
-        calibrateSensors(); // Force recalibration on sensor switch
-      } else {
-        Serial.println("Clamp Sensor is already selected.");
-      }
-    } else if (command == "STATUS") {
-      Serial.println("\n--- DEVICE STATUS ---");
-      Serial.printf("Current Sensor: %s\n", useHallEffectSensor ? "Hall Effect (ACS712)" : "Clamp (SCT-013)");
-      Serial.printf("WiFi Status: %s\n", WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected");
-      Serial.println("---------------------\n");
     }
   }
 }
@@ -375,6 +368,7 @@ void connectToWiFi() {
     WiFi.disconnect(); // Clear any previous state
     delay(100);
     WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true); // FIX: recover automatically if the AP drops
     WiFi.begin(provisioned_ssid.c_str(), provisioned_password.c_str());
   } else {
     return;
@@ -403,8 +397,8 @@ void connectToWiFi() {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  // Keep LED solid ON when successfully connected
-  digitalWrite(RED_LED_PIN, HIGH);
+  // Keep LED solid ON when successfully connected (polarity-aware)
+  ledWrite(true);
 
   // Save to NVS now that we know it works
   saveCredentials(provisioned_ssid, provisioned_password);
@@ -442,27 +436,28 @@ void saveCredentials(String ssid, String pass) {
 void sampleSynchronized() {
   for (int i = 0; i < bufferSize; i++) {
     voltageBuffer[i] = analogRead(VOLT_SENSOR_PIN);
-    currentBuffer[i] = analogRead(activeCurrSensorPin);
+    currentBuffer[i] = analogRead(CURR_SENSOR_PIN);
     delayMicroseconds(sampleDelayUs);
   }
 }
 
 void calculatePower() {
-  double vSumSq = 0;
-  double cSumSq = 0;
+  double vSum = 0, vSumSq = 0;
+  double cSum = 0, cSumSq = 0;
   double powerSum = 0;
 
-  // Dynamically calculate the voltage DC offset for this batch of samples to counter drift
-  long vSum = 0;
+  // Calculate averages (DC offset)
+  // For voltage, we use the pre-calibrated voltageOffset as the stable DC bias.
+  // For current, we calculate the average of the current buffer to remove its DC offset.
   for (int i = 0; i < bufferSize; i++) {
-    vSum += voltageBuffer[i];
+    cSum += currentBuffer[i];
   }
-  double dynamicVoltageOffset = (double)vSum / bufferSize;
+  double cAvg = cSum / bufferSize;
 
-  // Calculate RMS and real power using dynamic offset for voltage and stored offset for current
+  // Calculate RMS and real power
   for (int i = 0; i < bufferSize; i++) {
-    double vDiff = voltageBuffer[i] - dynamicVoltageOffset; // Use dynamic offset for accuracy
-    double cDiff = currentBuffer[i] - currentOffset;
+    double vDiff = voltageBuffer[i] - voltageOffset; // Use calibrated DC offset for voltage
+    double cDiff = currentBuffer[i] - cAvg;
 
     vSumSq += vDiff * vDiff;
     cSumSq += cDiff * cDiff;
@@ -470,13 +465,12 @@ void calculatePower() {
     // Convert to actual values
     double vInstant = (vDiff * referenceVoltage / adcMax) * voltageCalibration;
     double cInstant;
-    if (useHallEffectSensor) {
-      // For hall effect, offset is handled differently, often centered at VCC/2 (2.5V)
+    #if USE_HALL_EFFECT_SENSOR
       float sensorVoltage = ((double)currentBuffer[i] / adcMax) * referenceVoltage * voltageDividerRatio;
       cInstant = (sensorVoltage - 2.5) / hall_sensitivity;
-    } else {
+    #else
       cInstant = (cDiff * referenceVoltage / adcMax) / (mVperAmp / 1000);
-    }
+    #endif
     powerSum += vInstant * cInstant;
   }
 
@@ -486,12 +480,12 @@ void calculatePower() {
 
   voltageRMS = (vRMS_raw * referenceVoltage / adcMax) * voltageCalibration;
 
-  if (useHallEffectSensor) {
+  #if USE_HALL_EFFECT_SENSOR
     // For Hall effect, we use the instantaneous calculation logic for RMS
     currentRMS = sqrt(cSumSq / bufferSize) * (referenceVoltage / adcMax) * voltageDividerRatio / hall_sensitivity;
-  } else {
+  #else
     currentRMS = (cRMS_raw * referenceVoltage / adcMax) / (mVperAmp / 1000);
-  }
+  #endif
 
   // Apply noise threshold
   if (currentRMS < currentNoiseThreshold) {
@@ -545,44 +539,47 @@ void sendSensorData()
   // --- Try MQTT if enabled ---
   if (USE_MQTT) {
     if (!mqttClient.connected()) {
-      reconnect_mqtt();
+      reconnect_mqtt();               // FIX: bounded, won't block forever
     }
-    mqttClient.loop();
-    if (mqttClient.publish(mqtt_topic.c_str(), jsonPayload.c_str())) {
-      Serial.println("[MQTT] Payload published successfully.");
-      mqttSuccess = true;
+    if (mqttClient.connected()) {     // FIX: only publish if we actually connected
+      mqttClient.loop();
+      if (mqttClient.publish(mqtt_topic.c_str(), jsonPayload.c_str())) {
+        Serial.println("[MQTT] Payload published successfully.");
+        mqttSuccess = true;
+      } else {
+        Serial.println("[MQTT] Failed to publish payload. Falling back to HTTP.");
+      }
     } else {
-      Serial.println("[MQTT] Failed to publish payload. Falling back to HTTP.");
+      Serial.println("[MQTT] Broker unreachable. Falling back to HTTP.");
     }
   }
 
   // --- Send via HTTP if MQTT is disabled or failed ---
   if (!mqttSuccess) {
-  HTTPClient http;
+    WiFiClientSecure secureClient;    // FIX: TLS client for the https endpoint
+    secureClient.setInsecure();       // no cert validation (fallback path only)
 
-  if (!http.begin(server_url))
-    return;
+    HTTPClient http;
+    if (!http.begin(secureClient, server_url))
+      return;
 
-  http.addHeader("Content-Type", "application/json");
-  http.addHeader("x-api-key", api_key);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("x-api-key", api_key);
 
-  Serial.println("\nSending payload:");
-  Serial.println(jsonPayload);
+    Serial.println("\nSending payload:");
+    Serial.println(jsonPayload);
 
-  int httpResponseCode = http.POST(jsonPayload);
+    int httpResponseCode = http.POST(jsonPayload);
 
-  if (httpResponseCode > 0)
-  {
-    Serial.printf("HTTP Response code: %d\n", httpResponseCode);
-    Serial.printf("Response from server: %s\n", http.getString().c_str());
+    if (httpResponseCode > 0) {
+      Serial.printf("HTTP Response code: %d\n", httpResponseCode);
+      Serial.printf("Response from server: %s\n", http.getString().c_str());
+    } else {
+      Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpResponseCode).c_str());
+    }
+
+    http.end();
   }
-  else
-  {
-    Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpResponseCode).c_str());
-  }
-
-  http.end();
-}
 }
 
 // Calibrate sensors
@@ -591,12 +588,12 @@ void calibrateSensors() {
 
   // Calibrate current sensor (zero current)
   Serial.println("Step 1: Current Sensor Calibration");
-  Serial.printf("Using %s - make sure NO LOAD is connected!\n", useHallEffectSensor ? "Hall Effect Sensor" : "Clamp Sensor");
+  Serial.println("Make sure NO LOAD is connected to ACS712!");
   delay(3000);
 
   long currentSum = 0;
   for (int i = 0; i < 1000; i++) {
-    currentSum += analogRead(activeCurrSensorPin);
+    currentSum += analogRead(CURR_SENSOR_PIN);
     delay(1);
   }
   currentOffset = currentSum / 1000.0;
@@ -677,12 +674,12 @@ void debugReadings() {
 
   // Read raw values
   int vRaw = analogRead(VOLT_SENSOR_PIN);
-  int cRaw = analogRead(activeCurrSensorPin);
+  int cRaw = analogRead(CURR_SENSOR_PIN);
 
   Serial.printf("Voltage Pin (GPIO%d): ADC = %d (%.3f V)\n",
                 VOLT_SENSOR_PIN, vRaw, vRaw * referenceVoltage / adcMax);
   Serial.printf("Current Pin (GPIO%d): ADC = %d (%.3f V)\n",
-                activeCurrSensorPin, cRaw, cRaw * referenceVoltage / adcMax);
+                CURR_SENSOR_PIN, cRaw, cRaw * referenceVoltage / adcMax);
 
   // Check for stuck ADC
   if (vRaw == 0 || vRaw == 4095) {
